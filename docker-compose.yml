@@ -1,0 +1,64 @@
+version: '3.8'
+
+services:
+  # 1. CAPA DE PERSISTENCIA (Base de Datos)
+  postgres-db:
+    image: postgres:15-alpine
+    container_name: coordina_db
+    restart: always
+    environment:
+      POSTGRES_USER: coordina_admin
+      POSTGRES_PASSWORD: coordina_password_segura
+      POSTGRES_DB: coordina_tec_db
+    ports:
+      - "5432:5432" # Expuesto solo para que ustedes puedan conectarse con pgAdmin/DBeaver
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      # Este mapeo ejecuta tu DDL automáticamente al levantar el contenedor por primera vez
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - coordina-network
+
+  # 2. CAPA DE APLICACIÓN (Backend Spring Boot)
+  spring-backend:
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: coordina_backend
+    restart: unless-stopped
+    depends_on:
+      - postgres-db
+    environment:
+      # Spring Boot tomará estas variables para conectarse a la DB
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-db:5432/coordina_tec_db
+      - SPRING_DATASOURCE_USERNAME=coordina_admin
+      - SPRING_DATASOURCE_PASSWORD=coordina_password_segura
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=validate # Para que valide contra tu script, sin sobreescribirlo
+    ports:
+      - "8080:8080"
+    networks:
+      - coordina-network
+
+  # 3. CAPA DE RED / PROXY (Frontend NGINX + React)
+  nginx-frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: coordina_frontend
+    restart: unless-stopped
+    depends_on:
+      - spring-backend
+    ports:
+      - "80:80"
+      - "443:443"
+    networks:
+      - coordina-network
+
+# Declaración de la red interna cerrada
+networks:
+  coordina-network:
+    driver: bridge
+
+# Persistencia del volumen de la BD
+volumes:
+  pgdata:
