@@ -1,0 +1,133 @@
+.agenda-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 66px;
+  margin: 18px 0;
+  padding: 13px 14px;
+  border: 1px solid var(--dashboard-border);
+  border-radius: 11px;
+  background: #fff;
+}
+
+.agenda-toolbar__navigation,
+.agenda-toolbar__views {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.agenda-toolbar__navigation {
+  min-width: 0;
+}
+
+.agenda-toolbar__today,
+.agenda-toolbar__add {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-height: 38px;
+  padding: 8px 12px;
+  border: 0;
+  border-radius: 7px;
+  color: #fff;
+  background: #263f87;
+  font-size: var(--dashboard-copy);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.agenda-toolbar__today:hover,
+.agenda-toolbar__add:hover {
+  background: #1a316b;
+}
+
+.agenda-toolbar__arrows {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  height: 38px;
+  border: 1px solid #e3eaf3;
+  border-radius: 8px;
+  background: #f2f5f9;
+}
+
+.agenda-toolbar__arrows button {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 7px;
+  color: #4b658c;
+  background: transparent;
+}
+
+.agenda-toolbar__arrows button:hover {
+  background: #e0e8f6;
+}
+
+.agenda-toolbar__date {
+  color: #253148;
+  font-size: var(--dashboard-text);
+  white-space: nowrap;
+}
+
+.agenda-toolbar__switch {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 1px;
+  padding: 2px;
+  border: 1px solid #e0e8f2;
+  border-radius: 8px;
+  background: #f1f5fa;
+}
+
+.agenda-toolbar__switch button {
+  min-width: 47px;
+  min-height: 32px;
+  padding: 6px 8px;
+  border: 0;
+  border-radius: 5px;
+  color: #4f6282;
+  background: transparent;
+  font-size: var(--dashboard-copy);
+}
+
+.agenda-toolbar__switch button:hover {
+  color: #263f87;
+}
+
+.agenda-toolbar__switch .agenda-toolbar__view--active {
+  color: #263f87;
+  background: #fff;
+  box-shadow: 0 1px 2px rgb(23 41 79 / 9%);
+  font-weight: 700;
+}
+
+@media (max-width: 1050px) {
+  .agenda-toolbar {
+    flex-wrap: wrap;
+  }
+
+  .agenda-toolbar__views {
+    width: 100%;
+    justify-content: space-between;
+  }
+}
+
+@media (max-width: 480px) {
+  .agenda-toolbar__navigation {
+    flex-wrap: wrap;
+  }
+
+  .agenda-toolbar__views {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+}

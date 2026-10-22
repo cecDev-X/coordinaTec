@@ -5,11 +5,11 @@ import LoginForm from '../components/LoginForm.jsx'
 import SocialLogin from '../components/SocialLogin.jsx'
 import '../css/login-page.css'
 
-function LoginPage() {
+function LoginPage({ onLogin }) {
   const [notice, setNotice] = useState('')
 
   function handleLogin() {
-    setNotice('El inicio de sesión estará disponible al conectar el servicio de autenticación.')
+    onLogin()
   }
 
   function handleSocialLogin(provider) {
