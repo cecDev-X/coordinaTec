@@ -10,6 +10,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/coordinadores")
+@CrossOrigin(origins = "http://localhost:5173") // Habilita el acceso desde Vite
 public class CoordinadorController {
 
     @GetMapping("/{rfc}/horarios")
@@ -32,8 +33,7 @@ public class CoordinadorController {
         return ResponseEntity.ok(List.of("10:00", "10:20", "10:40", "11:00"));
     }
 
-        
-    @GetMapping("/api/v1/departamentos")
+    @GetMapping("/departamentos")
     public ResponseEntity<?> obtenerDepartamentos() {
         return ResponseEntity.ok(List.of(
            Map.of("id", 1, "nombre", "Sistemas y Computación"),
@@ -41,7 +41,7 @@ public class CoordinadorController {
         ));
     }
 
-    @GetMapping("/api/v1/departamentos/{id}/coordinadores")
+    @GetMapping("/departamentos/{id}/coordinadores")
     public ResponseEntity<?> obtenerCoordinadoresPorDepartamento(@PathVariable Long id) {
         return ResponseEntity.ok(List.of(
            Map.of("rfc", "ABCD123456", "nombre", "Coordinador Sistemas")

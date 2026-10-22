@@ -9,10 +9,10 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void addCorsMappings(CorsRegistry registry) {
-        registry.addMapping("/api/**") // Permite CORS en todas las rutas bajo /api/
-                .allowedOriginPatterns("*") // Permite cualquier origen (React en localhost:3000, Vite en localhost:5173, etc.)
-                .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS") // Métodos HTTP permitidos
-                .allowedHeaders("*") // Permite todos los encabezados (incluyendo Authorization para el JWT)
-                .allowCredentials(true); // Permite el envío de cookies y credenciales si se requieren
+        registry.addMapping("/**") // Aplica a todos los endpoints de la aplicación
+                .allowedOrigins("http://localhost:5173") // Origen explícito de tu frontend en Vite
+                .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
+                .allowedHeaders("*")
+                .allowCredentials(true);
     }
 }
