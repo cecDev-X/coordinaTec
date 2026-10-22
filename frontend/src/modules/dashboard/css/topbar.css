@@ -1,0 +1,175 @@
+.dashboard-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  height: 64px;
+  padding: 0 24px;
+  border-bottom: 1px solid #e4eaf3;
+  background: #fff;
+}
+
+.dashboard-topbar__location,
+.dashboard-topbar__tools {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.dashboard-topbar__location {
+  gap: 9px;
+  color: #526683;
+  font-size: var(--dashboard-copy);
+  white-space: nowrap;
+}
+
+.dashboard-topbar__location strong {
+  min-width: 0;
+  overflow: hidden;
+  color: #213b79;
+  font-size: var(--dashboard-text);
+  font-weight: 700;
+  text-overflow: ellipsis;
+}
+
+.dashboard-topbar__menu,
+.dashboard-topbar__icon-button {
+  position: relative;
+  display: grid;
+  flex-shrink: 0;
+  width: 32px;
+  height: 34px;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  color: #8ba1be;
+  background: transparent;
+}
+
+.dashboard-topbar__menu {
+  color: #28498d;
+}
+
+.dashboard-topbar__menu:hover,
+.dashboard-topbar__icon-button:hover {
+  background: #edf3fd;
+}
+
+.dashboard-topbar__divider {
+  width: 1px;
+  height: 13px;
+  margin: 0 3px;
+  background: #dce4ef;
+}
+
+.dashboard-topbar__tag {
+  padding: 4px 6px;
+  border-radius: 3px;
+  color: #273851;
+  background: #f0f3f7;
+  font-size: var(--dashboard-small);
+  font-weight: 700;
+}
+
+.dashboard-topbar__school {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dashboard-topbar__tools {
+  flex-shrink: 0;
+  gap: 10px;
+}
+
+.dashboard-topbar__notification-count {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: grid;
+  width: 15px;
+  height: 15px;
+  place-items: center;
+  border-radius: 50%;
+  color: #fff;
+  background: #ed3750;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.dashboard-topbar__profile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-left: 12px;
+  border-left: 1px solid #e4eaf3;
+  text-align: right;
+}
+
+.dashboard-topbar__profile strong,
+.dashboard-topbar__profile small {
+  display: block;
+  white-space: nowrap;
+}
+
+.dashboard-topbar__profile strong {
+  color: #1c2941;
+  font-size: var(--dashboard-copy);
+}
+
+.dashboard-topbar__profile small {
+  margin-top: 2px;
+  color: #697b98;
+  font-size: var(--dashboard-small);
+}
+
+.dashboard-topbar__avatar {
+  display: grid;
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border-radius: 50%;
+  color: #fff;
+  background: #17295b;
+  font-size: var(--dashboard-copy);
+  font-weight: 700;
+}
+
+@media (max-width: 1200px) {
+  .dashboard-topbar__school {
+    display: none;
+  }
+}
+
+@media (max-width: 960px) {
+  .dashboard-topbar__tag,
+  .dashboard-topbar__divider,
+  .dashboard-topbar__profile small {
+    display: none;
+  }
+}
+
+@media (max-width: 600px) {
+  .dashboard-topbar {
+    padding: 0 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .dashboard-topbar__profile strong {
+    display: none;
+  }
+}
+
+@media (max-width: 390px) {
+  .dashboard-topbar__tools {
+    gap: 3px;
+  }
+
+  .dashboard-topbar__profile {
+    gap: 5px;
+    padding-left: 5px;
+  }
+
+}

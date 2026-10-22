@@ -1,1 +1,12 @@
 .DS_Store
+
+# Local agent instructions
+/AGENTS.md
+
+# Backend build output (frontend outputs are ignored in frontend/.gitignore)
+/backend/target/
+
+# Local environment files
+.env
+.env.*
+!.env.example
