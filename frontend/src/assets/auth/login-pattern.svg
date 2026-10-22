@@ -1,0 +1,115 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="612" height="630" viewBox="0 0 612 630" fill="none">
+  <defs>
+    <g id="navy-snow">
+      <path fill="#f1f5f8" d="M0 0h102v90H0z"/>
+      <path fill="#304d9b" d="M0 0h102L36 90H0z"/>
+    </g>
+    <g id="sky-snow">
+      <path fill="#f1f5f8" d="M0 0h102v90H0z"/>
+      <path fill="#dae8fe" d="M0 0h102L36 90H0z"/>
+    </g>
+    <g id="slate-orange">
+      <path fill="#496ba2" d="M0 0h102v90H0z"/>
+      <path fill="#ff701b" d="m0 0 66 90H0z"/>
+    </g>
+    <g id="navy-sky">
+      <path fill="#263f89" d="M0 0h102v90H0z"/>
+      <path fill="#dae8fe" d="m0 0 66 90H0z"/>
+    </g>
+    <g id="slate-snow">
+      <path fill="#f1f5f8" d="M0 0h102v90H0z"/>
+      <path fill="#496ba2" d="M0 0h102v90H66z"/>
+    </g>
+    <g id="orange-snow">
+      <path fill="#f1f5f8" d="M0 0h102v90H0z"/>
+      <path fill="#f0540b" d="M0 0h102v90H66z"/>
+    </g>
+    <g id="blue-snow">
+      <path fill="#f1f5f8" d="M0 0h102v90H0z"/>
+      <path fill="#397ff6" d="m0 0 66 90h36V0z"/>
+    </g>
+    <g id="blue-sky">
+      <path fill="#dae8fe" d="M0 0h102v90H0z"/>
+      <path fill="#397ff6" d="M0 0h102v90H66z"/>
+    </g>
+    <g id="navy-slate">
+      <path fill="#496ba2" d="M0 0h102v90H0z"/>
+      <path fill="#263f89" d="M0 0h102v90H66z"/>
+    </g>
+  </defs>
+  <path fill="#dae8fe" d="M0 0h612v630H0z"/>
+
+  <use href="#navy-snow"/>
+  <path fill="#cad4df" d="M102 0h102v90H102z"/>
+  <path fill="#ff701b" d="m102 0 51 70-15 20h-36z"/>
+  <use href="#navy-sky" x="204"/>
+  <path fill="#f1f5f8" d="M306 0h102v90H306z"/>
+  <path fill="#dae8fe" d="m306 0 66 90h-66z"/>
+  <path fill="#f1f5f8" d="M408 0h102v90H408z"/>
+  <path fill="#397ff6" d="m408 0 66 90h-66z"/>
+  <use href="#navy-snow" x="510" transform="rotate(180 561 45)"/>
+
+  <use href="#sky-snow" y="90"/>
+  <path fill="#496ba2" d="M102 90h102v90H102z"/>
+  <path fill="#f0540b" d="m102 90 51 70-15 20h-36z"/>
+  <path fill="#f1f5f8" d="m153 160 15 20h-29z"/>
+  <use href="#navy-snow" x="204" y="90" transform="rotate(180 255 135)"/>
+  <path fill="#dae8fe" d="M306 90h102v90H306z"/>
+  <path fill="#ff701b" d="m306 90 66 90h-66z"/>
+  <path fill="#f1f5f8" d="M306 140h102v40h-73z"/>
+  <use href="#blue-sky" x="408" y="90"/>
+  <use href="#orange-snow" x="510" y="90"/>
+
+  <use href="#slate-orange" y="180"/>
+  <use href="#navy-sky" x="102" y="180" transform="rotate(180 153 225)"/>
+  <use href="#navy-snow" x="204" y="180" transform="rotate(180 255 225)"/>
+  <path fill="#ff701b" d="M306 180h102v90H306z"/>
+  <path fill="#496ba2" d="m306 180 66 90h-66z"/>
+  <use href="#navy-snow" x="408" y="180" transform="rotate(180 459 225)"/>
+  <use href="#slate-snow" x="510" y="180"/>
+
+  <path fill="#dae8fe" d="M0 270h102v90H0z"/>
+  <path fill="#304d9b" d="M0 270h102v90H66z"/>
+  <path fill="#dae8fe" d="M102 270h102v90H102z"/>
+  <path fill="#f0540b" d="m102 270 66 90h-66z"/>
+  <use href="#navy-sky" x="204" y="270"/>
+  <use href="#slate-snow" x="306" y="270"/>
+  <path fill="#ff701b" d="M408 270h102v90H408z"/>
+  <path fill="#f1f5f8" d="m408 294 48 66h-48z"/>
+  <use href="#navy-sky" x="510" y="270"/>
+
+  <use href="#slate-snow" y="360" transform="rotate(180 51 405)"/>
+  <path fill="#ff701b" d="M102 360h102v90H102z"/>
+  <path fill="#dae8fe" d="m102 360 66 90h-66z"/>
+  <use href="#slate-snow" x="204" y="360"/>
+  <path fill="#f1f5f8" d="M306 360h102v90H306z"/>
+  <path fill="#397ff6" d="m306 360 66 90h-66z"/>
+  <path fill="#304d9b" d="M408 360h102v90H408z"/>
+  <path fill="#f0540b" d="m408 360 66 90h-66z"/>
+  <use href="#slate-snow" x="510" y="360"/>
+  <path fill="#263f89" d="m510 360 38 51h-38z"/>
+
+  <path fill="#f1f5f8" d="M0 450h102v90H0z"/>
+  <path fill="#304d9b" d="m0 450 66 90H0z"/>
+  <path fill="#f0540b" d="M0 450h102l-51 70z"/>
+  <use href="#navy-slate" x="102" y="450"/>
+  <path fill="#dae8fe" d="M204 450h102v90H204z"/>
+  <path fill="#ff701b" d="m204 450 66 90h-66z"/>
+  <path fill="#f1f5f8" d="M306 450h102v90H306z"/>
+  <path fill="#397ff6" d="M306 450h66l36 51h-66z"/>
+  <path fill="#263f89" d="m306 450 66 90h-66z"/>
+  <use href="#blue-sky" x="408" y="450"/>
+  <use href="#orange-snow" x="510" y="450"/>
+
+  <path fill="#263f89" d="M0 540h102v90H0z"/>
+  <path fill="#397ff6" d="M0 540h102v90H66z"/>
+  <use href="#slate-snow" x="102" y="540"/>
+  <path fill="#dae8fe" d="m102 540 66 90h-66z"/>
+  <use href="#slate-snow" x="204" y="540"/>
+  <path fill="#ff701b" d="m204 540 38 51h-38z"/>
+  <path fill="#f1f5f8" d="M306 540h102v90H306z"/>
+  <path fill="#263f89" d="M306 540h29l66 90h-66z"/>
+  <use href="#orange-snow" x="408" y="540"/>
+  <path fill="#304d9b" d="M510 540h102v90H510z"/>
+  <path fill="#397ff6" d="M510 540h102v90h-36z"/>
+</svg>

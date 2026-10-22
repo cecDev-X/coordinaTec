@@ -1,0 +1,27 @@
+.brand-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  text-align: left;
+}
+
+.brand-logo__mark {
+  width: 91px;
+  height: 56px;
+}
+
+.brand-logo__wordmark {
+  display: flex;
+  flex-direction: column;
+  padding-top: 7px;
+  color: #192134;
+  font-size: 23px;
+  font-weight: 700;
+  line-height: 22px;
+  letter-spacing: -1px;
+}
+
+.brand-logo__tec {
+  color: #008dc8;
+  letter-spacing: -0.4px;
+}
