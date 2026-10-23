@@ -1,58 +1,48 @@
 package mx.tecnm.oaxaca.coordinatec.controllers;
 
-
-import mx.tecnm.oaxaca.coordinatec.dtos.CitaRequestDTO;
+import mx.tecnm.oaxaca.coordinatec.entities.CitaEntity;
+import mx.tecnm.oaxaca.coordinatec.repositories.CitaRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/citas")
+@CrossOrigin(origins = "http://localhost:5173")
 public class CitaController {
 
+    @Autowired
+    private CitaRepository citaRepository;
+
     @PostMapping
-    public ResponseEntity<?> agendarCita(@RequestBody CitaRequestDTO dto) {
+    public ResponseEntity<?> agendarCita(@RequestBody CitaEntity cita) {
         String folioGenerado = "FOL-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
-        return ResponseEntity.status(HttpStatus.CREATED).body(Map.of(
-            "folio", folioGenerado,
-            "mensaje", "Cita agendada correctamente",
-            "estado", "PROGRAMADA"
-        ));
+        cita.setFolio(folioGenerado);
+        cita.setEstado("PROGRAMADA");
+
+        // Guarda la entidad directamente en la Base de Datos
+        CitaEntity nuevaCita = citaRepository.save(cita);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(nuevaCita);
     }
 
     @GetMapping("/{folio}")
     public ResponseEntity<?> obtenerDetalleCita(@PathVariable String folio) {
-        return ResponseEntity.ok(Map.of(
-            "folio", folio,
-            "fecha", "2026-10-25",
-            "hora_inicio", "10:00",
-            "motivo", "Revisión de retícula",
-            "estado", "PROGRAMADA"
-        ));
+        return citaRepository.findByFolio(folio)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @GetMapping("/estudiantes/{numControl}")
     public ResponseEntity<?> listarCitasEstudiante(@PathVariable String numControl) {
-        return ResponseEntity.ok(List.of(
-            Map.of("folio", "FOL-A123", "fecha", "2026-10-25", "hora", "10:00", "estado", "PROGRAMADA")
-        ));
-    }
-
-    @PatchMapping("/{folio}/estado")
-    public ResponseEntity<?> cambiarEstadoCita(@PathVariable String folio, @RequestBody Map<String, Object> body) {
-        return ResponseEntity.ok(Map.of("folio", folio, "mensaje", "Estado actualizado correctamente"));
-    }
-
-    @GetMapping("/reportes/atencion")
-    public ResponseEntity<?> obtenerReporteAtencion() {
-        return ResponseEntity.ok(Map.of(
-          "totalCitas", 45,
-          "atendidas", 40,
-          "ausencias", 5
-        ));
+        List<CitaEntity> citas = citaRepository.findByNumControlEstudiante(numControl);
+        return ResponseEntity.ok(citas);
     }
 }
