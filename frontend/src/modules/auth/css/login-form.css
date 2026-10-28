@@ -1,0 +1,159 @@
+.login-form__fields {
+  display: grid;
+  gap: 15px;
+}
+
+.login-form__field {
+  position: relative;
+  color: var(--color-input-icon);
+}
+
+.login-form__field input {
+  display: block;
+  width: 100%;
+  height: 41px;
+  padding: 10px 14px 10px 42px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  color: var(--color-text);
+  background: #fff;
+  font-size: 14px;
+  line-height: 20px;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.login-form__field input::placeholder {
+  color: #8ca2c1;
+  opacity: 1;
+}
+
+.login-form__field input:hover {
+  border-color: #a1b5d2;
+}
+
+.login-form__field input:focus {
+  border-color: var(--color-primary);
+  outline: none;
+  box-shadow: 0 0 0 3px rgb(72 103 158 / 13%);
+}
+
+.login-form__icon {
+  position: absolute;
+  top: 50%;
+  left: 13px;
+  pointer-events: none;
+  transform: translateY(-50%);
+}
+
+.login-form__icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.login-form__field--password input {
+  padding-right: 44px;
+}
+
+.login-form__password-toggle {
+  position: absolute;
+  top: 1px;
+  right: 1px;
+  display: grid;
+  width: 41px;
+  height: 39px;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 7px;
+  color: var(--color-input-icon);
+  background: transparent;
+}
+
+.login-form__password-toggle svg {
+  width: 18px;
+  height: 18px;
+}
+
+.login-form__password-toggle:hover {
+  color: var(--color-primary);
+  background: #f1f5fb;
+}
+
+.login-form__remember {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: fit-content;
+  margin: 20px 0 24px;
+  color: var(--color-muted);
+  font-size: 14px;
+  line-height: 16px;
+  cursor: pointer;
+}
+
+.login-form__remember input {
+  appearance: none;
+  display: grid;
+  width: 15px;
+  height: 15px;
+  place-content: center;
+  margin: 0;
+  border: 1px solid var(--color-border);
+  border-radius: 3px;
+  background: #fff;
+  cursor: pointer;
+}
+
+.login-form__remember input:checked {
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+}
+
+.login-form__remember input:checked::after {
+  width: 7px;
+  height: 4px;
+  margin-top: -2px;
+  border-bottom: 2px solid #fff;
+  border-left: 2px solid #fff;
+  content: '';
+  transform: rotate(-45deg);
+}
+
+.login-form__submit {
+  width: 100%;
+  height: 40px;
+  padding: 0 20px;
+  border: 1px solid #5c79ae;
+  border-radius: 8px;
+  color: #fff;
+  background: var(--color-primary);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+  letter-spacing: 0.7px;
+  transition: background-color 150ms ease;
+}
+
+.login-form__submit:hover {
+  background: var(--color-primary-hover);
+}
+
+.login-form__submit:active {
+  background: #2c4978;
+}
+
+@media (max-width: 767px) {
+  .login-form__field input {
+    height: 46px;
+    font-size: 16px;
+  }
+
+  .login-form__password-toggle {
+    height: 44px;
+    width: 44px;
+  }
+
+  .login-form__submit {
+    height: 44px;
+  }
+}

@@ -1,0 +1,189 @@
+.tramites-table {
+  overflow: hidden;
+  border: 1px solid var(--dashboard-border);
+  border-radius: 10px;
+  background: #fff;
+}
+
+.tramites-table__scroll {
+  overflow-x: auto;
+}
+
+.tramites-table__mobile-hint {
+  display: none;
+}
+
+.tramites-table table {
+  width: 100%;
+  min-width: 780px;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.tramites-table__col-id { width: 8%; }
+.tramites-table__col-name { width: 25%; }
+.tramites-table__col-period { width: 12%; }
+.tramites-table__col-requirements { width: 30%; }
+.tramites-table__col-status { width: 16%; }
+.tramites-table__col-actions { width: 9%; }
+
+.tramites-table th {
+  height: 48px;
+  padding: 9px 12px;
+  color: #fff;
+  background: #263f87;
+  font-size: var(--dashboard-small);
+  font-weight: 700;
+  line-height: 15px;
+  text-align: left;
+  text-transform: uppercase;
+  letter-spacing: 0.25px;
+}
+
+.tramites-table th:nth-child(3),
+.tramites-table th:nth-child(5),
+.tramites-table th:nth-child(6) {
+  text-align: center;
+}
+
+.tramites-table td {
+  height: 58px;
+  padding: 11px 12px;
+  border-bottom: 1px solid #f0f3f8;
+  color: #364660;
+  font-size: var(--dashboard-copy);
+  line-height: 17px;
+  vertical-align: middle;
+  overflow-wrap: anywhere;
+}
+
+.tramites-table tr:last-child td {
+  border-bottom: 0;
+}
+
+.tramites-table__id,
+.tramites-table__name {
+  color: #1d293e !important;
+  font-weight: 700;
+}
+
+.tramites-table__period,
+.tramites-table__status-cell,
+.tramites-table__actions-cell {
+  text-align: center;
+}
+
+.tramites-table__name span {
+  display: block;
+  max-width: 185px;
+}
+
+.tramites-table__status {
+  display: inline-block;
+  min-width: 65px;
+  padding: 6px 10px;
+  border: 1px solid transparent;
+  border-radius: 20px;
+  font-size: var(--dashboard-small);
+  font-weight: 600;
+  line-height: 14px;
+  white-space: nowrap;
+}
+
+.tramites-table__status--active {
+  border-color: #adf2d3;
+  color: #00865f;
+  background: #daf9eb;
+}
+
+.tramites-table__status--inactive {
+  border-color: #ffd0d1;
+  color: #e22b37;
+  background: #ffe5e5;
+}
+
+.tramites-table__action {
+  display: inline-grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 5px;
+  color: #8298b9;
+  background: transparent;
+}
+
+.tramites-table__action:hover {
+  color: #263f87;
+  background: #edf3fe;
+}
+
+.tramites-table .tramites-table__empty {
+  height: 64px;
+  color: #657895;
+  text-align: center;
+}
+
+.tramites-table__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 48px;
+  padding: 9px 14px;
+  border-top: 1px solid #edf0f5;
+  color: #697d9c;
+  background: #fafbfd;
+  font-size: var(--dashboard-copy);
+}
+
+.tramites-table__pagination {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.tramites-table__pagination button {
+  padding: 7px 8px;
+  border: 1px solid #e9eef5;
+  border-radius: 4px;
+  color: #8294ae;
+  background: #fff;
+  font-size: var(--dashboard-small);
+}
+
+.tramites-table__pagination button:disabled {
+  color: #c7d2e1;
+  background: #fbfcfe;
+  cursor: not-allowed;
+}
+
+.tramites-table__pagination span {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  border-radius: 3px;
+  color: #fff;
+  background: #263f87;
+  font-size: var(--dashboard-small);
+  font-weight: 700;
+}
+
+@media (max-width: 1100px) {
+  .tramites-table__mobile-hint {
+    display: block;
+    margin: 0;
+    padding: 8px 10px;
+    color: #667b9b;
+    background: #f8faff;
+    font-size: var(--dashboard-copy);
+  }
+}
+
+@media (max-width: 480px) {
+  .tramites-table__footer {
+    flex-wrap: wrap;
+  }
+}
