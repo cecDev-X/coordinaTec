@@ -1,8 +1,6 @@
 spring:
-  datasource:
-    url: jdbc:postgresql://db:5432/coordinatec_db
-    username: postgres
-    password: 12345
+  application:
+    name: coordinatec-api
   jpa:
     hibernate:
       ddl-auto: update

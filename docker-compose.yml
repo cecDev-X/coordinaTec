@@ -33,7 +33,7 @@ services:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-db:5432/coordina_tec_db
       - SPRING_DATASOURCE_USERNAME=coordina_admin
       - SPRING_DATASOURCE_PASSWORD=coordina_password_segura
-      - SPRING_JPA_HIBERNATE_DDL_AUTO=validate # Para que valide contra tu script, sin sobreescribirlo
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update # init.sql aún no crea las tablas que requiere la entidad Cita
     ports:
       - "8080:8080"
     networks:
