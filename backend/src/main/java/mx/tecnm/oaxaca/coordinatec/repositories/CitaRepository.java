@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface CitaRepository extends JpaRepository<CitaEntity, Long> {
+public interface CitaRepository extends JpaRepository<CitaEntity, String> {
     
     // Spring Data JPA crea la consulta SQL automáticamente basándose en el nombre del método
     Optional<CitaEntity> findByFolio(String folio);
