@@ -1,0 +1,29 @@
+meta {
+  name: Marcar cita atendida
+  type: http
+  seq: 5
+}
+
+patch {
+  url: {{baseUrl}}/api/v1/citas/{{folio}}/estado
+  body: json
+  auth: inherit
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "estado": "ATENDIDA"
+  }
+}
+
+tests {
+  test("guarda el estado ATENDIDA", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().folio).to.equal(bru.getVar("folio") || bru.getEnvVar("folio"));
+    expect(res.getBody().estado).to.equal("ATENDIDA");
+  });
+}

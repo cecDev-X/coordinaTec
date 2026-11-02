@@ -1,0 +1,22 @@
+meta {
+  name: Consultar disponibilidad
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/api/v1/coordinadores/{{rfc}}/disponibilidad?fecha={{fecha}}
+  body: none
+  auth: inherit
+}
+
+params:query {
+  fecha: {{fecha}}
+}
+
+tests {
+  test("devuelve horas disponibles", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody()).to.be.an("array");
+  });
+}

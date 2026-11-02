@@ -1,0 +1,43 @@
+meta {
+  name: Agendar cita
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/api/v1/citas
+  body: json
+  auth: inherit
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "coordinadorRfc": "{{rfc}}",
+    "numControlEstudiante": "{{numControl}}",
+    "formatoFolio": "{{formatoFolio}}",
+    "fecha": "{{fecha}}",
+    "horaInicio": "{{horaInicio}}",
+    "horaFin": "{{horaFin}}",
+    "motivo": "Revisión de retícula"
+  }
+}
+
+script:post-response {
+  if (res.getStatus() === 201) {
+    bru.setVar("folio", res.getBody().folio);
+  }
+}
+
+tests {
+  test("persiste la cita y genera un folio", function () {
+    expect(res.getStatus()).to.equal(201);
+    expect(res.getBody().folio).to.match(/^FOL-/);
+    expect(res.getBody().numControlEstudiante).to.equal(bru.getEnvVar("numControl"));
+    expect(res.getBody().coordinadorRfc).to.equal(bru.getEnvVar("rfc"));
+    expect(res.getBody().formatoFolio).to.equal(bru.getEnvVar("formatoFolio"));
+  });
+}

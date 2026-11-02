@@ -1,0 +1,19 @@
+meta {
+  name: Citas de estudiante
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/api/v1/citas/estudiantes/{{numControl}}
+  body: none
+  auth: inherit
+}
+
+tests {
+  test("devuelve las citas del estudiante", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody()).to.be.an("array");
+    expect(res.getBody().some(cita => cita.folio === (bru.getVar("folio") || bru.getEnvVar("folio")))).to.be.true;
+  });
+}

@@ -2,9 +2,7 @@ import { useState } from 'react'
 import DashboardIcon from '../../dashboard/components/DashboardIcon.jsx'
 import '../css/citas-filters.css'
 
-const tramiteOptions = ['Todos', 'Carga Superior a la Máxima.', 'Baja de Materia.', 'Cambio de Carrera.', 'Otro']
-
-function CitasFilters({ filters, onChange }) {
+function CitasFilters({ filters, onChange, tramiteOptions, estatusOptions }) {
   const [showMore, setShowMore] = useState(false)
 
   return (
@@ -12,11 +10,11 @@ function CitasFilters({ filters, onChange }) {
       <div className="citas-filters__row">
         <label className="citas-filters__search">
           <DashboardIcon name="search" size={14} />
-          <span className="sr-only">Buscar por número de control o nombre</span>
+          <span className="sr-only">Buscar por folio, número de control o nombre</span>
           <input
             type="search"
             value={filters.search}
-            placeholder="Buscar por No. Control..."
+            placeholder="Buscar por folio, control o nombre..."
             onChange={(event) => onChange({ ...filters, search: event.target.value })}
           />
         </label>
@@ -30,7 +28,7 @@ function CitasFilters({ filters, onChange }) {
         <label className="citas-filters__select">
           <span>Estatus:</span>
           <select value={filters.estatus} onChange={(event) => onChange({ ...filters, estatus: event.target.value })}>
-            {['Todos', 'Rechazada', 'Pendiente', 'Atendida', 'Reagendada'].map((option) => (
+            {estatusOptions.map((option) => (
               <option key={option} value={option}>{option}</option>
             ))}
           </select>
@@ -38,8 +36,8 @@ function CitasFilters({ filters, onChange }) {
         </label>
         <label className="citas-filters__select">
           <span>Prioridad:</span>
-          <select value={filters.prioridad} onChange={(event) => onChange({ ...filters, prioridad: event.target.value })}>
-            {['Todos', 'Alta', 'Media', 'Baja'].map((option) => <option key={option} value={option}>{option}</option>)}
+          <select disabled title="La prioridad aún no está disponible en la base de datos">
+            <option>Sin datos</option>
           </select>
           <DashboardIcon name="down" size={12} />
         </label>
@@ -55,8 +53,8 @@ function CitasFilters({ filters, onChange }) {
       {showMore && (
         <label className="citas-filters__semester">
           Semestre
-          <select value={filters.semestre} onChange={(event) => onChange({ ...filters, semestre: event.target.value })}>
-            {['Todos', '3°', '5°', '7°'].map((option) => <option key={option} value={option}>{option}</option>)}
+          <select disabled title="El semestre aún no está disponible en la base de datos">
+            <option>Sin datos</option>
           </select>
         </label>
       )}

@@ -1,0 +1,21 @@
+meta {
+  name: Listar citas de administración
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{baseUrl}}/api/v1/citas
+  body: none
+  auth: inherit
+}
+
+tests {
+  test("devuelve resúmenes de citas para la tabla", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody()).to.be.an("array");
+    res.getBody().forEach(cita => {
+      expect(cita).to.have.all.keys("folio", "numControl", "nombre", "carrera", "tramite", "fecha", "horaInicio", "estado");
+    });
+  });
+}

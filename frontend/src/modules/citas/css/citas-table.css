@@ -23,11 +23,11 @@
 .citas-table__col-control { width: 11%; }
 .citas-table__col-name { width: 13%; }
 .citas-table__col-semester { width: 11%; }
-.citas-table__col-career { width: 17%; }
-.citas-table__col-procedure { width: 12%; }
+.citas-table__col-career { width: 14%; }
+.citas-table__col-procedure { width: 11%; }
 .citas-table__col-date { width: 12%; }
 .citas-table__col-status { width: 13%; }
-.citas-table__col-actions { width: 11%; }
+.citas-table__col-actions { width: 15%; }
 
 .citas-table th {
   height: 48px;
@@ -95,24 +95,34 @@
 
 .citas-table__status--rechazada { border-color: #ffd0d5; color: #e22b41; background: #fff0f1; }
 .citas-table__status--pendiente { border-color: #ffe28f; color: #bc6500; background: #fff9e7; }
+.citas-table__status--programada { border-color: #ced7ff; color: #4457c6; background: #eff1ff; }
+.citas-table__status--confirmada { border-color: #b7f0d5; color: #008861; background: #e8fcf2; }
 .citas-table__status--atendida { border-color: #b7f0d5; color: #008861; background: #e8fcf2; }
 .citas-table__status--reagendada { border-color: #ced7ff; color: #4457c6; background: #eff1ff; }
 
 .citas-table__action {
-  display: inline-grid;
-  width: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   height: 34px;
-  place-items: center;
-  padding: 0;
-  border: 0;
+  padding: 0 8px;
+  border: 1px solid #cad9f2;
   border-radius: 5px;
-  color: #8298b9;
-  background: transparent;
+  color: #263f87;
+  background: #f6f9ff;
+  font-size: var(--dashboard-small);
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
 }
 
-.citas-table__action:hover {
-  color: #263f87;
+.citas-table__action:hover:not(:disabled) {
   background: #edf3fe;
+}
+
+.citas-table__action:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .citas-table .citas-table__empty {

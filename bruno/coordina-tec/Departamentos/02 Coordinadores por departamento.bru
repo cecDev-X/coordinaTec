@@ -1,0 +1,18 @@
+meta {
+  name: Coordinadores por departamento
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/api/v1/coordinadores/departamentos/{{departamentoId}}/coordinadores
+  body: none
+  auth: inherit
+}
+
+tests {
+  test("devuelve coordinadores del departamento", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody()).to.be.an("array");
+  });
+}

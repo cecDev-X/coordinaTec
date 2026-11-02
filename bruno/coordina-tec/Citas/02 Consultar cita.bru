@@ -1,0 +1,19 @@
+meta {
+  name: Consultar cita
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/api/v1/citas/{{folio}}
+  body: none
+  auth: inherit
+}
+
+tests {
+  test("devuelve el folio consultado", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().folio).to.equal(bru.getVar("folio") || bru.getEnvVar("folio"));
+    expect(res.getBody().numControlEstudiante).to.equal(bru.getEnvVar("numControl"));
+  });
+}

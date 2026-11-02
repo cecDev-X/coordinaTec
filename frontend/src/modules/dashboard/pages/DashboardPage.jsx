@@ -44,7 +44,7 @@ function DashboardPage({ onLogout, onNavigate, page = 'dashboard' }) {
   let content
   if (page === 'tramites') content = <TramitesPage onAction={setNotice} />
   else if (page === 'agenda') content = <AgendaPage onAction={setNotice} />
-  else if (page === 'citas') content = <CitasPage onAction={setNotice} />
+  else if (page === 'citas') content = <CitasPage />
   else {
     content = (
       <>

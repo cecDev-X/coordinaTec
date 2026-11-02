@@ -1,0 +1,31 @@
+meta {
+  name: Crear horario
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/api/v1/coordinadores/{{rfc}}/horarios
+  body: json
+  auth: inherit
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "dia_semana": 1,
+    "hora_inicio": "10:00",
+    "hora_salida": "14:00",
+    "duracion": 20
+  }
+}
+
+tests {
+  test("confirma el horario", function () {
+    expect(res.getStatus()).to.equal(201);
+    expect(res.getBody().rfc).to.equal(bru.getEnvVar("rfc"));
+  });
+}

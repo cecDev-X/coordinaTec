@@ -1,7 +1,6 @@
-import DashboardIcon from '../../dashboard/components/DashboardIcon.jsx'
 import '../css/citas-table.css'
 
-function CitasTable({ rows, total, page, pageCount, onPageChange, onAction }) {
+function CitasTable({ rows, total, page, pageCount, onPageChange, onMarkAttended, updatingFolio, emptyMessage }) {
   return (
     <section className="citas-table" aria-label="Citas actuales registradas">
       <p className="citas-table__mobile-hint">Desliza la tabla para ver todas las columnas →</p>
@@ -31,7 +30,7 @@ function CitasTable({ rows, total, page, pageCount, onPageChange, onAction }) {
           </thead>
           <tbody>
             {rows.length > 0 ? rows.map((cita) => (
-              <tr key={cita.control}>
+              <tr key={cita.folio}>
                 <td className="citas-table__control">{cita.control}</td>
                 <td>{cita.nombre}</td>
                 <td>{cita.semestre}</td>
@@ -39,21 +38,24 @@ function CitasTable({ rows, total, page, pageCount, onPageChange, onAction }) {
                 <td>{cita.tramite}</td>
                 <td className="citas-table__date">{cita.fecha}</td>
                 <td className="citas-table__status-cell">
-                  <span className={`citas-table__status citas-table__status--${cita.estatus.toLowerCase()}`}>{cita.estatus}</span>
+                  <span className={`citas-table__status citas-table__status--${cita.estatus.toLocaleLowerCase('es').replace(/[^a-z0-9-]/g, '-')}`}>{cita.estatus}</span>
                 </td>
                 <td className="citas-table__actions-cell">
-                  <button
-                    type="button"
-                    className="citas-table__action"
-                    aria-label={`Acciones para la cita de ${cita.nombre}`}
-                    onClick={() => onAction(`Las acciones de la cita de ${cita.nombre} estarán disponibles próximamente.`)}
-                  >
-                    <DashboardIcon name="more" size={15} />
-                  </button>
+                  {cita.estado === 'PROGRAMADA' ? (
+                    <button
+                      type="button"
+                      className="citas-table__action"
+                      aria-label={`Marcar atendida la cita ${cita.folio} de ${cita.nombre}`}
+                      disabled={updatingFolio !== null}
+                      onClick={() => onMarkAttended(cita.folio)}
+                    >
+                      {updatingFolio === cita.folio ? 'Guardando...' : 'Marcar atendida'}
+                    </button>
+                  ) : <span aria-label="Sin acciones disponibles">—</span>}
                 </td>
               </tr>
             )) : (
-              <tr><td colSpan="8" className="citas-table__empty">No se encontraron citas con esos filtros.</td></tr>
+              <tr><td colSpan="8" className="citas-table__empty">{emptyMessage}</td></tr>
             )}
           </tbody>
         </table>

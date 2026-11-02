@@ -1,11 +1,16 @@
 package mx.tecnm.oaxaca.coordinatec;
 
 import mx.tecnm.oaxaca.coordinatec.entities.CitaEntity;
+import mx.tecnm.oaxaca.coordinatec.repositories.CitaConsultaRepository;
 import mx.tecnm.oaxaca.coordinatec.repositories.CitaRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
@@ -13,8 +18,15 @@ import java.time.LocalTime;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.options;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
+@AutoConfigureMockMvc
 class CitaPersistenceTests {
 
     @Autowired
@@ -23,9 +35,15 @@ class CitaPersistenceTests {
     @Autowired
     private CitaRepository citas;
 
+    @Autowired
+    private CitaConsultaRepository consultaCitas;
+
+    @Autowired
+    private MockMvc mvc;
+
     @Test
     @Transactional
-    void migracionCreaEsquemaYCitaSeGuardaConSusRelaciones() {
+    void migracionCreaEsquemaYCitaSeGuardaConSusRelaciones() throws Exception {
         assertThat(jdbc.queryForObject(
             "SELECT count(*) FROM flyway_schema_history WHERE version = '1' AND success", Integer.class
         )).isEqualTo(1);
@@ -72,5 +90,43 @@ class CitaPersistenceTests {
         });
         assertThat(citas.findByNumControlEstudiante(numControl)).extracting(CitaEntity::getFolio)
             .containsExactly(folioCita);
+        assertThat(consultaCitas.listar()).anySatisfy(resumen -> {
+            assertThat(resumen.folio()).isEqualTo(folioCita);
+            assertThat(resumen.numControl()).isEqualTo(numControl);
+            assertThat(resumen.nombre()).isEqualTo("Ana Prueba");
+            assertThat(resumen.carrera()).isEqualTo("Sistemas");
+            assertThat(resumen.tramite()).isEqualTo("Tutoría");
+            assertThat(resumen.fecha()).isEqualTo(LocalDate.of(2026, 10, 29));
+            assertThat(resumen.horaInicio()).isEqualTo(LocalTime.of(10, 0));
+            assertThat(resumen.estado()).isEqualTo("PROGRAMADA");
+        });
+
+        mvc.perform(options("/api/v1/citas/{folio}/estado", folioCita)
+                .header(HttpHeaders.ORIGIN, "http://localhost:5173")
+                .header(HttpHeaders.ACCESS_CONTROL_REQUEST_METHOD, "PATCH")
+                .header(HttpHeaders.ACCESS_CONTROL_REQUEST_HEADERS, "content-type"))
+            .andExpect(status().isOk())
+            .andExpect(header().string(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, "http://localhost:5173"));
+        mvc.perform(patch("/api/v1/citas/{folio}/estado", folioCita)
+                .contentType(MediaType.APPLICATION_JSON).content("{\"estado\":\"RECHAZADA\"}"))
+            .andExpect(status().isBadRequest());
+        mvc.perform(patch("/api/v1/citas/{folio}/estado", "FOL-INEXISTENTE")
+                .contentType(MediaType.APPLICATION_JSON).content("{\"estado\":\"ATENDIDA\"}"))
+            .andExpect(status().isNotFound());
+        mvc.perform(patch("/api/v1/citas/{folio}/estado", folioCita)
+                .header(HttpHeaders.ORIGIN, "http://localhost:5173")
+                .contentType(MediaType.APPLICATION_JSON).content("{\"estado\":\"ATENDIDA\"}"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.folio").value(folioCita))
+            .andExpect(jsonPath("$.estado").value("ATENDIDA"));
+
+        assertThat(jdbc.queryForObject("SELECT estado FROM cita WHERE folio = ?", String.class, folioCita))
+            .isEqualTo("ATENDIDA");
+        mvc.perform(get("/api/v1/citas/{folio}", folioCita))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.estado").value("ATENDIDA"));
+        mvc.perform(patch("/api/v1/citas/{folio}/estado", folioCita)
+                .contentType(MediaType.APPLICATION_JSON).content("{\"estado\":\"ATENDIDA\"}"))
+            .andExpect(status().isConflict());
     }
 }
