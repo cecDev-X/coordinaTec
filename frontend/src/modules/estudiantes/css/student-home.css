@@ -1,0 +1,426 @@
+.student-home__welcome {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.student-home__welcome-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.student-home__portal-kicker {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #1d4ed8;
+  letter-spacing: 0.04em;
+  margin-bottom: 2px;
+}
+
+.student-home__greeting {
+  margin: 0;
+  font-size: 1.55rem;
+  font-weight: 800;
+  color: #0d255c;
+  letter-spacing: -0.02em;
+}
+
+.student-home__status-pill {
+  background-color: #e0e9ff;
+  color: #163782;
+  font-size: 0.76rem;
+  font-weight: 800;
+  padding: 6px 13px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.student-home__status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #1d4ed8;
+}
+
+.student-home__welcome-desc {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.45;
+  color: #475569;
+}
+
+.student-home__welcome-desc strong {
+  color: #173b88;
+  font-weight: 700;
+}
+
+/* TARJETA DE MATRÍCULA */
+.student-home__enrollment-card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 15px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border: 1px solid #edf1f7;
+  box-shadow: var(--st-shadow-card);
+}
+
+.student-home__enrollment-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.student-home__enrollment-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background-color: #e6eeff;
+  color: #173b88;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.student-home__enrollment-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.student-home__enrollment-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #64748b;
+  letter-spacing: 0.03em;
+}
+
+.student-home__enrollment-career {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.student-home__enrollment-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  text-align: right;
+}
+
+.student-home__cycle-label {
+  font-size: 0.72rem;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.student-home__cycle-value {
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: #173b88;
+}
+
+/* BANNER DE AVISO OFICIAL */
+.student-home__notice-banner {
+  width: 100%;
+  border: none;
+  background: linear-gradient(135deg, #1b3d89 0%, #153172 100%);
+  color: #ffffff;
+  border-radius: 16px;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  text-align: left;
+  box-shadow: 0 6px 16px rgba(21, 49, 114, 0.2);
+}
+
+.student-home__notice-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.14);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.student-home__notice-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.student-home__notice-title-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  margin-bottom: 3px;
+}
+
+.student-home__notice-title-row strong {
+  font-weight: 800;
+  letter-spacing: 0.03em;
+}
+
+.student-home__notice-title-row span {
+  color: #bfd4ff;
+  font-weight: 600;
+}
+
+.student-home__notice-text {
+  margin: 0;
+  font-size: 0.82rem;
+  color: #e2ecff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.student-home__notice-arrow {
+  color: #93bbf9;
+  display: flex;
+  align-items: center;
+}
+
+/* SECCIÓN DE CATÁLOGO DE TRÁMITES */
+.student-home__catalog {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.student-home__section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.student-home__section-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.student-home__section-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: #1d4ed8;
+}
+
+.student-home__section-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.student-home__section-count {
+  font-size: 0.78rem;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.student-home__tramites-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.student-home__tramite-card {
+  width: 100%;
+  border: 1px solid #edf1f7;
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  text-align: left;
+  box-shadow: var(--st-shadow-card);
+  transition: transform 0.14s ease, border-color 0.14s ease, box-shadow 0.14s ease;
+}
+
+.student-home__tramite-card:hover {
+  border-color: #c7d7fe;
+  box-shadow: 0 6px 18px rgba(29, 78, 216, 0.08);
+  transform: translateY(-1px);
+}
+
+.student-home__tramite-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background-color: #eaeff8;
+  color: #1d4ed8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.student-home__tramite-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.student-home__tramite-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.student-home__tramite-name {
+  font-size: 0.98rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.student-home__tramite-badge {
+  font-size: 0.65rem;
+  font-weight: 800;
+  padding: 3px 9px;
+  border-radius: 999px;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.student-home__tramite-badge--blue {
+  background-color: #e0e9ff;
+  color: #163782;
+}
+
+.student-home__tramite-badge--neutral {
+  background-color: #eef1f6;
+  color: #475569;
+}
+
+.student-home__tramite-desc {
+  margin: 0;
+  font-size: 0.83rem;
+  color: #475569;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.student-home__tramite-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 3px;
+  font-size: 0.76rem;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.student-home__meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.student-home__meta-item svg {
+  color: #1d4ed8;
+}
+
+.student-home__tramite-chevron {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background-color: #f1f4f9;
+  color: #475569;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* TU ÚLTIMA SOLICITUD */
+.student-home__last-request {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.student-home__history-link {
+  border: none;
+  background: transparent;
+  padding: 0;
+  color: #1d4ed8;
+  font-size: 0.82rem;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.student-home__request-card {
+  background: #ffffff;
+  border: 1px solid #edf1f7;
+  border-radius: 16px;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  box-shadow: var(--st-shadow-card);
+}
+
+.student-home__request-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #e6eeff;
+  color: #1d4ed8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.student-home__request-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.student-home__request-title {
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.student-home__request-sub {
+  font-size: 0.76rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.student-home__request-badge {
+  background-color: #e0e9ff;
+  color: #163782;
+  font-size: 0.68rem;
+  font-weight: 800;
+  padding: 6px 11px;
+  border-radius: 999px;
+  letter-spacing: 0.03em;
+}

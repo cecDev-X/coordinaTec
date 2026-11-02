@@ -1,0 +1,404 @@
+.student-citas__intro {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.student-citas__title {
+  margin: 0 0 4px;
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #0d255c;
+}
+
+.student-citas__subtitle {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.42;
+  color: #475569;
+}
+
+.student-citas__cal-btn {
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  border: none;
+  background-color: #e6eeff;
+  color: #163782;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background-color 0.15s ease;
+}
+
+.student-citas__cal-btn:hover {
+  background-color: #d3e1ff;
+}
+
+/* TABS DE FILTRO */
+.student-citas__tabs {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.student-citas__tab {
+  border: none;
+  background-color: #eceff4;
+  color: #334155;
+  border-radius: 999px;
+  padding: 9px 15px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.student-citas__tab-count {
+  min-width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: #d8dee9;
+  color: #1e293b;
+  font-size: 0.72rem;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 5px;
+}
+
+.student-citas__tab.is-active {
+  background-color: #173b88;
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(23, 59, 136, 0.2);
+}
+
+.student-citas__tab.is-active .student-citas__tab-count {
+  background-color: #3159b0;
+  color: #ffffff;
+}
+
+/* SECCIONES */
+.student-citas__section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.student-citas__section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.student-citas__section-title-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #0d255c;
+}
+
+.student-citas__blue-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: #0255d5;
+}
+
+.student-citas__section-title {
+  margin: 0;
+  font-size: 1.04rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.student-citas__section-meta {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #475569;
+  letter-spacing: 0.04em;
+}
+
+.student-citas__cards-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* TARJETAS DE CITAS */
+.student-citas__card {
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 16px;
+  border: 1px solid #edf1f7;
+  box-shadow: var(--st-shadow-card);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  position: relative;
+  overflow: hidden;
+}
+
+.student-citas__card--featured {
+  border-top: 4px solid #0255d5;
+}
+
+.student-citas__card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.student-citas__folio {
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 800;
+  color: #475569;
+  letter-spacing: 0.03em;
+  margin-bottom: 3px;
+}
+
+.student-citas__folio--blue {
+  color: #0255d5;
+}
+
+.student-citas__card-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.student-citas__status-badge {
+  border-radius: 999px;
+  padding: 5px 11px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+}
+
+.student-citas__status-badge--blue {
+  background-color: #e0e9ff;
+  color: #163782;
+}
+
+.student-citas__status-badge--red {
+  background-color: #fee2e2;
+  color: #991b1b;
+}
+
+/* BLOQUE INTERNO GRIS */
+.student-citas__inner-box {
+  background-color: #f3f5f9;
+  border-radius: 14px;
+  padding: 13px;
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+}
+
+.student-citas__datetime-row {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+
+.student-citas__date-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.student-citas__date-icon.is-solid {
+  background-color: #173b88;
+  color: #ffffff;
+}
+
+.student-citas__date-icon.is-soft {
+  background-color: #dfe8ff;
+  color: #173b88;
+}
+
+.student-citas__datetime-texts {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.student-citas__date-title {
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.student-citas__date-title.is-blue {
+  color: #163782;
+}
+
+.student-citas__time-sub {
+  font-size: 0.78rem;
+  color: #475569;
+}
+
+.student-citas__details-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 2px;
+}
+
+.student-citas__detail-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 0.8rem;
+  color: #475569;
+}
+
+.student-citas__detail-item div {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.student-citas__detail-item strong {
+  color: #0f172a;
+  font-weight: 700;
+}
+
+.student-citas__detail-icon {
+  color: #1d4ed8;
+  margin-top: 1px;
+  display: flex;
+}
+
+.student-citas__internal-note {
+  margin: 0;
+  padding-left: 47px;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: #475569;
+}
+
+.student-citas__card-footer-note {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.76rem;
+  color: #475569;
+}
+
+/* ESTILOS HISTORIAL */
+.student-citas__reschedule-dates {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 0.82rem;
+}
+
+.student-citas__old-date {
+  color: #64748b;
+  text-decoration: line-through;
+}
+
+.student-citas__new-date {
+  color: #163782;
+  font-weight: 800;
+}
+
+.student-citas__reschedule-reason {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  color: #475569;
+}
+
+.student-citas__reschedule-reason svg {
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.student-citas__reschedule-reason p {
+  margin: 0;
+  font-size: 0.78rem;
+  line-height: 1.42;
+}
+
+.student-citas__hist-date-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.student-citas__hist-date-row--red svg {
+  color: #b91c1c;
+}
+
+.student-citas__dictamen-box {
+  background: #ffffff;
+  border-radius: 10px;
+  padding: 11px 12px;
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+}
+
+.student-citas__dictamen-box svg {
+  color: #0255d5;
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.student-citas__dictamen-box strong {
+  display: block;
+  font-size: 0.78rem;
+  color: #163782;
+  margin-bottom: 3px;
+}
+
+.student-citas__dictamen-box p {
+  margin: 0;
+  font-size: 0.77rem;
+  line-height: 1.42;
+  color: #475569;
+}
+
+.student-citas__reject-box {
+  background-color: #f9e6e6;
+  border-radius: 10px;
+  padding: 11px 12px;
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  color: #991b1b;
+}
+
+.student-citas__reject-box svg {
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.student-citas__reject-box p {
+  margin: 0;
+  font-size: 0.78rem;
+  font-weight: 600;
+  line-height: 1.42;
+}

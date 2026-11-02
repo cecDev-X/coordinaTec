@@ -1,0 +1,330 @@
+.student-confirm__card {
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 18px;
+  border: 1px solid #edf1f7;
+  box-shadow: var(--st-shadow-card);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.student-confirm__top-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.student-confirm__active-pill {
+  background-color: #e0e9ff;
+  color: #163782;
+  font-size: 0.66rem;
+  font-weight: 800;
+  padding: 4px 10px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  letter-spacing: 0.03em;
+}
+
+.student-confirm__active-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: #1d4ed8;
+}
+
+.student-confirm__time-est {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.78rem;
+  color: #475569;
+  font-weight: 600;
+}
+
+.student-confirm__title {
+  margin: 0;
+  font-size: 1.38rem;
+  font-weight: 800;
+  color: #163782;
+  letter-spacing: -0.01em;
+}
+
+.student-confirm__code-line {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #475569;
+  line-height: 1.4;
+}
+
+.student-confirm__code-line strong {
+  color: #0f172a;
+  font-weight: 800;
+}
+
+.student-confirm__assigned-slot {
+  margin-top: 2px;
+  background-color: #f1f4f9;
+  border-radius: 14px;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.student-confirm__slot-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background-color: #dfe8ff;
+  color: #163782;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.student-confirm__slot-texts {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.student-confirm__slot-kicker {
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: #475569;
+  letter-spacing: 0.04em;
+}
+
+.student-confirm__slot-value {
+  font-size: 0.94rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.student-confirm__slot-verified {
+  color: #1d4ed8;
+  display: flex;
+}
+
+/* REQUISITOS */
+.student-confirm__section-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.student-confirm__shield-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background-color: #eef2f8;
+  color: #163782;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.student-confirm__section-title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.student-confirm__req-text {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.55;
+  color: #475569;
+}
+
+.student-confirm__validations-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-top: 2px;
+}
+
+.student-confirm__validation-chip {
+  background-color: #f1f4f9;
+  border-radius: 10px;
+  padding: 9px 11px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: #334155;
+}
+
+.student-confirm__validation-chip svg {
+  color: #1d4ed8;
+  flex-shrink: 0;
+}
+
+/* FORMATOS OFICIALES */
+.student-confirm__formats-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.student-confirm__formats-sub {
+  margin: 3px 0 0;
+  font-size: 0.78rem;
+  color: #475569;
+}
+
+.student-confirm__files-count {
+  background-color: #eceff4;
+  color: #334155;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 6px 11px;
+  border-radius: 8px;
+  line-height: 1.2;
+}
+
+.student-confirm__toast {
+  background-color: #e0e9ff;
+  color: #163782;
+  padding: 8px 12px;
+  border-radius: 10px;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.student-confirm__formats-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.student-confirm__format-item {
+  background-color: #f3f5f9;
+  border-radius: 14px;
+  padding: 13px 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.student-confirm__format-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.student-confirm__format-icon.is-pdf {
+  background-color: #fee2e2;
+  color: #b91c1c;
+}
+
+.student-confirm__format-icon.is-external {
+  background-color: #e0e9ff;
+  color: #163782;
+}
+
+.student-confirm__format-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.student-confirm__format-name {
+  font-size: 0.86rem;
+  font-weight: 800;
+  color: #0f172a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.student-confirm__format-meta {
+  font-size: 0.74rem;
+  color: #475569;
+}
+
+.student-confirm__format-btn {
+  border: 1px solid #e2e8f0;
+  background-color: #ffffff;
+  color: #163782;
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+  transition: background-color 0.14s ease;
+}
+
+.student-confirm__format-btn:hover {
+  background-color: #eef3ff;
+}
+
+/* TERMINOS Y BOTÓN CONFIRMAR */
+.student-confirm__footer-card {
+  gap: 16px;
+}
+
+.student-confirm__terms-label {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 0.8rem;
+  line-height: 1.45;
+  color: #475569;
+  cursor: pointer;
+}
+
+.student-confirm__terms-label input {
+  margin-top: 2px;
+  width: 17px;
+  height: 17px;
+  accent-color: #163782;
+  flex-shrink: 0;
+}
+
+.student-confirm__submit-btn {
+  width: 100%;
+  border: none;
+  border-radius: 14px;
+  background-color: #8fa1c2;
+  color: #ffffff;
+  padding: 15px 20px;
+  font-size: 0.96rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: background-color 0.15s ease;
+}
+
+.student-confirm__submit-btn:disabled {
+  cursor: not-allowed;
+}
+
+.student-confirm__submit-btn.is-ready {
+  background-color: #173b88;
+  box-shadow: 0 6px 16px rgba(23, 59, 136, 0.25);
+}
+
+.student-confirm__submit-btn.is-ready:hover {
+  background-color: #102a63;
+}

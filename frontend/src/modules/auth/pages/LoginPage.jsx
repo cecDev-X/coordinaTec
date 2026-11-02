@@ -5,11 +5,11 @@ import LoginForm from '../components/LoginForm.jsx'
 import SocialLogin from '../components/SocialLogin.jsx'
 import '../css/login-page.css'
 
-function LoginPage({ onLogin }) {
+function LoginPage({ onLogin, onGoToStudentPortal }) {
   const [notice, setNotice] = useState('')
 
-  function handleLogin() {
-    onLogin()
+  function handleLogin(username) {
+    onLogin(username)
   }
 
   function handleSocialLogin(provider) {
@@ -38,6 +38,15 @@ function LoginPage({ onLogin }) {
               Regístrate
             </button>
           </p>
+
+          {onGoToStudentPortal && (
+            <p className="login-page__register">
+              ¿Eres alumno?{' '}
+              <button type="button" onClick={onGoToStudentPortal}>
+                Ir al Portal Estudiantil Móvil
+              </button>
+            </p>
+          )}
 
           <p className="login-page__notice" role="status">{notice}</p>
         </div>
