@@ -1,0 +1,20 @@
+.dashboard-overview__feedback {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 16px 0 0;
+  padding: 16px;
+  border: 1px solid var(--dashboard-border);
+  border-radius: 10px;
+  color: #34445f;
+  background: #fff;
+}
+
+.dashboard-overview__feedback button {
+  padding: 7px 12px;
+  border: 1px solid #829fdb;
+  border-radius: 6px;
+  color: #263f87;
+  background: #f6f9ff;
+  cursor: pointer;
+}

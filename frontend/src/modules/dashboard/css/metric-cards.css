@@ -41,6 +41,13 @@
   line-height: 1;
 }
 
+.metric-card--unavailable .metric-card__value {
+  max-width: 150px;
+  color: #71809a;
+  font-size: 17px;
+  line-height: 1.15;
+}
+
 .metric-card__icon {
   display: grid;
   flex-shrink: 0;
@@ -72,6 +79,7 @@
 .metric-card--blue .metric-card__detail { color: #7084a3; font-weight: 400; }
 .metric-card--red .metric-card__icon { color: #ef405a; background: #fff0f2; }
 .metric-card--red .metric-card__detail { color: #e93950; }
+.metric-card--unavailable .metric-card__detail { color: #71809a; font-weight: 400; }
 
 @media (max-width: 980px) {
   .metric-cards {

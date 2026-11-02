@@ -1,11 +1,8 @@
 import { useState, useSyncExternalStore } from 'react'
 import DashboardSidebar from '../components/DashboardSidebar.jsx'
 import DashboardTopbar from '../components/DashboardTopbar.jsx'
-import WelcomeBanner from '../components/WelcomeBanner.jsx'
-import MetricCards from '../components/MetricCards.jsx'
-import AgendaCard from '../components/AgendaCard.jsx'
-import NoticesCard from '../components/NoticesCard.jsx'
 import DashboardIcon from '../components/DashboardIcon.jsx'
+import DashboardOverview from './DashboardOverview.jsx'
 import TramitesPage from '../../tramites/pages/TramitesPage.jsx'
 import AgendaPage from '../../agenda/pages/AgendaPage.jsx'
 import CitasPage from '../../citas/pages/CitasPage.jsx'
@@ -45,18 +42,7 @@ function DashboardPage({ onLogout, onNavigate, page = 'dashboard' }) {
   if (page === 'tramites') content = <TramitesPage onAction={setNotice} />
   else if (page === 'agenda') content = <AgendaPage onAction={setNotice} />
   else if (page === 'citas') content = <CitasPage />
-  else {
-    content = (
-      <>
-        <WelcomeBanner onRequests={() => handleAction('Solicitudes')} />
-        <MetricCards />
-        <div className="dashboard__columns">
-          <AgendaCard onCalendar={() => onNavigate('agenda')} onAction={setNotice} />
-          <NoticesCard onRequests={() => handleAction('Solicitudes')} />
-        </div>
-      </>
-    )
-  }
+  else content = <DashboardOverview onNavigate={onNavigate} />
 
   return (
     <div className={`dashboard${page !== 'dashboard' ? ` dashboard--${page}` : ''}${!compact && sidebarCollapsed ? ' dashboard--sidebar-collapsed' : ''}`}>

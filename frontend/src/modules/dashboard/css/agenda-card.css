@@ -14,6 +14,16 @@
   margin-top: 13px;
 }
 
+.agenda-card__empty {
+  margin: 0;
+  padding: 24px 12px;
+  border: 1px dashed var(--dashboard-border);
+  border-radius: 8px;
+  color: var(--dashboard-muted);
+  font-size: var(--dashboard-copy);
+  text-align: center;
+}
+
 .appointment {
   display: flex;
   align-items: center;
