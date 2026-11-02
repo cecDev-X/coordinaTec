@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.Instant;
 
 @Entity
 @Table(name = "cita")
@@ -33,6 +34,9 @@ public class CitaEntity {
 
     @Column(name = "estado", length = 20)
     private String estado; // "PROGRAMADA", "ATENDIDA", etc.
+
+    @Column(name = "fecha_atencion", insertable = false, updatable = false)
+    private Instant fechaAtencion;
 
     @Column(name = "coordinador_rfc", nullable = false, length = 13)
     private String coordinadorRfc;
@@ -65,6 +69,8 @@ public class CitaEntity {
 
     public String getEstado() { return estado; }
     public void setEstado(String estado) { this.estado = estado; }
+
+    public Instant getFechaAtencion() { return fechaAtencion; }
 
     public String getCoordinadorRfc() { return coordinadorRfc; }
     public void setCoordinadorRfc(String coordinadorRfc) { this.coordinadorRfc = coordinadorRfc; }

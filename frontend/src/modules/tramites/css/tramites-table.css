@@ -21,11 +21,12 @@
 }
 
 .tramites-table__col-id { width: 8%; }
-.tramites-table__col-name { width: 25%; }
-.tramites-table__col-period { width: 12%; }
-.tramites-table__col-requirements { width: 30%; }
-.tramites-table__col-status { width: 16%; }
-.tramites-table__col-actions { width: 9%; }
+.tramites-table__col-name { width: 19%; }
+.tramites-table__col-period { width: 8%; }
+.tramites-table__col-duration { width: 11%; }
+.tramites-table__col-requirements { width: 23%; }
+.tramites-table__col-status { width: 11%; }
+.tramites-table__col-actions { width: 22%; }
 
 .tramites-table th {
   height: 48px;
@@ -41,8 +42,9 @@
 }
 
 .tramites-table th:nth-child(3),
-.tramites-table th:nth-child(5),
-.tramites-table th:nth-child(6) {
+.tramites-table th:nth-child(4),
+.tramites-table th:nth-child(6),
+.tramites-table th:nth-child(7) {
   text-align: center;
 }
 
@@ -103,21 +105,24 @@
 }
 
 .tramites-table__action {
-  display: inline-grid;
-  width: 34px;
-  height: 34px;
-  place-items: center;
-  padding: 0;
-  border: 0;
+  min-height: 30px;
+  padding: 5px 7px;
+  border: 1px solid #dce5f0;
   border-radius: 5px;
-  color: #8298b9;
-  background: transparent;
+  color: #34445f;
+  background: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
 }
 
-.tramites-table__action:hover {
-  color: #263f87;
+.tramites-table__action:hover:not(:disabled) {
   background: #edf3fe;
 }
+
+.tramites-table__action--delete { color: #b42336; }
+.tramites-table__action:disabled { opacity: 0.6; cursor: wait; }
+.tramites-table__actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; }
 
 .tramites-table .tramites-table__empty {
   height: 64px;

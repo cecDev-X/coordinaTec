@@ -21,6 +21,7 @@ public interface CitaRepository extends JpaRepository<CitaEntity, String> {
 
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Transactional
-    @Query("UPDATE CitaEntity c SET c.estado = 'ATENDIDA' WHERE c.folio = :folio AND c.estado = 'PROGRAMADA'")
+    @Query("UPDATE CitaEntity c SET c.estado = 'ATENDIDA', c.fechaAtencion = CURRENT_TIMESTAMP " +
+        "WHERE c.folio = :folio AND c.estado = 'PROGRAMADA'")
     int marcarAtendida(@Param("folio") String folio);
 }

@@ -1,0 +1,20 @@
+meta {
+  name: Catálogos para formulario de cita
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/api/v1/catalogos/citas
+  body: none
+  auth: inherit
+}
+
+tests {
+  test("devuelve estudiantes, coordinadores y formatos desde PostgreSQL", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().estudiantes).to.be.an("array");
+    expect(res.getBody().coordinadores).to.be.an("array");
+    expect(res.getBody().formatos).to.be.an("array");
+  });
+}

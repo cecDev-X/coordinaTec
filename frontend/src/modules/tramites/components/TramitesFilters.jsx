@@ -2,7 +2,7 @@ import { useState } from 'react'
 import DashboardIcon from '../../dashboard/components/DashboardIcon.jsx'
 import '../css/tramites-filters.css'
 
-function TramitesFilters({ filters, onChange, onAdd }) {
+function TramitesFilters({ filters, onChange, onAdd, periodOptions }) {
   const [showMore, setShowMore] = useState(false)
 
   return (
@@ -54,9 +54,9 @@ function TramitesFilters({ filters, onChange, onAdd }) {
           Periodo (días)
           <select value={filters.period} onChange={(event) => onChange({ ...filters, period: event.target.value })}>
             <option value="Todos">Todos</option>
-            <option value="1">1 día</option>
-            <option value="2">2 días</option>
-            <option value="5">5 días</option>
+            {periodOptions.map((period) => (
+              <option key={period} value={period}>{period} {period === '1' ? 'día' : 'días'}</option>
+            ))}
           </select>
         </label>
       )}

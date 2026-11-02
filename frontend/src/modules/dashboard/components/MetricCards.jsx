@@ -1,13 +1,18 @@
 import DashboardIcon from './DashboardIcon.jsx'
-import { countPendingAppointments, metrics } from '../data/dashboardData.js'
+import { countAppointmentsAttendedToday, countPendingAppointments, metrics } from '../data/dashboardData.js'
 import '../css/metric-cards.css'
 
 function MetricCards({ appointments }) {
   return (
     <section className="metric-cards" aria-label="Resumen de coordinación">
       {metrics.map((metric) => {
-        const value = metric.id === 'pending' ? countPendingAppointments(appointments).toLocaleString('es-MX') : 'Dato no disponible'
-        const available = metric.id === 'pending'
+        const available = metric.id === 'pending' || metric.id === 'attended-today'
+        const metricValue = metric.id === 'pending'
+          ? countPendingAppointments(appointments)
+          : metric.id === 'attended-today'
+            ? countAppointmentsAttendedToday(appointments)
+            : null
+        const value = available ? metricValue.toLocaleString('es-MX') : 'Dato no disponible'
 
         return (
           <article key={metric.id} className={`metric-card metric-card--${metric.tone}${available ? '' : ' metric-card--unavailable'}`}>

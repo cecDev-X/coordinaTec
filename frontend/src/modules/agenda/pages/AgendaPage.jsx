@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import AgendaBanner from '../components/AgendaBanner.jsx'
+import CitaFormModal from '../components/CitaFormModal.jsx'
 import AgendaToolbar from '../components/AgendaToolbar.jsx'
 import WeekCalendar from '../components/WeekCalendar.jsx'
 import { appointmentsForWeek, isPending, mondayOf, shiftWeek, statusLabel } from '../data/agendaData.js'
@@ -12,6 +13,8 @@ function AgendaPage({ onAction }) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [attempt, setAttempt] = useState(0)
+  const [createOpen, setCreateOpen] = useState(false)
+  const [createMessage, setCreateMessage] = useState('')
 
   useEffect(() => {
     const controller = new AbortController()
@@ -56,8 +59,9 @@ function AgendaPage({ onAction }) {
         onToday={() => setMonday(mondayOf(new Date()))}
         onShiftWeek={(weeks) => setMonday((current) => shiftWeek(current, weeks))}
         onOtherView={(view) => onAction(`La vista de ${view} estará disponible próximamente.`)}
-        onAdd={() => onAction('El formulario para agregar citas estará disponible próximamente.')}
+        onAdd={() => { setCreateMessage(''); setCreateOpen(true) }}
       />
+      {createMessage && <p className="agenda-page__feedback" role="status">{createMessage}</p>}
       {loading && <p className="agenda-page__feedback" role="status">Cargando citas...</p>}
       {error && (
         <div className="agenda-page__feedback" role="alert">
@@ -89,6 +93,19 @@ function AgendaPage({ onAction }) {
             onAppointment={(appointment) => onAction(`Cita ${appointment.folio}: ${appointment.nombre} · ${appointment.tramite} · ${appointment.horaInicio.slice(0, 5)} · ${statusLabel(appointment.estado)}.`)}
           />
         </>
+      )}
+      {createOpen && (
+        <CitaFormModal
+          onClose={() => setCreateOpen(false)}
+          onCreated={(cita) => {
+            setCreateOpen(false)
+            setCreateMessage(`La cita ${cita.folio} se creó correctamente.`)
+            setMonday(mondayOf(new Date(`${cita.fecha}T12:00:00`)))
+            setFilter('all')
+            setLoading(true)
+            setAttempt((current) => current + 1)
+          }}
+        />
       )}
     </div>
   )

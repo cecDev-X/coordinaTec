@@ -5,11 +5,24 @@
 ## Base de datos y migraciones
 
 El esquema inicial del modelo relacional está en
-`backend/src/main/resources/db/migration/V1__crear_tablas.sql`. Al iniciar el backend,
-Flyway crea las siete tablas y registra la versión en `flyway_schema_history`;
-después Hibernate valida la entidad `CitaEntity` sin modificar el esquema.
-Para cambios futuros, agrega un nuevo archivo `V2__descripcion.sql`, etc., en esa
-carpeta. No modifiques una migración que ya se haya aplicado a una base de datos.
+`backend/src/main/resources/db/migration/V1__crear_tablas.sql`. Flyway aplica las
+migraciones pendientes al iniciar el backend y registra cada versión en
+`flyway_schema_history`; después Hibernate valida las entidades sin modificar
+el esquema. `V2__registrar_fecha_atencion.sql` agrega el momento real en que se
+atiende una cita. Las citas atendidas antes de V2 conservan ese dato vacío porque
+no es posible reconstruir su fecha histórica. `V3__crear_catalogo_tramites.sql`
+crea el catálogo administrable de tipos de trámite. `V4__duracion_y_tipo_de_tramite_en_formato.sql`
+agrega la duración en minutos y vincula los formatos con su tipo de trámite;
+los formatos existentes reciben inicialmente 20 minutos y la duración se puede
+ajustar desde Configuración de Trámites. El backend calcula la hora de fin de cada
+nueva cita con esa duración. Para cambios futuros,
+agrega `V5__descripcion.sql`, etc. No modifiques una migración que ya se haya
+aplicado a una base de datos.
+
+El catálogo se administra con el CRUD de `/api/v1/tramites` y guarda nombre,
+periodo en días, duración de cita en minutos, requisitos, estatus activo y
+prioridad. Es distinto de la tabla `formato`, que guarda documentos específicos
+asociados a citas y referencia un tipo del catálogo.
 
 Desde la raíz del repositorio:
 
@@ -34,8 +47,8 @@ el estudiante, coordinador y formato indicados por sus llaves foráneas.
 
 ### Datos ficticios para desarrollo
 
-Después de arrancar el backend y aplicar V1, cada integrante puede cargar
-opcionalmente los mismos ejemplos en su propia base local:
+Después de arrancar el backend y aplicar las migraciones pendientes, cada integrante
+puede cargar opcionalmente los mismos ejemplos en su propia base local:
 
 ```sh
 docker compose exec -T postgres-db psql -X -v ON_ERROR_STOP=1 -U coordina_admin -d coordina_tec_db < database/seed-dev.sql
@@ -44,6 +57,8 @@ docker compose exec -T postgres-db psql -X -v ON_ERROR_STOP=1 -U coordina_admin 
 `database/seed-dev.sql` no forma parte de las migraciones automáticas: se
 comparte en Git, pero cada persona elige si lo ejecuta. Crea un departamento,
 un estudiante (`DEMO0001`), un coordinador (`DEMO000000001`), un formato
-(`FMT-DEMO-001`) y una cita (`CIT-DEMO-001`), además de un horario y un bloqueo.
+(`FMT-DEMO-001`), una cita (`CIT-DEMO-001`) y cinco tipos de trámite, además
+de un horario y un bloqueo. Se puede volver a ejecutar después de V4 para añadir
+los trámites de demostración a una base que ya tenía los demás datos.
 Se puede ejecutar más de una vez sin duplicar esos registros. Los valores de
 `password_hash` son solo marcadores, no credenciales válidas.

@@ -2,6 +2,7 @@ package mx.tecnm.oaxaca.coordinatec.dtos;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.Instant;
 
 public record CitaResumenDTO(
     String folio,
@@ -11,5 +12,6 @@ public record CitaResumenDTO(
     String tramite,
     LocalDate fecha,
     LocalTime horaInicio,
-    String estado
+    String estado,
+    Instant fechaAtencion
 ) {}

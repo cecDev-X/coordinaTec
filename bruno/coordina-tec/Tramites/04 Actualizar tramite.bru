@@ -1,0 +1,35 @@
+meta {
+  name: Actualizar tipo de trámite
+  type: http
+  seq: 4
+}
+
+put {
+  url: {{baseUrl}}/api/v1/tramites/{{tramiteId}}
+  body: json
+  auth: inherit
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "nombre": "Trámite temporal Bruno",
+    "periodo": 5,
+    "duracionMinutos": 30,
+    "requisitos": "Requisitos actualizados de prueba",
+    "activo": false,
+    "prioridad": "ALTA"
+  }
+}
+
+tests {
+  test("actualiza los datos del trámite", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().periodo).to.equal(5);
+    expect(res.getBody().activo).to.be.false;
+    expect(res.getBody().prioridad).to.equal("ALTA");
+  });
+}

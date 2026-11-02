@@ -37,6 +37,31 @@
   line-height: 18px;
 }
 
+.tramites-page__feedback {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 0 0 16px;
+  padding: 14px;
+  border: 1px solid var(--dashboard-border);
+  border-radius: 9px;
+  color: #34445f;
+  background: #fff;
+  font-size: var(--dashboard-copy);
+}
+
+.tramites-page__feedback--error { color: #a51f32; border-color: #ffd0d5; }
+
+.tramites-page__feedback button {
+  padding: 7px 10px;
+  border: 1px solid #cad9f2;
+  border-radius: 6px;
+  color: #263f87;
+  background: #f6f9ff;
+  cursor: pointer;
+}
+
 @media (max-width: 480px) {
   .tramites-page__header h1 {
     font-size: 19px;

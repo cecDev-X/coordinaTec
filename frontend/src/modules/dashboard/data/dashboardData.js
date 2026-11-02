@@ -14,7 +14,7 @@ export const metrics = [
     label: 'Atendidas hoy',
     icon: 'check',
     tone: 'green',
-    detail: 'La base no registra cuándo se atendió cada cita',
+    detail: 'Registradas hoy (hora de Oaxaca)',
     detailIcon: 'check',
   },
   {
@@ -41,6 +41,24 @@ export function isPendingAppointment(appointment) {
 
 export function countPendingAppointments(appointments) {
   return appointments.filter(isPendingAppointment).length
+}
+
+function dateInOaxaca(value) {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Mexico_City',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(value)
+}
+
+export function countAppointmentsAttendedToday(appointments, now = new Date()) {
+  const today = dateInOaxaca(now)
+  return appointments.filter((appointment) => (
+    appointment.estado === 'ATENDIDA' &&
+    appointment.fechaAtencion &&
+    dateInOaxaca(new Date(appointment.fechaAtencion)) === today
+  )).length
 }
 
 export function getUpcomingAppointments(appointments, now = new Date()) {

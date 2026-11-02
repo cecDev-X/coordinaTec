@@ -21,7 +21,6 @@ body:json {
     "formatoFolio": "{{formatoFolio}}",
     "fecha": "{{fecha}}",
     "horaInicio": "{{horaInicio}}",
-    "horaFin": "{{horaFin}}",
     "motivo": "Revisión de retícula"
   }
 }
@@ -36,6 +35,7 @@ tests {
   test("persiste la cita y genera un folio", function () {
     expect(res.getStatus()).to.equal(201);
     expect(res.getBody().folio).to.match(/^FOL-/);
+    expect(res.getBody().horaFin).to.equal("11:00:00");
     expect(res.getBody().numControlEstudiante).to.equal(bru.getEnvVar("numControl"));
     expect(res.getBody().coordinadorRfc).to.equal(bru.getEnvVar("rfc"));
     expect(res.getBody().formatoFolio).to.equal(bru.getEnvVar("formatoFolio"));

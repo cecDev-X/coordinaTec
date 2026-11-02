@@ -1,13 +1,16 @@
 package mx.tecnm.oaxaca.coordinatec.controllers;
 
 import mx.tecnm.oaxaca.coordinatec.dtos.CambiarEstadoCitaDTO;
+import mx.tecnm.oaxaca.coordinatec.dtos.CrearCitaDTO;
 import mx.tecnm.oaxaca.coordinatec.dtos.CitaResumenDTO;
 import mx.tecnm.oaxaca.coordinatec.entities.CitaEntity;
 import mx.tecnm.oaxaca.coordinatec.repositories.CitaConsultaRepository;
+import mx.tecnm.oaxaca.coordinatec.repositories.CatalogoConsultaRepository;
 import mx.tecnm.oaxaca.coordinatec.repositories.CitaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -25,13 +28,40 @@ public class CitaController {
     @Autowired
     private CitaConsultaRepository citaConsultaRepository;
 
+    @Autowired
+    private CatalogoConsultaRepository catalogoConsultaRepository;
+
     @GetMapping
     public List<CitaResumenDTO> listarCitas() {
         return citaConsultaRepository.listar();
     }
 
     @PostMapping
-    public ResponseEntity<?> agendarCita(@RequestBody CitaEntity cita) {
+    public ResponseEntity<?> agendarCita(@Valid @RequestBody CrearCitaDTO request) {
+        if (!catalogoConsultaRepository.existeEstudiante(request.numControlEstudiante())) {
+            return ResponseEntity.badRequest().body(Map.of("mensaje", "El estudiante seleccionado no existe"));
+        }
+        if (!catalogoConsultaRepository.existeCoordinador(request.coordinadorRfc())) {
+            return ResponseEntity.badRequest().body(Map.of("mensaje", "El coordinador seleccionado no existe"));
+        }
+        if (!catalogoConsultaRepository.existeFormato(request.formatoFolio())) {
+            return ResponseEntity.badRequest().body(Map.of("mensaje", "El formato seleccionado no existe"));
+        }
+
+        int duracionMinutos = catalogoConsultaRepository.obtenerDuracionFormato(request.formatoFolio());
+        int minutoFin = request.horaInicio().toSecondOfDay() / 60 + duracionMinutos;
+        if (minutoFin >= 24 * 60) {
+            return ResponseEntity.badRequest().body(Map.of("mensaje", "La duración del trámite excede el horario del día"));
+        }
+
+        CitaEntity cita = new CitaEntity();
+        cita.setFecha(request.fecha());
+        cita.setHoraInicio(request.horaInicio());
+        cita.setHoraFin(request.horaInicio().plusMinutes(duracionMinutos));
+        cita.setMotivo(request.motivo());
+        cita.setCoordinadorRfc(request.coordinadorRfc());
+        cita.setNumControlEstudiante(request.numControlEstudiante());
+        cita.setFormatoFolio(request.formatoFolio());
         String folioGenerado = "FOL-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
         cita.setFolio(folioGenerado);
         cita.setEstado("PROGRAMADA");
@@ -62,7 +92,13 @@ public class CitaController {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("mensaje", "La cita ya no está PROGRAMADA"));
         }
 
-        return ResponseEntity.ok(Map.of("folio", folio, "estado", "ATENDIDA"));
+        return citaRepository.findByFolio(folio)
+                .map(cita -> ResponseEntity.ok(Map.of(
+                    "folio", folio,
+                    "estado", cita.getEstado(),
+                    "fechaAtencion", cita.getFechaAtencion()
+                )))
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @GetMapping("/estudiantes/{numControl}")

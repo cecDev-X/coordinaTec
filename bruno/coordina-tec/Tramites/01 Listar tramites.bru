@@ -1,0 +1,18 @@
+meta {
+  name: Listar tipos de trámite
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/api/v1/tramites
+  body: none
+  auth: inherit
+}
+
+tests {
+  test("devuelve el catálogo de tipos de trámite", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody()).to.be.an("array");
+  });
+}

@@ -1,4 +1,4 @@
--- Datos ficticios para desarrollo local. Ejecutar manualmente después de Flyway V1.
+-- Datos ficticios para desarrollo local. Ejecutar manualmente después de Flyway V4.
 -- Los valores de password_hash son marcadores que no sirven para iniciar sesión.
 -- Si se vuelve a ejecutar, conserva los datos existentes sin duplicar filas.
 
@@ -14,8 +14,18 @@ INSERT INTO estudiante (numerocontrol, nombres, apellidos, carrera, password_has
 VALUES ('DEMO0001', 'Ana', 'Ejemplo', 'Ingeniería en Sistemas', '!demo-no-login!')
 ON CONFLICT (numerocontrol) DO NOTHING;
 
-INSERT INTO formato (folio, asunto, tipo_tramite, observaciones)
-VALUES ('FMT-DEMO-001', 'Solicitud de asesoría', 'Asesoría académica', 'Formato ficticio')
+INSERT INTO tramite (nombre, periodo_dias, duracion_minutos, requisitos, activo, prioridad) VALUES
+    ('Asesoría académica', 1, 20, 'Requisitos no especificados', TRUE, 'MEDIA'),
+    ('Ajuste de selección de materias', 2, 20, 'Kardex, solicitud firmada', FALSE, 'MEDIA'),
+    ('Carga superior a la máxima', 5, 30, 'Kardex, carta de motivos, solicitud', FALSE, 'ALTA'),
+    ('Baja de materia', 1, 15, 'Solicitud de baja', TRUE, 'BAJA'),
+    ('Baja temporal', 5, 30, 'Solicitud de baja, identificación, justificación', TRUE, 'ALTA')
+ON CONFLICT (nombre) DO NOTHING;
+
+INSERT INTO formato (folio, asunto, tipo_tramite, observaciones, tramite_id)
+SELECT 'FMT-DEMO-001', 'Solicitud de asesoría', nombre, 'Formato ficticio', id
+FROM tramite
+WHERE nombre = 'Asesoría académica'
 ON CONFLICT (folio) DO NOTHING;
 
 INSERT INTO coordinador (rfc, nombre_completo, password_hash, departamento_id)

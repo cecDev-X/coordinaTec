@@ -1,0 +1,17 @@
+meta {
+  name: Eliminar tipo de trámite creado
+  type: http
+  seq: 5
+}
+
+delete {
+  url: {{baseUrl}}/api/v1/tramites/{{tramiteId}}
+  body: none
+  auth: inherit
+}
+
+tests {
+  test("elimina el trámite creado para esta prueba", function () {
+    expect(res.getStatus()).to.equal(204);
+  });
+}

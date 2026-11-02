@@ -21,6 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.options;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -45,8 +46,8 @@ class CitaPersistenceTests {
     @Transactional
     void migracionCreaEsquemaYCitaSeGuardaConSusRelaciones() throws Exception {
         assertThat(jdbc.queryForObject(
-            "SELECT count(*) FROM flyway_schema_history WHERE version = '1' AND success", Integer.class
-        )).isEqualTo(1);
+            "SELECT count(*) FROM flyway_schema_history WHERE version IN ('1', '2', '3', '4') AND success", Integer.class
+        )).isEqualTo(4);
         assertThat(jdbc.queryForObject(
             "SELECT count(*) FROM pg_tables WHERE schemaname = 'public' " +
                 "AND tablename IN ('departamento', 'estudiante', 'formato', 'coordinador', " +
@@ -65,8 +66,11 @@ class CitaPersistenceTests {
         );
         jdbc.update("INSERT INTO estudiante (numerocontrol, nombres, apellidos, carrera, password_hash) " +
             "VALUES (?, ?, ?, ?, ?)", numControl, "Ana", "Prueba", "Sistemas", "hash-de-prueba");
-        jdbc.update("INSERT INTO formato (folio, asunto, tipo_tramite) VALUES (?, ?, ?)",
-            folioFormato, "Asesoría", "Tutoría");
+        jdbc.update("INSERT INTO tramite (nombre, periodo_dias, duracion_minutos, requisitos, activo, prioridad) " +
+            "VALUES (?, ?, ?, ?, ?, ?)", "Tutoría", 2, 35, "Solicitud firmada", true, "MEDIA");
+        Long tramiteId = jdbc.queryForObject("SELECT id FROM tramite WHERE nombre = ?", Long.class, "Tutoría");
+        jdbc.update("INSERT INTO formato (folio, asunto, tipo_tramite, tramite_id) VALUES (?, ?, ?, ?)",
+            folioFormato, "Asesoría", "Tutoría", tramiteId);
         jdbc.update("INSERT INTO coordinador (rfc, nombre_completo, password_hash, departamento_id) " +
             "VALUES (?, ?, ?, ?)", rfc, "Coordinador de prueba", "hash-de-prueba", departamentoId);
 
@@ -74,7 +78,7 @@ class CitaPersistenceTests {
         cita.setFolio(folioCita);
         cita.setFecha(LocalDate.of(2026, 10, 29));
         cita.setHoraInicio(LocalTime.of(10, 0));
-        cita.setHoraFin(LocalTime.of(10, 20));
+        cita.setHoraFin(LocalTime.of(10, 35));
         cita.setEstado("PROGRAMADA");
         cita.setMotivo("Asesoría académica");
         cita.setCoordinadorRfc(rfc);
@@ -85,7 +89,7 @@ class CitaPersistenceTests {
 
         assertThat(citas.findByFolio(folioCita)).hasValueSatisfying(guardada -> {
             assertThat(guardada.getNumControlEstudiante()).isEqualTo(numControl);
-            assertThat(guardada.getHoraFin()).isEqualTo(LocalTime.of(10, 20));
+            assertThat(guardada.getHoraFin()).isEqualTo(LocalTime.of(10, 35));
             assertThat(guardada.getFormatoFolio()).isEqualTo(folioFormato);
         });
         assertThat(citas.findByNumControlEstudiante(numControl)).extracting(CitaEntity::getFolio)
@@ -99,7 +103,38 @@ class CitaPersistenceTests {
             assertThat(resumen.fecha()).isEqualTo(LocalDate.of(2026, 10, 29));
             assertThat(resumen.horaInicio()).isEqualTo(LocalTime.of(10, 0));
             assertThat(resumen.estado()).isEqualTo("PROGRAMADA");
+            assertThat(resumen.fechaAtencion()).isNull();
         });
+
+        mvc.perform(get("/api/v1/catalogos/citas"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.estudiantes[0].numControl").value(numControl))
+            .andExpect(jsonPath("$.coordinadores[0].rfc").value(rfc))
+            .andExpect(jsonPath("$.formatos[0].folio").value(folioFormato))
+            .andExpect(jsonPath("$.formatos[0].duracionMinutos").value(35));
+
+        LocalDate fechaNuevaCita = LocalDate.now().plusDays(1);
+        mvc.perform(post("/api/v1/citas")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    {
+                      "fecha": "%s",
+                      "horaInicio": "11:00:00",
+                      "motivo": "Solicitud desde formulario",
+                      "coordinadorRfc": "%s",
+                      "numControlEstudiante": "%s",
+                      "formatoFolio": "%s"
+                    }
+                    """.formatted(fechaNuevaCita, rfc, numControl, folioFormato)))
+            .andExpect(status().isCreated())
+            .andExpect(jsonPath("$.folio").isNotEmpty())
+            .andExpect(jsonPath("$.estado").value("PROGRAMADA"))
+            .andExpect(jsonPath("$.horaFin").value("11:35:00"))
+            .andExpect(jsonPath("$.fechaAtencion").doesNotExist());
+
+        mvc.perform(get("/api/v1/citas"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$[?(@.numControl == '%s' && @.estado == 'PROGRAMADA')]".formatted(numControl)).isNotEmpty());
 
         mvc.perform(options("/api/v1/citas/{folio}/estado", folioCita)
                 .header(HttpHeaders.ORIGIN, "http://localhost:5173")
@@ -118,13 +153,21 @@ class CitaPersistenceTests {
                 .contentType(MediaType.APPLICATION_JSON).content("{\"estado\":\"ATENDIDA\"}"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.folio").value(folioCita))
-            .andExpect(jsonPath("$.estado").value("ATENDIDA"));
+            .andExpect(jsonPath("$.estado").value("ATENDIDA"))
+            .andExpect(jsonPath("$.fechaAtencion").isNotEmpty());
 
         assertThat(jdbc.queryForObject("SELECT estado FROM cita WHERE folio = ?", String.class, folioCita))
             .isEqualTo("ATENDIDA");
+        assertThat(jdbc.queryForObject("SELECT fecha_atencion FROM cita WHERE folio = ?", java.time.OffsetDateTime.class, folioCita))
+            .isNotNull();
+        assertThat(consultaCitas.listar())
+            .filteredOn(resumen -> resumen.folio().equals(folioCita))
+            .singleElement()
+            .satisfies(resumen -> assertThat(resumen.fechaAtencion()).isNotNull());
         mvc.perform(get("/api/v1/citas/{folio}", folioCita))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.estado").value("ATENDIDA"));
+            .andExpect(jsonPath("$.estado").value("ATENDIDA"))
+            .andExpect(jsonPath("$.fechaAtencion").isNotEmpty());
         mvc.perform(patch("/api/v1/citas/{folio}/estado", folioCita)
                 .contentType(MediaType.APPLICATION_JSON).content("{\"estado\":\"ATENDIDA\"}"))
             .andExpect(status().isConflict());
