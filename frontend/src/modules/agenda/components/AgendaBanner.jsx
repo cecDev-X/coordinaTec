@@ -5,7 +5,7 @@ function AgendaBanner({ onRequests }) {
   return (
     <section className="agenda-banner" aria-labelledby="agenda-page-title">
       <div className="agenda-banner__copy">
-        <p className="agenda-banner__eyebrow"><strong>TECNOLÓGICO NACIONAL DE MÉXICO</strong><span>·</span> Oaxaca · Depto. Sistemas y Computación</p>
+        <p className="agenda-banner__eyebrow"><strong>TECNOLÓGICO NACIONAL DE MÉXICO</strong><span>·</span> Oaxaca · Agenda de coordinación</p>
         <div className="agenda-banner__heading">
           <span className="agenda-banner__icon"><DashboardIcon name="calendar" size={20} /></span>
           <div>
@@ -15,7 +15,7 @@ function AgendaBanner({ onRequests }) {
         </div>
       </div>
       <button type="button" className="agenda-banner__requests" onClick={onRequests}>
-        <DashboardIcon name="document" size={13} /> Revisar Solicitudes (12)
+        <DashboardIcon name="document" size={13} /> Revisar Solicitudes
       </button>
     </section>
   )

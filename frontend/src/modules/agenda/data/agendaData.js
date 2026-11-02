@@ -1,15 +1,23 @@
-// Sample appointments for the week shown in the design. No API calls or persistence.
-export const SAMPLE_WEEK_START = new Date(2026, 9, 12)
+export const weekdays = ['LUNES', 'MARTES', 'MIÉRCOLES', 'JUEVES', 'VIERNES', 'SÁBADO', 'DOMINGO']
 
-export const hours = ['08:00 AM', '09:00 AM', '10:00 AM', '11:00 AM']
-export const weekdays = ['LUNES', 'MARTES', 'MIÉRCOLES', 'JUEVES', 'VIERNES']
+const pendingStates = new Set(['PROGRAMADA', 'PENDIENTE', 'CONFIRMADA', 'REAGENDADA'])
 
-export const appointments = [
-  { id: 'ajuste', day: 0, hour: 0, title: 'Ajuste de Carga', student: 'Luna Cebonios S', registration: '23160896' },
-  { id: 'justificante', day: 2, hour: 1, title: 'Justificante', student: 'Velásquez Ignacio', registration: '22161272' },
-  { id: 'baja', day: 0, hour: 2, title: 'Baja de Materia', student: 'Diego Revilla M', registration: '23160887' },
-  { id: 'otro', day: 4, hour: 2, title: 'Otro trámite', student: 'Sánchez Hdez', registration: '22161272' },
-]
+export function isPending(estado) {
+  return pendingStates.has(estado)
+}
+
+export function statusLabel(estado) {
+  if (!estado) return 'Sin estado'
+  const text = estado.toLocaleLowerCase('es')
+  return text[0].toLocaleUpperCase('es') + text.slice(1)
+}
+
+export function dateKey(date) {
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
 
 export function mondayOf(date) {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate() - ((date.getDay() + 6) % 7))
@@ -19,14 +27,37 @@ export function shiftWeek(monday, weeks) {
   return new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + weeks * 7)
 }
 
+export function appointmentsForWeek(appointments, monday, filter = 'all') {
+  const firstDay = dateKey(monday)
+  const lastDay = dateKey(new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + 6))
+
+  return appointments.filter((appointment) => (
+    appointment.fecha >= firstDay && appointment.fecha <= lastDay &&
+    (filter === 'all' || (filter === 'attended' && appointment.estado === 'ATENDIDA') ||
+      (filter === 'pending' && isPending(appointment.estado)))
+  ))
+}
+
+export function hoursFor(appointments) {
+  const appointmentHours = appointments.map((appointment) => Number(appointment.horaInicio?.slice(0, 2)))
+    .filter((hour) => Number.isInteger(hour) && hour >= 0 && hour <= 23)
+  const first = Math.min(8, ...appointmentHours)
+  const last = Math.max(17, ...appointmentHours)
+
+  return Array.from({ length: last - first + 1 }, (_, index) => String(first + index).padStart(2, '0'))
+}
+
 function shortMonth(date) {
   const month = new Intl.DateTimeFormat('es-MX', { month: 'short' }).format(date).replace('.', '')
   return month[0].toUpperCase() + month.slice(1)
 }
 
 export function weekLabel(monday) {
-  const friday = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + 4)
+  const sunday = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + 6)
   const start = `${monday.getDate()} ${shortMonth(monday)}`
-  const end = `${friday.getDate()} ${shortMonth(friday)}`
-  return `${start} - ${end}, ${friday.getFullYear()}`
+  const end = `${sunday.getDate()} ${shortMonth(sunday)}`
+  if (monday.getFullYear() !== sunday.getFullYear()) {
+    return `${start} ${monday.getFullYear()} - ${end} ${sunday.getFullYear()}`
+  }
+  return `${start} - ${end}, ${sunday.getFullYear()}`
 }

@@ -20,13 +20,13 @@
 
 .week-calendar table {
   width: 100%;
-  min-width: 970px;
+  min-width: 1120px;
   border-collapse: collapse;
   table-layout: fixed;
 }
 
 .week-calendar__time-col {
-  width: 100px;
+  width: 84px;
 }
 
 .week-calendar thead th {
@@ -56,7 +56,7 @@
   padding: 7px;
   border-top: 1px solid #e4ebf4;
   border-right: 1px solid #e4ebf4;
-  vertical-align: middle;
+  vertical-align: top;
 }
 
 .week-calendar tbody th {
@@ -68,6 +68,12 @@
   white-space: nowrap;
 }
 
+.week-calendar__appointments {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
 .week-calendar__appointment {
   display: flex;
   flex-direction: column;
@@ -77,16 +83,37 @@
   width: 100%;
   min-height: 78px;
   padding: 10px;
-  border: 0;
+  border: 1px solid transparent;
   border-radius: 9px;
-  color: #e5ecf9;
-  background: linear-gradient(135deg, #233f70, #17253d);
+  color: #34445f;
+  background: #f1f5fa;
   box-shadow: 0 1px 2px rgb(15 30 54 / 16%);
   text-align: left;
+  cursor: pointer;
 }
 
 .week-calendar__appointment:hover {
-  background: linear-gradient(135deg, #315393, #1b2e4f);
+  background: #e7edf6;
+}
+
+.week-calendar__appointment--pending {
+  border-color: #ffe19a;
+  color: #754711;
+  background: #fff9ea;
+}
+
+.week-calendar__appointment--pending:hover {
+  background: #fff1cf;
+}
+
+.week-calendar__appointment--attended {
+  border-color: #b7f0d5;
+  color: #006549;
+  background: #e8fcf2;
+}
+
+.week-calendar__appointment--attended:hover {
+  background: #d7f6e6;
 }
 
 .week-calendar__appointment strong,
@@ -100,7 +127,7 @@
 }
 
 .week-calendar__appointment strong {
-  color: #fff;
+  color: inherit;
   font-size: var(--dashboard-copy);
   line-height: 16px;
 }
@@ -111,30 +138,14 @@
 }
 
 .week-calendar__appointment small {
-  color: #b8c9e2;
+  color: inherit;
   font-size: var(--dashboard-small);
   line-height: 15px;
 }
 
-.week-calendar__pending {
-  display: grid;
-  gap: 6px;
-  padding: 7px 6px;
-  border: 1px solid #ffe19a;
-  border-radius: 8px;
-  color: #754711;
-  background: #fff9ea;
-  font-size: var(--dashboard-copy);
-}
-
-.week-calendar__pending strong {
-  color: #b07000;
-  white-space: nowrap;
-}
-
-.week-calendar__pending span {
+.week-calendar__appointment .week-calendar__appointment-status {
   font-size: var(--dashboard-small);
-  line-height: 16px;
+  font-weight: 700;
 }
 
 @media (max-width: 1150px) {
