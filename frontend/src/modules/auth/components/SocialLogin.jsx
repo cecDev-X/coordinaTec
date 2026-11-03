@@ -3,8 +3,6 @@ import '../css/social-login.css'
 
 const providers = [
   { id: 'google', name: 'Google' },
-  { id: 'linkedin', name: 'LinkedIn' },
-  { id: 'facebook', name: 'Facebook' },
 ]
 
 function SocialLogin({ onSelect }) {

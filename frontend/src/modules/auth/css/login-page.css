@@ -21,8 +21,12 @@
   text-align: center;
 }
 
-.login-page__header .brand-logo {
-  margin-bottom: 24px;
+.login-page__mascot {
+  display: block;
+  width: 112px;
+  height: 112px;
+  margin: 0 auto 18px;
+  object-fit: contain;
 }
 
 .login-page__header h1 {

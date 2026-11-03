@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import BrandLogo from '../../../components/BrandLogo.jsx'
 import AuthArtwork from '../components/AuthArtwork.jsx'
 import LoginForm from '../components/LoginForm.jsx'
 import SocialLogin from '../components/SocialLogin.jsx'
@@ -21,7 +20,7 @@ function LoginPage({ onLogin }) {
       <section className="login-page__panel" aria-labelledby="login-title">
         <div className="login-page__content">
           <header className="login-page__header">
-            <BrandLogo />
+            <img className="login-page__mascot" src="/tio.png" alt="Mascota del Tecnológico Nacional de México" />
             <h1 id="login-title">COORDINA TEC</h1>
             <p>Ingrese sus datos para acceder al sistema</p>
           </header>
