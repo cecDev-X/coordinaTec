@@ -1,68 +1,39 @@
--- limpieza previa de privilegios y roles 
+-- Ejecutar manualmente como propietario/administrador de la base, después de Flyway.
+-- Define roles de grupo idempotentes; no borra usuarios, roles ni datos existentes.
 DO $$
 BEGIN
-    IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'rol_estudiante') THEN
-        EXECUTE 'REVOKE ALL PRIVILEGES ON ALL TABLES IN SCHEMA public FROM rol_estudiante';
-        EXECUTE 'REVOKE ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public FROM rol_estudiante';
-        EXECUTE 'REVOKE ALL PRIVILEGES ON DATABASE citas_tutorias FROM rol_estudiante';
+    IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'rol_admin') THEN
+        CREATE ROLE rol_admin NOLOGIN;
     END IF;
-    IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'rol_coordinador') THEN
-        EXECUTE 'REVOKE ALL PRIVILEGES ON ALL TABLES IN SCHEMA public FROM rol_coordinador';
-        EXECUTE 'REVOKE ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public FROM rol_coordinador';
-        EXECUTE 'REVOKE ALL PRIVILEGES ON DATABASE citas_tutorias FROM rol_coordinador';
+    IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'rol_coordinador') THEN
+        CREATE ROLE rol_coordinador NOLOGIN;
     END IF;
-    IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'rol_admin') THEN
-        EXECUTE 'REVOKE ALL PRIVILEGES ON ALL TABLES IN SCHEMA public FROM rol_admin';
-        EXECUTE 'REVOKE ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public FROM rol_admin';
-        EXECUTE 'REVOKE ALL PRIVILEGES ON DATABASE citas_tutorias FROM rol_admin';
+    IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'rol_estudiante') THEN
+        CREATE ROLE rol_estudiante NOLOGIN;
     END IF;
 END
 $$;
 
-DROP USER IF EXISTS app_coordinatec;
-DROP ROLE IF EXISTS rol_estudiante;
-DROP ROLE IF EXISTS rol_coordinador;
-DROP ROLE IF EXISTS rol_admin;
-
--- creación de Roles de Grupo (NOLOGIN)
-
-CREATE ROLE rol_admin NOLOGIN;
-CREATE ROLE rol_coordinador NOLOGIN;
-CREATE ROLE rol_estudiante NOLOGIN;
-
--- Permiso de conexión a la base de datos y uso del esquema public
-GRANT CONNECT ON DATABASE citas_tutorias TO rol_admin, rol_coordinador, rol_estudiante;
+GRANT CONNECT ON DATABASE coordina_tec_db TO rol_admin, rol_coordinador, rol_estudiante;
 GRANT USAGE ON SCHEMA public TO rol_admin, rol_coordinador, rol_estudiante;
 
-
--- asignación de Permisos sobre Tablas y Secuencias
-
--- ROL ADMINISTRADOR: Control total sobre tablas y secuencias (SERIAL)
+-- Administrador: gestión completa del esquema actual.
 GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO rol_admin;
 GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO rol_admin;
 
--- ROL COORDINADOR:Puede consultar departamentos y datos de estudiantes para sus citas
-GRANT SELECT ON DEPARTAMENTO, ESTUDIANTE TO rol_coordinador;
-
--- Puede consultar su perfil y actualizar sus datos (ej. contraseña)
-GRANT SELECT, UPDATE ON COORDINADOR TO rol_coordinador;
-
--- Puede administrar completamente sus horarios y bloqueos de calendario
-GRANT SELECT, INSERT, UPDATE, DELETE ON HORARIO, BLOQUEO_CALENDARIO TO rol_coordinador;
+-- Coordinación: lectura de catálogos y administración de horarios, bloqueos y citas.
+GRANT SELECT ON departamento, estudiante, coordinador, tramite TO rol_coordinador;
+GRANT SELECT, UPDATE ON formato, cita TO rol_coordinador;
+GRANT SELECT, INSERT, UPDATE, DELETE ON horario, bloqueo_calendario TO rol_coordinador;
 GRANT USAGE, SELECT ON SEQUENCE horario_id_seq, bloqueo_calendario_id_seq TO rol_coordinador;
 
--- Puede ver formatos y citas, y actualizar su estado u observaciones
-GRANT SELECT, UPDATE ON FORMATO, CITA TO rol_coordinador;
+-- Estudiante: lectura de catálogos y gestión de sus registros (el aislamiento
+-- por usuario debe aplicarse en la API/RLS; estos permisos por sí solos no
+-- limitan filas individuales).
+GRANT SELECT ON departamento, coordinador, horario, bloqueo_calendario, tramite TO rol_estudiante;
+GRANT SELECT, INSERT, UPDATE ON estudiante, formato, cita TO rol_estudiante;
 
--- ROL ESTUDIANTE:Puede ver departamentos, coordinadores, horarios disponibles y fechas bloqueadas
-GRANT SELECT ON DEPARTAMENTO, COORDINADOR, HORARIO, BLOQUEO_CALENDARIO TO rol_estudiante;
-
--- Puede registrarse, ver su perfil y actualizar sus datos
-GRANT SELECT, INSERT, UPDATE ON ESTUDIANTE TO rol_estudiante;
-
--- Puede llenar el formato de prerrequisito y agendar/cancelar su cita
-GRANT SELECT, INSERT, UPDATE ON FORMATO, CITA TO rol_estudiante;
-
--- Usuario de Conexión para el Backend
-CREATE USER app_coordinatec WITH PASSWORD 'Coordinatec_2026_Secure!';
-GRANT rol_admin, rol_coordinador, rol_estudiante TO app_coordinatec;
+-- Permisos para los objetos que se creen en migraciones posteriores.
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL PRIVILEGES ON TABLES TO rol_admin;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL PRIVILEGES ON SEQUENCES TO rol_admin;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO rol_coordinador, rol_estudiante;

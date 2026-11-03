@@ -24,6 +24,12 @@ periodo en días, duración de cita en minutos, requisitos, estatus activo y
 prioridad. Es distinto de la tabla `formato`, que guarda documentos específicos
 asociados a citas y referencia un tipo del catálogo.
 
+`database/coordinatecdcl.sql` define roles de grupo para PostgreSQL y se ejecuta
+manualmente después de las migraciones, con permisos de administrador. No crea
+usuarios de aplicación ni activa autorización por rol en Spring; `SecurityConfig`
+y el login siguen siendo de desarrollo y deben conectarse a esos roles en una
+implementación posterior.
+
 Desde la raíz del repositorio:
 
 ```sh
