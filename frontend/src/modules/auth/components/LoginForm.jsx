@@ -7,7 +7,9 @@ function LoginForm({ onSubmit }) {
 
   function handleSubmit(event) {
     event.preventDefault()
-    onSubmit()
+    const formData = new FormData(event.currentTarget)
+    const username = formData.get('username') || ''
+    onSubmit(String(username))
   }
 
   return (
