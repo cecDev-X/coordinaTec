@@ -90,14 +90,7 @@ function App() {
 
   return (
     <LoginPage
-      onLogin={(username) => {
-        const clean = (username || '').trim().toLowerCase()
-        if (clean === 'estudiante' || /^\d{8}$/.test(clean) || clean.endsWith('@itoaxaca.edu.mx')) {
-          navigateTo('student-home')
-        } else {
-          navigateTo('dashboard')
-        }
-      }}
+      onLogin={() => navigateTo('dashboard')}
       onGoToStudentPortal={() => navigateTo('student-login')}
     />
   )

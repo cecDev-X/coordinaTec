@@ -21,11 +21,16 @@ function StudentLoginPage({ cicloPortal = 'Ciclo 2024-B', onLoginSuccess, onSwit
 
     setIsSubmitting(false)
 
-    if (apiResult && apiResult.token) {
+    if (!apiResult || apiResult.rol !== 'ESTUDIANTE') {
+      setNotice('Correo o contraseña incorrectos. Verifica tus credenciales de estudiante.')
+      return
+    }
+
+    if (apiResult.token) {
       localStorage.setItem('coordinatec_student_token', apiResult.token)
     }
 
-    onLoginSuccess(cleanUser || '23160887')
+    onLoginSuccess(cleanUser)
   }
 
   return (

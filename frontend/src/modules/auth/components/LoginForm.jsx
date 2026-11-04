@@ -16,14 +16,15 @@ function LoginForm({ onSubmit }) {
     <form className="login-form" onSubmit={handleSubmit}>
       <div className="login-form__fields">
         <div className="login-form__field">
-          <label className="sr-only" htmlFor="username">Usuario</label>
+          <label className="sr-only" htmlFor="username">Correo electrónico</label>
           <span className="login-form__icon"><InterfaceIcon name="user" /></span>
           <input
             id="username"
             name="username"
-            type="text"
-            placeholder="Usuario"
-            autoComplete="username"
+            type="email"
+            placeholder="Correo electrónico"
+            autoComplete="email"
+            inputMode="email"
             autoCapitalize="none"
             spellCheck={false}
             required
