@@ -1,17 +1,21 @@
 package mx.tecnm.oaxaca.coordinatec.controllers;
 
+import jakarta.validation.Valid;
 import mx.tecnm.oaxaca.coordinatec.dtos.CambiarEstadoCitaDTO;
-import mx.tecnm.oaxaca.coordinatec.dtos.CrearCitaDTO;
 import mx.tecnm.oaxaca.coordinatec.dtos.CitaResumenDTO;
+import mx.tecnm.oaxaca.coordinatec.dtos.CrearCitaDTO;
 import mx.tecnm.oaxaca.coordinatec.entities.CitaEntity;
 import mx.tecnm.oaxaca.coordinatec.repositories.CitaConsultaRepository;
 import mx.tecnm.oaxaca.coordinatec.repositories.CatalogoConsultaRepository;
 import mx.tecnm.oaxaca.coordinatec.repositories.CitaRepository;
 import mx.tecnm.oaxaca.coordinatec.repositories.DisponibilidadRepository;
+import mx.tecnm.oaxaca.coordinatec.services.EmailService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import jakarta.validation.Valid;
+import org.springframework.mail.MailException;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -22,6 +26,11 @@ import java.util.UUID;
 @RequestMapping("/api/v1/citas")
 @CrossOrigin(origins = "http://localhost:5173")
 public class CitaController {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(CitaController.class);
+
+    @Autowired
+    private EmailService emailService;
 
     @Autowired
     private CitaRepository citaRepository;
@@ -54,14 +63,16 @@ public class CitaController {
 
         int duracionMinutos = catalogoConsultaRepository.obtenerDuracionFormato(request.formatoFolio());
         if (!disponibilidadRepository.listarDisponibilidad(
-            request.coordinadorRfc(), request.fecha(), duracionMinutos
+                request.coordinadorRfc(), request.fecha(), duracionMinutos
         ).contains(request.horaInicio().toString())) {
             return ResponseEntity.status(HttpStatus.CONFLICT)
-                .body(Map.of("mensaje", "Ese horario ya no está disponible; selecciona otro"));
+                    .body(Map.of("mensaje", "Ese horario ya no está disponible; selecciona otro"));
         }
+
         int minutoFin = request.horaInicio().toSecondOfDay() / 60 + duracionMinutos;
         if (minutoFin >= 24 * 60) {
-            return ResponseEntity.badRequest().body(Map.of("mensaje", "La duración del trámite excede el horario del día"));
+            return ResponseEntity.badRequest()
+                    .body(Map.of("mensaje", "La duración del trámite excede el horario del día"));
         }
 
         CitaEntity cita = new CitaEntity();
@@ -72,12 +83,22 @@ public class CitaController {
         cita.setCoordinadorRfc(request.coordinadorRfc());
         cita.setNumControlEstudiante(request.numControlEstudiante());
         cita.setFormatoFolio(request.formatoFolio());
+
         String folioGenerado = "FOL-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
         cita.setFolio(folioGenerado);
         cita.setEstado("PROGRAMADA");
 
-        // Guarda la entidad directamente en la Base de Datos
         CitaEntity nuevaCita = citaRepository.save(cita);
+
+        try {
+            emailService.enviarConfirmacionCita(nuevaCita);
+        } catch (MailException | IllegalStateException | IllegalArgumentException ex) {
+            LOGGER.error(
+                    "La cita {} se guardó, pero no se pudo enviar la confirmación.",
+                    nuevaCita.getFolio(),
+                    ex
+            );
+        }
 
         return ResponseEntity.status(HttpStatus.CREATED).body(nuevaCita);
     }
@@ -90,23 +111,28 @@ public class CitaController {
     }
 
     @PatchMapping("/{folio}/estado")
-    public ResponseEntity<?> marcarCitaAtendida(@PathVariable String folio, @RequestBody CambiarEstadoCitaDTO request) {
+    public ResponseEntity<?> marcarCitaAtendida(
+            @PathVariable String folio,
+            @RequestBody CambiarEstadoCitaDTO request
+    ) {
         if (!"ATENDIDA".equals(request.estado())) {
-            return ResponseEntity.badRequest().body(Map.of("mensaje", "Solo se permite marcar una cita como ATENDIDA"));
+            return ResponseEntity.badRequest()
+                    .body(Map.of("mensaje", "Solo se permite marcar una cita como ATENDIDA"));
         }
 
         if (citaRepository.marcarAtendida(folio) == 0) {
             if (!citaRepository.existsById(folio)) {
                 return ResponseEntity.notFound().build();
             }
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("mensaje", "La cita ya no está PROGRAMADA"));
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(Map.of("mensaje", "La cita ya no está PROGRAMADA"));
         }
 
         return citaRepository.findByFolio(folio)
                 .map(cita -> ResponseEntity.ok(Map.of(
-                    "folio", folio,
-                    "estado", cita.getEstado(),
-                    "fechaAtencion", cita.getFechaAtencion()
+                        "folio", folio,
+                        "estado", cita.getEstado(),
+                        "fechaAtencion", cita.getFechaAtencion()
                 )))
                 .orElse(ResponseEntity.notFound().build());
     }

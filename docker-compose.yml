@@ -38,6 +38,13 @@ services:
       - SPRING_DATASOURCE_USERNAME=coordina_admin
       - SPRING_DATASOURCE_PASSWORD=coordina_password_segura
       - SPRING_JPA_HIBERNATE_DDL_AUTO=validate # Flyway crea el esquema; Hibernate solo valida las entidades
+      - SPRING_MAIL_HOST=${SMTP_HOST}
+      - SPRING_MAIL_PORT=${SMTP_PORT:-587}
+      - SPRING_MAIL_USERNAME=${SMTP_USERNAME}
+      - SPRING_MAIL_PASSWORD=${SMTP_PASSWORD}
+      - SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH=${SMTP_AUTH:-true}
+      - SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE=${SMTP_STARTTLS:-true}
+      - APP_MAIL_FROM=${SMTP_FROM}
     ports:
       - "8080:8080"
     networks:
