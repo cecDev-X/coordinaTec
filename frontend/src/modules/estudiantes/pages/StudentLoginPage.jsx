@@ -3,8 +3,16 @@ import StudentIcon from '../components/StudentIcon.jsx'
 import { loginStudentApi } from '../data/estudiantesData.js'
 import '../css/student-login.css'
 
-function StudentLoginPage({ cicloPortal = 'Ciclo 2024-B', onLoginSuccess, onSwitchToAdmin }) {
-  const [username, setUsername] = useState('')
+function currentCycleLabel(date = new Date()) {
+  const month = date.getMonth()
+  const year = date.getFullYear()
+  if (month <= 5) return `Enero - Junio ${year}`
+  if (month === 6) return `Periodo intersemestral ${year}`
+  return `Agosto - Diciembre ${year}`
+}
+
+function StudentLoginPage({ onLoginSuccess, onSwitchToAdmin, onGoToRegister }) {
+  const [identifier, setIdentifier] = useState('')
   const [password, setPassword] = useState('')
   const [rememberMe, setRememberMe] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
@@ -16,21 +24,22 @@ function StudentLoginPage({ cicloPortal = 'Ciclo 2024-B', onLoginSuccess, onSwit
     setNotice('')
     setIsSubmitting(true)
 
-    const cleanUser = username.trim()
-    const apiResult = await loginStudentApi(cleanUser, password)
+    try {
+      const cleanIdentifier = identifier.trim()
+      const controlPattern = /^[a-z0-9]{1,15}$/i
 
-    setIsSubmitting(false)
+      if (!controlPattern.test(cleanIdentifier)) {
+        setNotice('Ingresa un número de control válido, sin correo electrónico.')
+        return
+      }
 
-    if (!apiResult || apiResult.rol !== 'ESTUDIANTE') {
-      setNotice('Correo o contraseña incorrectos. Verifica tus credenciales de estudiante.')
-      return
+      const student = await loginStudentApi(cleanIdentifier, password)
+      onLoginSuccess(student)
+    } catch {
+      setNotice('Número de control o contraseña incorrectos.')
+    } finally {
+      setIsSubmitting(false)
     }
-
-    if (apiResult.token) {
-      localStorage.setItem('coordinatec_student_token', apiResult.token)
-    }
-
-    onLoginSuccess(cleanUser)
   }
 
   return (
@@ -42,58 +51,45 @@ function StudentLoginPage({ cicloPortal = 'Ciclo 2024-B', onLoginSuccess, onSwit
             <div className="student-login__banner-text">
               <span className="student-login__banner-kicker">TECNM · ITO</span>
               <h1 className="student-login__banner-title">Portal Estudiantil</h1>
+              <div className="student-login__cycle-badge">
+                <span className="student-login__cycle-dot" aria-hidden="true" />
+                <span>Ciclo {currentCycleLabel()}</span>
+              </div>
             </div>
-            <div className="student-login__cycle-badge">
-              <span className="student-login__cycle-dot" aria-hidden="true" />
-              <span>{cicloPortal}</span>
-            </div>
+            <img className="student-login__tecnm-logo" src="/tecnm.webp" alt="Tecnológico Nacional de México" />
           </header>
 
           {/* Tarjeta Principal de Login */}
           <section className="student-login__card" aria-labelledby="student-welcome-title">
-            {/* Logo gráfico CoordinaTec */}
-            <div className="student-login__brand" aria-hidden="true">
-              <div className="student-login__bars">
-                <span className="student-login__bar student-login__bar--top" />
-                <span className="student-login__bar student-login__bar--mid">
-                  <i className="student-login__bar-gray" />
-                  <i className="student-login__bar-orange" />
-                  <i className="student-login__bar-blue" />
-                </span>
-                <span className="student-login__bar student-login__bar--bot">
-                  <i className="student-login__bar-gray-short" />
-                  <i className="student-login__bar-blue-long" />
-                </span>
-              </div>
-              <div className="student-login__brand-text">
-                <span className="student-login__brand-dark">coordina</span>
-                <span className="student-login__brand-blue">Tec</span>
-              </div>
-            </div>
+            <img className="student-login__tio-logo" src="/tio.png" alt="Mascota del Tecnológico Nacional de México" />
 
             <h2 id="student-welcome-title" className="student-login__title">
               Bienvenido a CoordinaTec
             </h2>
-            <p className="student-login__subtitle">
-              Ingresa tus credenciales institucionales para gestionar tus trámites y citas académicas.
-            </p>
+            <p className="student-login__subtitle">Ingresa tu número de control y contraseña para consultar tus trámites y citas académicas.</p>
 
             <form className="student-login__form" onSubmit={handleSubmit}>
               <div className="student-login__field-group">
-                <label htmlFor="student-user" className="student-login__label">
-                  Número de Control / Usuario <span className="student-login__req">*</span>
+                <label htmlFor="student-identifier" className="student-login__label">
+                  Número de Control <span className="student-login__req">*</span>
                 </label>
                 <div className="student-login__input-wrap">
                   <span className="student-login__input-icon">
                     <StudentIcon name="user-circle" size={20} />
                   </span>
                   <input
-                    id="student-user"
+                    id="student-identifier"
                     type="text"
                     className="student-login__input"
-                    placeholder="Ej. 21160452 o correo institucional"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
+                    name="identifier"
+                    placeholder="Ej. DEMO0001"
+                    value={identifier}
+                    maxLength={15}
+                    inputMode="text"
+                    autoCapitalize="none"
+                    pattern="[A-Za-z0-9]{1,15}"
+                    title="Ingresa el número de control, no un correo electrónico."
+                    onChange={(e) => setIdentifier(e.target.value)}
                     autoComplete="username"
                     required
                   />
@@ -101,7 +97,7 @@ function StudentLoginPage({ cicloPortal = 'Ciclo 2024-B', onLoginSuccess, onSwit
               </div>
 
               <div className="student-login__field-group">
-                <label htmlFor="student-pass" className="student-login__label">
+                <label htmlFor="student-password" className="student-login__label">
                   Contraseña <span className="student-login__req">*</span>
                 </label>
                 <div className="student-login__input-wrap">
@@ -109,19 +105,19 @@ function StudentLoginPage({ cicloPortal = 'Ciclo 2024-B', onLoginSuccess, onSwit
                     <StudentIcon name="lock" size={19} />
                   </span>
                   <input
-                    id="student-pass"
+                    id="student-password"
                     type={showPassword ? 'text' : 'password'}
                     className="student-login__input"
-                    placeholder="••••••••••••"
+                    placeholder="Ingresa tu contraseña"
                     value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    onChange={(event) => setPassword(event.target.value)}
                     autoComplete="current-password"
                     required
                   />
                   <button
                     type="button"
                     className="student-login__eye-btn"
-                    onClick={() => setShowPassword((prev) => !prev)}
+                    onClick={() => setShowPassword((visible) => !visible)}
                     aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
                   >
                     <StudentIcon name={showPassword ? 'eye-off' : 'eye'} size={20} />
@@ -134,17 +130,14 @@ function StudentLoginPage({ cicloPortal = 'Ciclo 2024-B', onLoginSuccess, onSwit
                   <input
                     type="checkbox"
                     checked={rememberMe}
-                    onChange={(e) => setRememberMe(e.target.checked)}
+                    onChange={(event) => setRememberMe(event.target.checked)}
                   />
                   <span>Recordarme</span>
                 </label>
-
                 <button
                   type="button"
                   className="student-login__forgot"
-                  onClick={() =>
-                    setNotice('Para recuperar tu contraseña acude al Centro de Cómputo o SII ITO.')
-                  }
+                  onClick={() => setNotice('La recuperación de contraseña estará disponible al integrar la autenticación institucional.')}
                 >
                   ¿Olvidaste tu contraseña?
                 </button>
@@ -160,48 +153,9 @@ function StudentLoginPage({ cicloPortal = 'Ciclo 2024-B', onLoginSuccess, onSwit
               </button>
             </form>
 
-            <div className="student-login__divider">
-              <span>O INGRESA CON</span>
-            </div>
-
-            <div className="student-login__social-wrap">
-              <button
-                type="button"
-                className="student-login__google-btn"
-                onClick={() => onLoginSuccess('23160887@itoaxaca.edu.mx')}
-              >
-                <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
-                  <path
-                    fill="#EA4335"
-                    d="M12 5c1.6 0 3 .6 4.1 1.7l3.1-3.1C17.3 1.8 14.8 1 12 1 7.4 1 3.5 3.6 1.6 7.4l3.7 2.8C6.2 7.2 8.9 5 12 5Z"
-                  />
-                  <path
-                    fill="#4285F4"
-                    d="M22.5 12.2c0-.8-.1-1.5-.2-2.2H12v4.3h5.9c-.3 1.4-1.1 2.6-2.3 3.4l3.6 2.8c2.1-2 3.3-4.9 3.3-8.3Z"
-                  />
-                  <path
-                    fill="#FBBC05"
-                    d="M5.3 14.8c-.2-.8-.4-1.8-.4-2.8s.2-2 .4-2.8L1.6 6.4C.6 8.4 0 10.6 0 13s.6 4.6 1.6 6.6l3.7-2.8Z"
-                  />
-                  <path
-                    fill="#34A853"
-                    d="M12 23c3 0 5.5-1 7.3-2.7l-3.6-2.8c-1 .7-2.2 1.1-3.7 1.1-3.1 0-5.8-2.1-6.7-5l-3.7 2.8C3.5 20.4 7.4 23 12 23Z"
-                  />
-                </svg>
-                <span>Google</span>
-              </button>
-            </div>
-
             <p className="student-login__register">
-              ¿No tienes una cuenta?{' '}
-              <button
-                type="button"
-                onClick={() =>
-                  setNotice('Tu cuenta institucional se activa automáticamente al inscribirte en el SII.')
-                }
-              >
-                Regístrate
-              </button>
+              ¿Primera vez en CoordinaTec?{' '}
+              <button type="button" onClick={onGoToRegister}>Regístrate aquí</button>
             </p>
 
             {notice && (
@@ -212,13 +166,6 @@ function StudentLoginPage({ cicloPortal = 'Ciclo 2024-B', onLoginSuccess, onSwit
           </section>
 
           <footer className="student-login__footer">
-            <div className="student-login__footer-dept">
-              <span className="student-login__footer-icon">
-                <StudentIcon name="headset" size={16} />
-              </span>
-              <span>Dpto. de Sistemas y Computación</span>
-            </div>
-
             {onSwitchToAdmin && (
               <button
                 type="button"

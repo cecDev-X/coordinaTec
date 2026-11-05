@@ -7,6 +7,7 @@ import mx.tecnm.oaxaca.coordinatec.entities.CitaEntity;
 import mx.tecnm.oaxaca.coordinatec.repositories.CitaConsultaRepository;
 import mx.tecnm.oaxaca.coordinatec.repositories.CatalogoConsultaRepository;
 import mx.tecnm.oaxaca.coordinatec.repositories.CitaRepository;
+import mx.tecnm.oaxaca.coordinatec.repositories.DisponibilidadRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -31,6 +32,9 @@ public class CitaController {
     @Autowired
     private CatalogoConsultaRepository catalogoConsultaRepository;
 
+    @Autowired
+    private DisponibilidadRepository disponibilidadRepository;
+
     @GetMapping
     public List<CitaResumenDTO> listarCitas() {
         return citaConsultaRepository.listar();
@@ -49,6 +53,12 @@ public class CitaController {
         }
 
         int duracionMinutos = catalogoConsultaRepository.obtenerDuracionFormato(request.formatoFolio());
+        if (!disponibilidadRepository.listarDisponibilidad(
+            request.coordinadorRfc(), request.fecha(), duracionMinutos
+        ).contains(request.horaInicio().toString())) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(Map.of("mensaje", "Ese horario ya no está disponible; selecciona otro"));
+        }
         int minutoFin = request.horaInicio().toSecondOfDay() / 60 + duracionMinutos;
         if (minutoFin >= 24 * 60) {
             return ResponseEntity.badRequest().body(Map.of("mensaje", "La duración del trámite excede el horario del día"));
@@ -103,7 +113,7 @@ public class CitaController {
 
     @GetMapping("/estudiantes/{numControl}")
     public ResponseEntity<?> listarCitasEstudiante(@PathVariable String numControl) {
-        List<CitaEntity> citas = citaRepository.findByNumControlEstudiante(numControl);
+        List<CitaResumenDTO> citas = citaConsultaRepository.listarPorEstudiante(numControl);
         return ResponseEntity.ok(citas);
     }
 }

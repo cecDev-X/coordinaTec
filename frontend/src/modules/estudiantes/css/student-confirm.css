@@ -328,3 +328,12 @@
 .student-confirm__submit-btn.is-ready:hover {
   background-color: #102a63;
 }
+.student-confirm__error {
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: #fef2f2;
+  color: #991b1b;
+  font-size: 0.85rem;
+  line-height: 1.45;
+}

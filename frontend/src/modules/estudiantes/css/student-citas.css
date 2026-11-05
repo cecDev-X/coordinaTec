@@ -402,3 +402,12 @@
   font-weight: 600;
   line-height: 1.42;
 }
+.student-citas__empty {
+  margin: 0;
+  padding: 18px;
+  border: 1px dashed #cbd5e1;
+  border-radius: 14px;
+  color: #64748b;
+  font-size: 0.88rem;
+  text-align: center;
+}

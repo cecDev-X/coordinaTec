@@ -9,6 +9,7 @@ function StudentConfirmPage({
   selectedDay,
   selectedSlot,
   isSubmitting,
+  error,
   onBack,
   onConfirm,
   onAvatarClick,
@@ -177,6 +178,7 @@ function StudentConfirmPage({
 
           {/* Card de Aceptación y Botón Confirmar */}
           <section className="student-confirm__card student-confirm__footer-card">
+            {error && <p className="student-confirm__error" role="alert">{error}</p>}
             <label className="student-confirm__terms-label">
               <input
                 type="checkbox"

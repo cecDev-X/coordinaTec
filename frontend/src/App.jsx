@@ -15,6 +15,7 @@ const routeToHash = {
   citas: '/citas',
   login: '/login',
   'student-login': '/estudiante/login',
+  'student-register': '/estudiante/registro',
   'student-home': '/estudiante/inicio',
   'student-schedule': '/estudiante/agendar',
   'student-confirm': '/estudiante/confirmar',
@@ -29,6 +30,7 @@ function getRoute() {
   if (hash === '#/agenda') return 'agenda'
   if (hash === '#/citas') return 'citas'
   if (hash === '#/estudiante/login') return 'student-login'
+  if (hash === '#/estudiante/registro') return 'student-register'
   if (hash === '#/estudiante' || hash === '#/estudiante/inicio') return 'student-home'
   if (hash === '#/estudiante/agendar') return 'student-schedule'
   if (hash === '#/estudiante/confirmar') return 'student-confirm'
@@ -48,6 +50,7 @@ function App() {
       citas: 'Lista de Citas Actuales',
       login: 'Iniciar sesión',
       'student-login': 'Portal Estudiantil - Iniciar sesión',
+      'student-register': 'Portal Estudiantil - Crear cuenta',
       'student-home': 'Inicio y Trámites | Estudiante',
       'student-schedule': 'Agendar Cita | Estudiante',
       'student-confirm': 'Detalle de Trámite | Estudiante',

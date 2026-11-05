@@ -10,6 +10,8 @@ function StudentSchedulePage({
   horarios,
   selectedDay,
   selectedSlot,
+  isLoadingAvailability,
+  bookingError,
   onSelectDay,
   onSelectSlot,
   onBack,
@@ -20,17 +22,19 @@ function StudentSchedulePage({
   const currentWeek = semanas[weekIndex] || semanas[0]
 
   function handlePrevWeek() {
+    if (semanas.length < 2) return
     setWeekIndex((prev) => {
       const nextIdx = prev > 0 ? prev - 1 : semanas.length - 1
-      onSelectDay(semanas[nextIdx].dias[3] || semanas[nextIdx].dias[0])
+      onSelectDay(semanas[nextIdx].dias[0])
       return nextIdx
     })
   }
 
   function handleNextWeek() {
+    if (semanas.length < 2) return
     setWeekIndex((prev) => {
       const nextIdx = prev < semanas.length - 1 ? prev + 1 : 0
-      onSelectDay(semanas[nextIdx].dias[3] || semanas[nextIdx].dias[0])
+      onSelectDay(semanas[nextIdx].dias[0])
       return nextIdx
     })
   }
@@ -77,8 +81,7 @@ function StudentSchedulePage({
               <h2 className="student-schedule__heading">Hora disponible</h2>
             </div>
             <p className="student-schedule__description">
-              Elige el día y horario que mejor se adapte a tu agenda para tu atención presencial con
-              Coordinación Académica del {selectedTramite?.departamento || student.departamento}.
+              Cita para <strong>{selectedTramite?.titulo || selectedTramite?.nombre}</strong>. Elige una fecha y horario disponibles con Coordinación Académica.
             </p>
           </section>
 
@@ -87,13 +90,14 @@ function StudentSchedulePage({
             <div className="student-schedule__week-bar">
               <div className="student-schedule__week-label">
                 <StudentIcon name="calendar" size={18} />
-                <strong>{currentWeek.rangoTexto}</strong>
+                <strong>{currentWeek?.rangoTexto || 'Sin fechas disponibles'}</strong>
               </div>
               <div className="student-schedule__week-nav">
                 <button
                   type="button"
                   className="student-schedule__week-btn"
                   onClick={handlePrevWeek}
+                  disabled={semanas.length < 2}
                   aria-label="Semana anterior"
                 >
                   <StudentIcon name="chevron-left" size={16} />
@@ -102,6 +106,7 @@ function StudentSchedulePage({
                   type="button"
                   className="student-schedule__week-btn"
                   onClick={handleNextWeek}
+                  disabled={semanas.length < 2}
                   aria-label="Semana siguiente"
                 >
                   <StudentIcon name="chevron-right" size={16} />
@@ -109,7 +114,7 @@ function StudentSchedulePage({
               </div>
             </div>
 
-            <div className="student-schedule__days-grid">
+            {currentWeek ? <div className="student-schedule__days-grid">
               {currentWeek.dias.map((dia) => {
                 const isSelected = selectedDay?.id === dia.id
                 return (
@@ -129,7 +134,7 @@ function StudentSchedulePage({
                   </button>
                 )
               })}
-            </div>
+            </div> : <p className="student-schedule__availability-message">No hay fechas habilitadas en los horarios del coordinador.</p>}
           </section>
 
           {/* Cuadrícula de Horarios Disponibles */}
@@ -152,7 +157,8 @@ function StudentSchedulePage({
               </div>
             </div>
 
-            <div className="student-schedule__slots-grid">
+            {bookingError && <p className="student-schedule__availability-message" role="status">{bookingError}</p>}
+            {isLoadingAvailability ? <p className="student-schedule__availability-message" role="status">Consultando disponibilidad...</p> : horarios.length ? <div className="student-schedule__slots-grid">
               {horarios.map((slot) => {
                 const isSelected = selectedSlot?.id === slot.id
                 const isBusy = !slot.disponible
@@ -188,7 +194,7 @@ function StudentSchedulePage({
                   </button>
                 )
               })}
-            </div>
+            </div> : !bookingError && <p className="student-schedule__availability-message">No hay espacios disponibles para esta fecha.</p>}
           </section>
 
           {/* Tarjeta Resumen Cita Confirmada Previa */}
@@ -197,9 +203,9 @@ function StudentSchedulePage({
               <StudentIcon name="calendar-check" size={22} />
             </div>
             <div className="student-schedule__summary-body">
-              <span className="student-schedule__summary-kicker">CITA CONFIRMADA PREVIA</span>
+              <span className="student-schedule__summary-kicker">SELECCIÓN DE CITA</span>
               <strong className="student-schedule__summary-datetime">
-                {selectedDay?.fechaCompleta} — {selectedSlot?.hora}
+                {selectedDay?.fechaCompleta || 'Selecciona una fecha'} — {selectedSlot?.hora || 'Selecciona un horario'}
               </strong>
               <span className="student-schedule__summary-location">
                 <StudentIcon name="door" size={14} />
@@ -225,6 +231,7 @@ function StudentSchedulePage({
               type="button"
               className="student-schedule__continue-btn"
               onClick={onContinue}
+              disabled={Boolean(bookingError) || isLoadingAvailability || !selectedSlot}
             >
               <span>Continuar</span>
               <StudentIcon name="arrow-right" size={19} />

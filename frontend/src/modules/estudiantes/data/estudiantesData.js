@@ -11,7 +11,6 @@ export const initialStudentProfile = {
   estatus: 'Regular',
   estatusLargo: 'Alumno Regular',
   cicloActivo: 'Ene - Jun 2026',
-  cicloPortal: 'Ciclo 2024-B',
   departamento: 'Depto. de Sistemas y Computación',
   correo: '23160887@itoaxaca.edu.mx',
   telefono: '+52 951 123 4567',
@@ -219,39 +218,69 @@ export const ultimaSolicitudHome = {
   estado: 'EN REVISIÓN',
 }
 
-export const semanasDisponibles = [
-  {
-    id: 'oct-12-16',
-    rangoTexto: '12 Oct - 16 Oct, 2026',
-    dias: [
-      { id: '2026-10-12', diaCorto: 'Lun', numero: '12', mesCorto: 'Oct', fechaCompleta: 'Lunes 12 de Octubre', fechaCorta: 'Lunes 12 Oct', tieneCupo: true },
-      { id: '2026-10-13', diaCorto: 'Mar', numero: '13', mesCorto: 'Oct', fechaCompleta: 'Martes 13 de Octubre', fechaCorta: 'Martes 13 Oct', tieneCupo: true },
-      { id: '2026-10-14', diaCorto: 'Mié', numero: '14', mesCorto: 'Oct', fechaCompleta: 'Miércoles 14 de Octubre', fechaCorta: 'Miércoles 14 Oct', tieneCupo: false },
-      { id: '2026-10-15', diaCorto: 'Jue', numero: '15', mesCorto: 'Oct', fechaCompleta: 'Jueves 15 de Octubre', fechaCorta: 'Jueves 15 Oct', tieneCupo: true },
-      { id: '2026-10-16', diaCorto: 'Vie', numero: '16', mesCorto: 'Oct', fechaCompleta: 'Viernes 16 de Octubre', fechaCorta: 'Viernes 16 Oct', tieneCupo: true },
-    ],
-  },
-  {
-    id: 'oct-19-23',
-    rangoTexto: '19 Oct - 23 Oct, 2026',
-    dias: [
-      { id: '2026-10-19', diaCorto: 'Lun', numero: '19', mesCorto: 'Oct', fechaCompleta: 'Lunes 19 de Octubre', fechaCorta: 'Lunes 19 Oct', tieneCupo: true },
-      { id: '2026-10-20', diaCorto: 'Mar', numero: '20', mesCorto: 'Oct', fechaCompleta: 'Martes 20 de Octubre', fechaCorta: 'Martes 20 Oct', tieneCupo: true },
-      { id: '2026-10-21', diaCorto: 'Mié', numero: '21', mesCorto: 'Oct', fechaCompleta: 'Miércoles 21 de Octubre', fechaCorta: 'Miércoles 21 Oct', tieneCupo: true },
-      { id: '2026-10-22', diaCorto: 'Jue', numero: '22', mesCorto: 'Oct', fechaCompleta: 'Jueves 22 de Octubre', fechaCorta: 'Jueves 22 Oct', tieneCupo: false },
-      { id: '2026-10-23', diaCorto: 'Vie', numero: '23', mesCorto: 'Oct', fechaCompleta: 'Viernes 23 de Octubre', fechaCorta: 'Viernes 23 Oct', tieneCupo: true },
-    ],
-  },
-]
+export function buildScheduleWeeks(horarios, startDate = new Date(), weekCount = 8) {
+  const scheduledDays = new Set(horarios.map((horario) => horario.diaSemana))
+  const today = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate())
+  const monday = new Date(today)
+  monday.setDate(today.getDate() - ((today.getDay() + 6) % 7))
 
-export const horariosPorDefecto = [
-  { id: '08:30', hora: '08:30 AM', hora24: '08:30:00', disponible: true },
-  { id: '09:15', hora: '09:15 AM', hora24: '09:15:00', disponible: true },
-  { id: '10:00', hora: '10:00 AM', hora24: '10:00:00', disponible: true },
-  { id: '11:30', hora: '11:30 AM', hora24: '11:30:00', disponible: false },
-  { id: '12:15', hora: '12:15 PM', hora24: '12:15:00', disponible: true },
-  { id: '13:00', hora: '01:00 PM', hora24: '13:00:00', disponible: true },
-]
+  return Array.from({ length: weekCount }, (_, weekOffset) => {
+    const weekMonday = new Date(monday)
+    weekMonday.setDate(monday.getDate() + weekOffset * 7)
+    const dias = Array.from({ length: 7 }, (_, dayOffset) => {
+      const date = new Date(weekMonday)
+      date.setDate(weekMonday.getDate() + dayOffset)
+      if (date < today || !scheduledDays.has(dayOffset + 1)) return null
+      const id = [date.getFullYear(), String(date.getMonth() + 1).padStart(2, '0'), String(date.getDate()).padStart(2, '0')].join('-')
+      const dateLabel = date.toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+      return {
+        id,
+        diaCorto: date.toLocaleDateString('es-MX', { weekday: 'short' }).replace('.', ''),
+        numero: String(date.getDate()),
+        mesCorto: date.toLocaleDateString('es-MX', { month: 'short' }).replace('.', ''),
+        fechaCompleta: dateLabel,
+        fechaCorta: date.toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'short' }),
+        tieneCupo: true,
+      }
+    }).filter(Boolean)
+
+    if (!dias.length) return null
+    return {
+      id: dias[0].id,
+      rangoTexto: dias.length === 1 ? dias[0].fechaCorta : `${dias[0].fechaCorta} - ${dias[dias.length - 1].fechaCorta}`,
+      dias,
+    }
+  }).filter(Boolean)
+}
+
+export async function fetchCitaCatalogosApi() {
+  const response = await fetch(`${API_BASE_URL}/catalogos/citas`)
+  if (!response.ok) throw new Error(`No se pudieron consultar coordinadores y formatos (${response.status}).`)
+  return response.json()
+}
+
+export async function fetchHorariosCoordinadorApi(rfc) {
+  const response = await fetch(`${API_BASE_URL}/coordinadores/${encodeURIComponent(rfc)}/horarios`)
+  if (!response.ok) throw new Error(`No se pudo consultar el horario del coordinador (${response.status}).`)
+  return response.json()
+}
+
+export async function fetchDisponibilidadApi(rfc, fecha, duracionMinutos) {
+  const params = new URLSearchParams({ fecha, duracionMinutos: String(duracionMinutos) })
+  const response = await fetch(`${API_BASE_URL}/coordinadores/${encodeURIComponent(rfc)}/disponibilidad?${params}`)
+  if (!response.ok) throw new Error(`No se pudo consultar la disponibilidad (${response.status}).`)
+  const slots = await response.json()
+  return slots.map((hora24) => {
+    const [hours, minutes] = hora24.split(':').map(Number)
+    const hour12 = ((hours + 11) % 12) + 1
+    return {
+      id: hora24.slice(0, 5),
+      hora: `${String(hour12).padStart(2, '0')}:${String(minutes).padStart(2, '0')} ${hours < 12 ? 'AM' : 'PM'}`,
+      hora24: hora24.length === 5 ? `${hora24}:00` : hora24,
+      disponible: true,
+    }
+  })
+}
 
 export const initialCitasData = {
   proximas: [
@@ -314,51 +343,78 @@ export const initialCitasData = {
   ],
 }
 
-export async function loginStudentApi(username, password) {
-  try {
-    const response = await fetch(`${API_BASE_URL}/auth/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password }),
-    })
-    if (response.ok) {
-      return await response.json()
-    }
-    return null
-  } catch {
-    return null
+async function postStudentAuth(path, payload) {
+  const response = await fetch(`${API_BASE_URL}/estudiantes/${path}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  })
+  const result = await response.json().catch(() => ({}))
+  if (!response.ok) {
+    const error = new Error(result.mensaje || 'No se pudo completar la solicitud.')
+    error.status = response.status
+    throw error
   }
+  return result
 }
 
-export async function createCitaApi({ numControlEstudiante, fecha, horaInicio, motivo }) {
-  try {
-    const response = await fetch(`${API_BASE_URL}/citas`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        numControlEstudiante,
-        fecha,
-        horaInicio,
-        motivo,
-      }),
-    })
-    if (response.ok) {
-      return await response.json()
-    }
-    return null
-  } catch {
-    return null
+export function loginStudentApi(numControl, password) {
+  return postStudentAuth('sesion', { numControl, password })
+}
+
+export function registerStudentApi({ numControl, nombres, apellidos, carrera, password }) {
+  return postStudentAuth('registro', { numControl, nombres, apellidos, carrera, password })
+}
+
+export async function fetchStudentProfileApi(numControl) {
+  const response = await fetch(`${API_BASE_URL}/estudiantes/${encodeURIComponent(numControl)}`)
+  if (response.status === 404) return null
+  if (!response.ok) throw new Error(`No se pudo consultar el perfil (${response.status}).`)
+  return response.json()
+}
+
+export async function fetchTramitesApi() {
+  const response = await fetch(`${API_BASE_URL}/tramites`)
+  if (!response.ok) throw new Error(`No se pudieron consultar los trámites (${response.status}).`)
+  const records = await response.json()
+  return records.filter((tramite) => tramite.activo).map((tramite) => ({
+    ...tramite,
+    titulo: tramite.nombre,
+    tituloCorto: tramite.nombre,
+    tituloDetalle: tramite.nombre,
+    descripcionCorta: tramite.requisitos,
+    requisitosTexto: tramite.requisitos,
+    tiempoEstimado: `${tramite.periodo} ${tramite.periodo === 1 ? 'día' : 'días'}`,
+    tiempoDetalle: `${tramite.periodo} ${tramite.periodo === 1 ? 'día' : 'días'}`,
+    clave: String(tramite.id),
+    badge: tramite.prioridad,
+    badgeVariant: tramite.prioridad === 'ALTA' ? 'blue' : 'neutral',
+    icono: 'receipt',
+  }))
+}
+
+export async function createCitaApi({ numControlEstudiante, fecha, horaInicio, motivo, coordinadorRfc, formatoFolio }) {
+  const response = await fetch(`${API_BASE_URL}/citas`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      numControlEstudiante,
+      fecha,
+      horaInicio,
+      motivo,
+      coordinadorRfc,
+      formatoFolio,
+    }),
+  })
+  const result = await response.json().catch(() => ({}))
+  if (!response.ok) {
+    throw new Error(result.mensaje || result.detail || `No se pudo guardar la cita (${response.status}).`)
   }
+  return result
 }
 
 export async function fetchCitasEstudianteApi(numControl) {
-  try {
-    const response = await fetch(`${API_BASE_URL}/citas/estudiantes/${numControl}`)
-    if (response.ok) {
-      return await response.json()
-    }
-    return []
-  } catch {
-    return []
-  }
+  const response = await fetch(`${API_BASE_URL}/citas/estudiantes/${encodeURIComponent(numControl)}`)
+  if (!response.ok) throw new Error(`No se pudieron consultar tus citas (${response.status}).`)
+  return response.json()
 }

@@ -11,7 +11,7 @@
 }
 
 .student-login__banner {
-  background: linear-gradient(135deg, #0b2255 0%, #173f94 100%);
+  background: linear-gradient(135deg, #1a2d45 0%, #263f87 100%);
   border-radius: 16px;
   padding: 18px 18px;
   color: #ffffff;
@@ -19,19 +19,31 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  box-shadow: 0 8px 20px rgba(11, 34, 85, 0.18);
+  box-shadow: 0 8px 20px rgba(38, 63, 135, 0.18);
 }
 
 .student-login__banner-text {
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
   gap: 3px;
+}
+
+.student-login__tecnm-logo {
+  display: block;
+  flex-shrink: 0;
+  width: clamp(104px, 22vw, 165px);
+  max-height: 82px;
+  padding: 7px;
+  border-radius: 10px;
+  background: #fff;
+  object-fit: contain;
 }
 
 .student-login__banner-kicker {
   font-size: 0.72rem;
   font-weight: 800;
-  color: #93bbf9;
+  color: #c9d7f3;
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
@@ -74,92 +86,12 @@
   flex-direction: column;
 }
 
-/* LOGO GRÁFICO COORDINATEC */
-.student-login__brand {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  margin-bottom: 18px;
-}
-
-.student-login__bars {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  width: 96px;
-}
-
-.student-login__bar {
-  height: 12px;
-  border-radius: 999px;
-  display: flex;
-  overflow: hidden;
-}
-
-.student-login__bar--top {
-  width: 68px;
-  margin-left: auto;
-  background-color: #e6ebf2;
-  border: 1px solid #d5deeb;
-}
-
-.student-login__bar--mid {
-  width: 84px;
-  margin-left: 6px;
-  gap: 3px;
-}
-
-.student-login__bar-gray {
-  flex: 1.1;
-  background-color: #e6ebf2;
-  border-radius: 999px 0 0 999px;
-}
-
-.student-login__bar-orange {
-  width: 15px;
-  background-color: #f97316;
-  border-radius: 999px;
-}
-
-.student-login__bar-blue {
-  flex: 1.4;
-  background-color: #0277bd;
-  border-radius: 999px;
-}
-
-.student-login__bar--bot {
-  width: 78px;
-  gap: 4px;
-}
-
-.student-login__bar-gray-short {
-  flex: 1;
-  background-color: #e6ebf2;
-  border-radius: 999px;
-}
-
-.student-login__bar-blue-long {
-  flex: 1.5;
-  background-color: #0277bd;
-  border-radius: 999px;
-}
-
-.student-login__brand-text {
-  display: flex;
-  flex-direction: column;
-  line-height: 0.98;
-  font-size: 1.65rem;
-  font-weight: 800;
-  letter-spacing: -0.03em;
-}
-
-.student-login__brand-dark {
-  color: #0f172a;
-}
-
-.student-login__brand-blue {
-  color: #0277bd;
+.student-login__tio-logo {
+  display: block;
+  width: 100px;
+  height: 100px;
+  margin: 0 auto 16px;
+  object-fit: contain;
 }
 
 .student-login__title {
@@ -212,7 +144,7 @@
 
 .student-login__input-wrap:focus-within {
   background-color: #ffffff;
-  border-color: #1d4ed8;
+  border-color: #263f87;
 }
 
 .student-login__input-icon {
@@ -237,12 +169,13 @@
 }
 
 .student-login__eye-btn {
-  border: none;
-  background: transparent;
-  color: #475569;
-  padding: 8px 14px;
   display: flex;
   align-items: center;
+  padding: 8px 14px;
+  border: 0;
+  color: #475569;
+  background: transparent;
+  cursor: pointer;
 }
 
 .student-login__options {
@@ -257,26 +190,27 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
+  color: #475569;
   font-size: 0.83rem;
   font-weight: 600;
-  color: #475569;
   cursor: pointer;
 }
 
 .student-login__remember input {
   width: 17px;
   height: 17px;
-  accent-color: #163782;
+  accent-color: #263f87;
 }
 
 .student-login__forgot {
-  border: none;
-  background: transparent;
   padding: 0;
-  color: #1d4ed8;
+  border: 0;
+  color: #263f87;
+  background: transparent;
   font-size: 0.82rem;
   font-weight: 700;
   text-decoration: underline;
+  cursor: pointer;
 }
 
 .student-login__submit {
@@ -284,7 +218,7 @@
   width: 100%;
   border: none;
   border-radius: 14px;
-  background-color: #173b88;
+  background-color: #263f87;
   color: #ffffff;
   padding: 15px 20px;
   font-size: 0.96rem;
@@ -294,75 +228,53 @@
   align-items: center;
   justify-content: center;
   gap: 10px;
-  box-shadow: 0 6px 16px rgba(23, 59, 136, 0.25);
+  box-shadow: 0 6px 16px rgba(38, 63, 135, 0.25);
   transition: background-color 0.15s ease, transform 0.1s ease;
 }
 
 .student-login__submit:hover {
-  background-color: #112d6b;
+  background-color: #1a316b;
 }
 
 .student-login__submit:active {
   transform: translateY(1px);
 }
 
-.student-login__divider {
-  margin: 22px 0 16px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  color: #64748b;
-  font-size: 0.72rem;
-  font-weight: 800;
-  letter-spacing: 0.06em;
-}
-
-.student-login__divider::before,
-.student-login__divider::after {
-  content: '';
-  flex: 1;
-  height: 1px;
-  background-color: #e2e8f0;
-}
-
-.student-login__social-wrap {
-  display: flex;
-  justify-content: center;
-}
-
-.student-login__google-btn {
-  border: 1px solid #e2e8f0;
-  background-color: #f4f6fa;
-  border-radius: 14px;
-  padding: 11px 28px;
-  display: inline-flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 5px;
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: #1e293b;
-  transition: background-color 0.15s ease;
-}
-
-.student-login__google-btn:hover {
-  background-color: #e9eef6;
-}
-
 .student-login__register {
-  margin: 22px 0 0;
-  text-align: center;
-  font-size: 0.86rem;
+  margin: 18px 0 0;
   color: #475569;
+  font-size: 0.82rem;
+  text-align: center;
 }
 
+.student-login__register a,
 .student-login__register button {
-  border: none;
-  background: transparent;
-  padding: 0;
-  color: #1d4ed8;
-  font-weight: 800;
+  color: #263f87;
+  font-weight: 700;
   text-decoration: underline;
+  text-underline-offset: 2px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+}
+
+.student-register__plain-input {
+  border: 1.5px solid #e2e8f0;
+  border-radius: 12px;
+  background-color: #f1f4f9;
+  padding: 13px 14px;
+}
+
+.student-register__plain-input:focus {
+  border-color: #263f87;
+  background: #fff;
+}
+
+.student-register__hint {
+  color: #64748b;
+  font-size: 0.75rem;
 }
 
 .student-login__notice {
@@ -370,7 +282,7 @@
   padding: 10px 12px;
   border-radius: 10px;
   background-color: #eef3ff;
-  color: #173b88;
+  color: #263f87;
   font-size: 0.8rem;
   font-weight: 600;
   text-align: center;
@@ -381,21 +293,10 @@
   padding-top: 6px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   font-size: 0.78rem;
   color: #475569;
   font-weight: 600;
-}
-
-.student-login__footer-dept {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-}
-
-.student-login__footer-icon {
-  color: #1d4ed8;
-  display: inline-flex;
 }
 
 .student-login__switch-role {

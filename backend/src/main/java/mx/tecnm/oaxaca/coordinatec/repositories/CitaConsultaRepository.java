@@ -16,7 +16,7 @@ public class CitaConsultaRepository {
     }
 
     public List<CitaResumenDTO> listar() {
-        return jdbc.query("""
+        return query("""
             SELECT c.folio, e.numerocontrol, e.nombres, e.apellidos, e.carrera,
                    t.nombre AS tipo_tramite, c.fecha_programada, c.hora_inicio, c.estado, c.fecha_atencion
             FROM cita c
@@ -24,7 +24,24 @@ public class CitaConsultaRepository {
             JOIN formato f ON f.folio = c.formato_folio
             JOIN tramite t ON t.id = f.tramite_id
             ORDER BY c.fecha_programada DESC, c.hora_inicio DESC, c.folio
-            """, (rs, row) -> new CitaResumenDTO(
+            """);
+    }
+
+    public List<CitaResumenDTO> listarPorEstudiante(String numControl) {
+        return query("""
+            SELECT c.folio, e.numerocontrol, e.nombres, e.apellidos, e.carrera,
+                   t.nombre AS tipo_tramite, c.fecha_programada, c.hora_inicio, c.estado, c.fecha_atencion
+            FROM cita c
+            JOIN estudiante e ON e.numerocontrol = c.estudiante_numerocontrol
+            JOIN formato f ON f.folio = c.formato_folio
+            JOIN tramite t ON t.id = f.tramite_id
+            WHERE c.estudiante_numerocontrol = ?
+            ORDER BY c.fecha_programada DESC, c.hora_inicio DESC, c.folio
+            """, numControl);
+    }
+
+    private List<CitaResumenDTO> query(String sql, Object... params) {
+        return jdbc.query(sql, (rs, row) -> new CitaResumenDTO(
                 rs.getString("folio"),
                 rs.getString("numerocontrol"),
                 rs.getString("nombres") + " " + rs.getString("apellidos"),
@@ -36,6 +53,6 @@ public class CitaConsultaRepository {
                 rs.getObject("fecha_atencion", java.time.OffsetDateTime.class) == null
                     ? null
                     : rs.getObject("fecha_atencion", java.time.OffsetDateTime.class).toInstant()
-            ));
+            ), params);
     }
 }

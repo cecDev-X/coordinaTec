@@ -15,9 +15,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.DayOfWeek;
+import java.time.temporal.TemporalAdjusters;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.contains;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.options;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
@@ -73,6 +76,20 @@ class CitaPersistenceTests {
             folioFormato, "Asesoría", "Tutoría", tramiteId);
         jdbc.update("INSERT INTO coordinador (rfc, nombre_completo, password_hash, departamento_id) " +
             "VALUES (?, ?, ?, ?)", rfc, "Coordinador de prueba", "hash-de-prueba", departamentoId);
+        jdbc.update("INSERT INTO horario (dia_semana, hora_inicio, hora_salida, duracion_minutos, coordinador_rfc) " +
+            "VALUES (?, ?, ?, ?, ?)", 1, LocalTime.of(10, 0), LocalTime.of(11, 0), 20, rfc);
+
+        LocalDate fechaDisponibilidad = LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.MONDAY));
+        mvc.perform(get("/api/v1/coordinadores/{rfc}/horarios", rfc))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$[0].diaSemana").value(1))
+            .andExpect(jsonPath("$[0].horaInicio").value("10:00"));
+        mvc.perform(get("/api/v1/coordinadores/{rfc}/disponibilidad", rfc)
+                .param("fecha", fechaDisponibilidad.toString())
+                .param("duracionMinutos", "20"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$[0]").value("10:00"))
+            .andExpect(jsonPath("$[2]").value("10:40"));
 
         CitaEntity cita = new CitaEntity();
         cita.setFolio(folioCita);
@@ -106,20 +123,37 @@ class CitaPersistenceTests {
             assertThat(resumen.fechaAtencion()).isNull();
         });
 
+        mvc.perform(get("/api/v1/citas/estudiantes/{numControl}", numControl))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$[0].folio").value(folioCita))
+            .andExpect(jsonPath("$[0].numControl").value(numControl))
+            .andExpect(jsonPath("$[0].tramite").value("Tutoría"));
+
         mvc.perform(get("/api/v1/catalogos/citas"))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.estudiantes[0].numControl").value(numControl))
-            .andExpect(jsonPath("$.coordinadores[0].rfc").value(rfc))
-            .andExpect(jsonPath("$.formatos[0].folio").value(folioFormato))
-            .andExpect(jsonPath("$.formatos[0].duracionMinutos").value(35));
+            .andExpect(jsonPath("$.estudiantes[?(@.numControl == '%s')]".formatted(numControl)).isNotEmpty())
+            .andExpect(jsonPath("$.coordinadores[?(@.rfc == '%s')]".formatted(rfc)).isNotEmpty())
+            .andExpect(jsonPath("$.formatos[?(@.folio == '%s')]".formatted(folioFormato)).isNotEmpty())
+            .andExpect(jsonPath("$.formatos[?(@.folio == '%s')].duracionMinutos".formatted(folioFormato)).value(contains(35)));
+        mvc.perform(get("/api/v1/catalogos/estudiantes/{numControl}", numControl))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.numControl").value(numControl))
+            .andExpect(jsonPath("$.nombre").value("Ana Prueba"));
+        mvc.perform(get("/api/v1/estudiantes/{numControl}", numControl))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.numControl").value(numControl))
+            .andExpect(jsonPath("$.nombre").value("Ana Prueba"))
+            .andExpect(jsonPath("$.carrera").value("Sistemas"));
+        mvc.perform(get("/api/v1/catalogos/estudiantes/{numControl}", "NO-EXISTE"))
+            .andExpect(status().isNotFound());
 
-        LocalDate fechaNuevaCita = LocalDate.now().plusDays(1);
+        LocalDate fechaNuevaCita = fechaDisponibilidad;
         mvc.perform(post("/api/v1/citas")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""
                     {
                       "fecha": "%s",
-                      "horaInicio": "11:00:00",
+                      "horaInicio": "10:00:00",
                       "motivo": "Solicitud desde formulario",
                       "coordinadorRfc": "%s",
                       "numControlEstudiante": "%s",
@@ -129,8 +163,23 @@ class CitaPersistenceTests {
             .andExpect(status().isCreated())
             .andExpect(jsonPath("$.folio").isNotEmpty())
             .andExpect(jsonPath("$.estado").value("PROGRAMADA"))
-            .andExpect(jsonPath("$.horaFin").value("11:35:00"))
+            .andExpect(jsonPath("$.horaFin").value("10:35:00"))
             .andExpect(jsonPath("$.fechaAtencion").doesNotExist());
+        citas.flush();
+
+        mvc.perform(post("/api/v1/citas")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    {
+                      "fecha": "%s",
+                      "horaInicio": "10:00:00",
+                      "motivo": "Solicitud duplicada",
+                      "coordinadorRfc": "%s",
+                      "numControlEstudiante": "%s",
+                      "formatoFolio": "%s"
+                    }
+                    """.formatted(fechaNuevaCita, rfc, numControl, folioFormato)))
+            .andExpect(status().isConflict());
 
         mvc.perform(get("/api/v1/citas"))
             .andExpect(status().isOk())

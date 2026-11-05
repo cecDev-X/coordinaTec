@@ -153,6 +153,11 @@
   background-color: #e0e7f3;
 }
 
+.student-schedule__week-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
 .student-schedule__days-grid {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
@@ -467,6 +472,23 @@
 
 .student-schedule__continue-btn:hover {
   background-color: #102a63;
+}
+
+.student-schedule__continue-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+  box-shadow: none;
+}
+
+.student-schedule__availability-message {
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: #eef3ff;
+  color: #334155;
+  font-size: 0.84rem;
+  line-height: 1.45;
+  text-align: center;
 }
 
 .student-schedule__cancel-policy {

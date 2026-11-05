@@ -7,6 +7,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public class CatalogoConsultaRepository {
@@ -27,6 +28,18 @@ public class CatalogoConsultaRepository {
                 rs.getString("nombres") + " " + rs.getString("apellidos"),
                 rs.getString("carrera")
             ));
+    }
+
+    public Optional<EstudianteOpcionDTO> buscarEstudiante(String numControl) {
+        return jdbc.query("""
+            SELECT numerocontrol, nombres, apellidos, carrera
+            FROM estudiante
+            WHERE numerocontrol = ?
+            """, (rs, row) -> new EstudianteOpcionDTO(
+                rs.getString("numerocontrol"),
+                rs.getString("nombres") + " " + rs.getString("apellidos"),
+                rs.getString("carrera")
+            ), numControl).stream().findFirst();
     }
 
     public List<CoordinadorOpcionDTO> listarCoordinadores() {
