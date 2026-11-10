@@ -6,6 +6,10 @@ import DashboardOverview from './DashboardOverview.jsx'
 import TramitesPage from '../../tramites/pages/TramitesPage.jsx'
 import AgendaPage from '../../agenda/pages/AgendaPage.jsx'
 import CitasPage from '../../citas/pages/CitasPage.jsx'
+import CoordinadoresPage from './CoordinadoresPage.jsx'
+import CoordinadorSettingsPage from './CoordinadorSettingsPage.jsx'
+import EstudiantesAdminPage from './EstudiantesAdminPage.jsx'
+import CarrerasPage from './CarrerasPage.jsx'
 import '../css/dashboard-page.css'
 
 function subscribeToViewport(callback) {
@@ -18,7 +22,7 @@ function isCompactViewport() {
   return window.matchMedia('(max-width: 820px)').matches
 }
 
-function DashboardPage({ onLogout, onNavigate, page = 'dashboard' }) {
+function DashboardPage({ onLogout, onNavigate, page = 'dashboard', role, username, token }) {
   const compact = useSyncExternalStore(subscribeToViewport, isCompactViewport)
   const [menuOpen, setMenuOpen] = useState(false)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
@@ -31,6 +35,10 @@ function DashboardPage({ onLogout, onNavigate, page = 'dashboard' }) {
     else if (label === 'Trámites') onNavigate('tramites')
     else if (label === 'Agenda y Horarios') onNavigate('agenda')
     else if (label === 'Citas') onNavigate('citas')
+    else if (label === 'Alumnos') onNavigate('alumnos')
+    else if (label === 'Carreras') onNavigate('carreras')
+    else if (label === 'Coordinadores') onNavigate('coordinadores')
+    else if (label === 'Configuración') onNavigate('configuracion')
     else setNotice(`La sección ${label} estará disponible próximamente.`)
   }
 
@@ -39,10 +47,14 @@ function DashboardPage({ onLogout, onNavigate, page = 'dashboard' }) {
   }
 
   let content
-  if (page === 'tramites') content = <TramitesPage />
-  else if (page === 'agenda') content = <AgendaPage onAction={setNotice} />
-  else if (page === 'citas') content = <CitasPage />
-  else content = <DashboardOverview onNavigate={onNavigate} />
+  if (page === 'tramites') content = <TramitesPage token={token} />
+  else if (page === 'agenda') content = <AgendaPage onAction={setNotice} token={token} role={role} username={username} />
+  else if (page === 'citas') content = <CitasPage role={role} username={username} token={token} />
+  else if (page === 'coordinadores') content = <CoordinadoresPage token={token} />
+  else if (page === 'carreras') content = <CarrerasPage token={token} />
+  else if (page === 'configuracion') content = <CoordinadorSettingsPage username={username} role={role} />
+  else if (page === 'alumnos') content = <EstudiantesAdminPage token={token} role={role} username={username} />
+  else content = <DashboardOverview onNavigate={onNavigate} role={role} username={username} token={token} />
 
   return (
     <div className={`dashboard${page !== 'dashboard' ? ` dashboard--${page}` : ''}${!compact && sidebarCollapsed ? ' dashboard--sidebar-collapsed' : ''}`}>
@@ -53,10 +65,12 @@ function DashboardPage({ onLogout, onNavigate, page = 'dashboard' }) {
         onNavigate={handleNavigation}
         onLogout={onLogout}
         activePage={page}
+        role={role}
+        username={username}
       />
       <div className="dashboard__main">
         <DashboardTopbar
-          title={{ dashboard: 'Panel Principal', tramites: 'Configuración de Trámites', agenda: 'Agenda y Horarios', citas: 'Lista de Citas Actuales' }[page]}
+          title={{ dashboard: 'Panel Principal', tramites: 'Administración de Trámites', agenda: 'Agenda y Horarios', citas: 'Lista de Citas Actuales', coordinadores: 'Gestión de Coordinadores', carreras: 'Gestión de Carreras', configuracion: 'Configuración de cuenta', alumnos: 'Alumnos en plataforma' }[page]}
           menuOpen={compact ? menuOpen : !sidebarCollapsed}
           onToggleMenu={() => {
             if (compact) setMenuOpen((open) => !open)

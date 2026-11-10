@@ -1,5 +1,6 @@
 package mx.tecnm.oaxaca.coordinatec;
 
+import mx.tecnm.oaxaca.coordinatec.config.JwtService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -16,8 +17,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -28,6 +29,11 @@ class TramiteCrudTests {
 
     @Autowired
     private JdbcTemplate jdbc;
+
+    @Autowired
+    private JwtService jwt;
+
+    private String jefatura() { return "Bearer " + jwt.issue("jefe@coordina.test", "JEFE_COORDINADORES"); }
 
     @Test
     @Transactional
@@ -42,6 +48,12 @@ class TramiteCrudTests {
             """.formatted(nombre);
 
         mvc.perform(post("/api/v1/tramites")
+                .header("Authorization", "Bearer " + jwt.issue("TEST000000001", "COORDINADOR"))
+                .contentType(MediaType.APPLICATION_JSON).content(crear))
+            .andExpect(status().isForbidden());
+
+        mvc.perform(post("/api/v1/tramites")
+                .header("Authorization", jefatura())
                 .contentType(MediaType.APPLICATION_JSON).content(crear))
             .andExpect(status().isCreated())
             .andExpect(jsonPath("$.nombre").value(nombre))
@@ -61,6 +73,7 @@ class TramiteCrudTests {
             .andExpect(jsonPath("$.prioridad").value("MEDIA"));
 
         mvc.perform(put("/api/v1/tramites/{id}", id)
+                .header("Authorization", jefatura())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""
                     {"nombre":"%s","periodo":5,"duracionMinutos":40,"requisitos":"Kardex","activo":false,"prioridad":"ALTA"}
@@ -72,16 +85,18 @@ class TramiteCrudTests {
             .andExpect(jsonPath("$.prioridad").value("ALTA"));
 
         mvc.perform(put("/api/v1/tramites/{id}", 999999L)
+                .header("Authorization", jefatura())
                 .contentType(MediaType.APPLICATION_JSON).content(crear))
             .andExpect(status().isNotFound());
         mvc.perform(post("/api/v1/tramites")
+                .header("Authorization", jefatura())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"nombre\":\"Invalido\",\"periodo\":0,\"duracionMinutos\":20,\"requisitos\":\"\",\"activo\":true,\"prioridad\":\"URGENTE\"}"))
             .andExpect(status().isBadRequest());
-        mvc.perform(delete("/api/v1/tramites/{id}", id)).andExpect(status().isConflict());
+        mvc.perform(delete("/api/v1/tramites/{id}", id).header("Authorization", jefatura())).andExpect(status().isConflict());
         jdbc.update("DELETE FROM formato WHERE folio = ?", folioFormato);
-        mvc.perform(delete("/api/v1/tramites/{id}", id)).andExpect(status().isNoContent());
+        mvc.perform(delete("/api/v1/tramites/{id}", id).header("Authorization", jefatura())).andExpect(status().isNoContent());
         mvc.perform(get("/api/v1/tramites/{id}", id)).andExpect(status().isNotFound());
-        mvc.perform(delete("/api/v1/tramites/{id}", id)).andExpect(status().isNotFound());
+        mvc.perform(delete("/api/v1/tramites/{id}", id).header("Authorization", jefatura())).andExpect(status().isNotFound());
     }
 }

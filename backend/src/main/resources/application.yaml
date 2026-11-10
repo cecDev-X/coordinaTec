@@ -5,3 +5,9 @@ spring:
     hibernate:
       ddl-auto: validate
     show-sql: true
+coordinatec:
+  auth:
+    jwt-secret: ${COORDINATEC_AUTH_JWT_SECRET:}
+  demo:
+    users:
+      enabled: ${COORDINATEC_DEMO_USERS_ENABLED:false}

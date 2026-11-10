@@ -16,7 +16,7 @@ function calculatedEndTime(startTime, durationMinutes) {
   return `${String(Math.floor(totalMinutes / 60)).padStart(2, '0')}:${String(totalMinutes % 60).padStart(2, '0')}`
 }
 
-function CitaFormModal({ onClose, onCreated }) {
+function CitaFormModal({ onClose, onCreated, token, role, username }) {
   const [catalogos, setCatalogos] = useState({ estudiantes: [], coordinadores: [], formatos: [] })
   const [loading, setLoading] = useState(true)
   const [catalogError, setCatalogError] = useState('')
@@ -39,7 +39,7 @@ function CitaFormModal({ onClose, onCreated }) {
   useEffect(() => {
     const controller = new AbortController()
 
-    fetch('/api/v1/catalogos/citas', { signal: controller.signal })
+    fetch('/api/v1/catalogos/citas', { signal: controller.signal, headers: { Authorization: `Bearer ${token}` } })
       .then(async (response) => {
         if (!response.ok) throw new Error(`Error HTTP ${response.status}`)
         const data = await response.json()
@@ -49,11 +49,18 @@ function CitaFormModal({ onClose, onCreated }) {
         return data
       })
       .then((data) => {
-        setCatalogos(data)
+        const coordinadores = role === 'COORDINADOR'
+          ? data.coordinadores.filter((coordinador) => coordinador.rfc === username)
+          : data.coordinadores
+        const estudiantes = role === 'COORDINADOR'
+          ? data.estudiantes.filter((estudiante) => coordinadores[0]?.carreras?.includes(estudiante.carrera))
+          : data.estudiantes
+        setCatalogos({ ...data, coordinadores, estudiantes })
+        const estudiante = estudiantes[0]
         setForm((current) => ({
           ...current,
-          numControlEstudiante: current.numControlEstudiante || data.estudiantes[0]?.numControl || '',
-          coordinadorRfc: current.coordinadorRfc || data.coordinadores[0]?.rfc || '',
+          numControlEstudiante: current.numControlEstudiante || estudiante?.numControl || '',
+          coordinadorRfc: current.coordinadorRfc || coordinadores.find((coordinador) => coordinador.carreras?.includes(estudiante?.carrera))?.rfc || '',
           formatoFolio: current.formatoFolio || data.formatos[0]?.folio || '',
         }))
       })
@@ -65,15 +72,23 @@ function CitaFormModal({ onClose, onCreated }) {
       })
 
     return () => controller.abort()
-  }, [attempt])
+  }, [attempt, role, username, token])
 
   const formatoSeleccionado = catalogos.formatos.find((formato) => formato.folio === form.formatoFolio)
+  const coordinadoresDisponibles = catalogos.coordinadores.filter((coordinador) =>
+    coordinador.carreras?.includes(catalogos.estudiantes.find((estudiante) => estudiante.numControl === form.numControlEstudiante)?.carrera))
   const duracionMinutos = formatoSeleccionado?.duracionMinutos
   const horaFin = calculatedEndTime(form.horaInicio, duracionMinutos)
 
   function updateField(event) {
     const { name, value } = event.target
-    setForm((current) => ({ ...current, [name]: value }))
+    setForm((current) => ({
+      ...current,
+      [name]: value,
+      ...(name === 'numControlEstudiante' ? {
+        coordinadorRfc: catalogos.coordinadores.find((coordinador) => coordinador.carreras?.includes(catalogos.estudiantes.find((estudiante) => estudiante.numControl === value)?.carrera))?.rfc || '',
+      } : {}),
+    }))
   }
 
   async function submit(event) {
@@ -94,7 +109,7 @@ function CitaFormModal({ onClose, onCreated }) {
     try {
       const response = await fetch('/api/v1/citas', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({
           ...form,
           horaInicio: `${form.horaInicio}:00`,
@@ -141,7 +156,7 @@ function CitaFormModal({ onClose, onCreated }) {
         {!loading && !catalogError && (
           <form className="cita-form-modal__form" onSubmit={submit}>
             {catalogos.estudiantes.length === 0 || catalogos.coordinadores.length === 0 || catalogos.formatos.length === 0 ? (
-              <p className="cita-form-modal__message" role="status">Faltan estudiantes, coordinadores o formatos en la base. Carga el seed de desarrollo o registra esos datos primero.</p>
+              <p className="cita-form-modal__message" role="status">Faltan estudiantes, coordinadores asignados a sus carreras o formatos en la base.</p>
             ) : (
               <>
                 <label>
@@ -157,13 +172,14 @@ function CitaFormModal({ onClose, onCreated }) {
                 <label>
                   Coordinador
                   <select name="coordinadorRfc" value={form.coordinadorRfc} onChange={updateField} required>
-                    {catalogos.coordinadores.map((coordinador) => (
+                    {coordinadoresDisponibles.map((coordinador) => (
                       <option key={coordinador.rfc} value={coordinador.rfc}>
                         {coordinador.nombre} · {coordinador.departamento}
                       </option>
                     ))}
                   </select>
                 </label>
+                {coordinadoresDisponibles.length === 0 && <p className="cita-form-modal__message">No hay coordinadores asignados a esta carrera.</p>}
                 <label>
                   Formato / trámite
                   <select name="formatoFolio" value={form.formatoFolio} onChange={updateField} required>

@@ -5,7 +5,7 @@ import TramiteFormModal from '../components/TramiteFormModal.jsx'
 import TramitesTable from '../components/TramitesTable.jsx'
 import '../css/tramites-page.css'
 
-function TramitesPage() {
+function TramitesPage({ token }) {
   const [tramites, setTramites] = useState([])
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState('')
@@ -60,7 +60,7 @@ function TramitesPage() {
     try {
       const response = await fetch(`/api/v1/tramites/${currentTramite.id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ ...currentTramite, activo: !currentTramite.activo }),
       })
       const result = await response.json().catch(() => ({}))
@@ -81,7 +81,7 @@ function TramitesPage() {
     setActionError('')
     setMessage('')
     try {
-      const response = await fetch(`/api/v1/tramites/${tramite.id}`, { method: 'DELETE' })
+      const response = await fetch(`/api/v1/tramites/${tramite.id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } })
       if (response.status === 404) throw new Error('El trámite ya no existe. Recarga la lista.')
       if (!response.ok) throw new Error('No se pudo eliminar el trámite.')
       setMessage(`El trámite «${tramite.nombre}» se eliminó.`)
@@ -146,6 +146,7 @@ function TramitesPage() {
       )}
       {editing !== null && (
         <TramiteFormModal
+          token={token}
           tramite={editing || undefined}
           onClose={() => setEditing(null)}
           onSaved={handleSaved}

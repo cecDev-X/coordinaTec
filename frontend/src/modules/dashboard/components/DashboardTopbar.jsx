@@ -30,8 +30,8 @@ function DashboardTopbar({ onToggleMenu, onAction, menuOpen, title }) {
           <DashboardIcon name="mail" size={16} />
         </button>
         <div className="dashboard-topbar__profile">
-          <span><strong>Ing. Adelina M.</strong><small>Coordinadora Académica ISC</small></span>
-          <span className="dashboard-topbar__avatar" aria-hidden="true">AM</span>
+          <span><small>Coordinadora Académica ISC</small></span>
+          <span className="dashboard-topbar__avatar" aria-hidden="true">C</span>
         </div>
       </div>
     </header>

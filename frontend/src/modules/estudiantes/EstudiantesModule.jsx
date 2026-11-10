@@ -72,15 +72,20 @@ function EstudiantesModule({ route, onNavigate, onLogoutToAdmin }) {
       if (!mounted) return
       if (!profile) {
         sessionStorage.removeItem('coordinaTecStudentControl')
+        sessionStorage.removeItem('coordinaTecStudentToken')
         onNavigate('student-login')
         return
       }
       setStudent(withStudentPresentation(profile))
       setTramites(catalogoTramites)
-      setCitaCatalogos(catalogosCita)
+      const catalogosAsignados = {
+        ...catalogosCita,
+        coordinadores: catalogosCita.coordinadores.filter((coordinador) => coordinador.carreras?.includes(profile.carrera)),
+      }
+      setCitaCatalogos(catalogosAsignados)
       setSelectedTramite((current) => current || catalogoTramites[0] || null)
       applyCitas(citas)
-      const coordinador = catalogosCita.coordinadores[0]
+      const coordinador = catalogosAsignados.coordinadores[0]
       const horarioCoordinador = coordinador
         ? await fetchHorariosCoordinadorApi(coordinador.rfc)
         : []
@@ -91,6 +96,12 @@ function EstudiantesModule({ route, onNavigate, onLogoutToAdmin }) {
       setIsLoadingPortal(false)
     }).catch((error) => {
       if (!mounted) return
+      if (error.status === 401 || error.status === 403) {
+        sessionStorage.removeItem('coordinaTecStudentControl')
+        sessionStorage.removeItem('coordinaTecStudentToken')
+        onNavigate('student-login')
+        return
+      }
       setPortalError(error.message || 'No se pudieron cargar los datos del estudiante.')
       setIsLoadingPortal(false)
     })
@@ -135,6 +146,7 @@ function EstudiantesModule({ route, onNavigate, onLogoutToAdmin }) {
 
   function handleLoginSuccess(studentRecord) {
     sessionStorage.setItem('coordinaTecStudentControl', studentRecord.numControl)
+    sessionStorage.setItem('coordinaTecStudentToken', studentRecord.token)
     setStudent(withStudentPresentation(studentRecord))
     setIsLoadingPortal(true)
     setPortalError('')
@@ -260,6 +272,7 @@ function EstudiantesModule({ route, onNavigate, onLogoutToAdmin }) {
         onNavigateTab={onNavigate}
         onLogout={() => {
           sessionStorage.removeItem('coordinaTecStudentControl')
+          sessionStorage.removeItem('coordinaTecStudentToken')
           setStudent(null)
           onNavigate('student-login')
         }}

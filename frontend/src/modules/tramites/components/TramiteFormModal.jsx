@@ -10,7 +10,7 @@ const emptyForm = {
   prioridad: 'MEDIA',
 }
 
-function TramiteFormModal({ tramite, onClose, onSaved }) {
+function TramiteFormModal({ tramite, onClose, onSaved, token }) {
   const [form, setForm] = useState(tramite ? {
     nombre: tramite.nombre,
     periodo: String(tramite.periodo),
@@ -35,7 +35,7 @@ function TramiteFormModal({ tramite, onClose, onSaved }) {
     try {
       const response = await fetch(tramite ? `/api/v1/tramites/${tramite.id}` : '/api/v1/tramites', {
         method: tramite ? 'PUT' : 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({
           ...form,
           nombre: form.nombre.trim(),

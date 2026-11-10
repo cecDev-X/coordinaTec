@@ -10,6 +10,21 @@
   margin-bottom: 20px;
 }
 
+.citas-page__back {
+  margin-left: auto;
+  padding: 9px 12px;
+  border: 1px solid #dce5ef;
+  border-radius: 8px;
+  background: #fff;
+  color: #315b91;
+  font: inherit;
+  font-size: .8rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.citas-page__back:hover { background: #f3f7fc; }
+
 .citas-page__icon {
   display: grid;
   flex-shrink: 0;

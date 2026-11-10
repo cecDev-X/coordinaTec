@@ -13,6 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.Authentication;
 
 import java.util.List;
 import java.util.Map;
@@ -41,12 +42,21 @@ public class CitaController {
     }
 
     @PostMapping
-    public ResponseEntity<?> agendarCita(@Valid @RequestBody CrearCitaDTO request) {
+    public ResponseEntity<?> agendarCita(@Valid @RequestBody CrearCitaDTO request, Authentication authentication) {
+        if (tieneRol(authentication, "ESTUDIANTE") && !authentication.getName().equals(request.numControlEstudiante())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("mensaje", "Solo puedes agendar tus propias citas"));
+        }
+        if (tieneRol(authentication, "COORDINADOR") && !authentication.getName().equalsIgnoreCase(request.coordinadorRfc())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("mensaje", "Solo puedes agendar citas de tu coordinación"));
+        }
         if (!catalogoConsultaRepository.existeEstudiante(request.numControlEstudiante())) {
             return ResponseEntity.badRequest().body(Map.of("mensaje", "El estudiante seleccionado no existe"));
         }
         if (!catalogoConsultaRepository.existeCoordinador(request.coordinadorRfc())) {
             return ResponseEntity.badRequest().body(Map.of("mensaje", "El coordinador seleccionado no existe"));
+        }
+        if (!citaConsultaRepository.coordinadorAtiendeEstudiante(request.coordinadorRfc(), request.numControlEstudiante())) {
+            return ResponseEntity.badRequest().body(Map.of("mensaje", "El coordinador no atiende la carrera del estudiante"));
         }
         if (!catalogoConsultaRepository.existeFormato(request.formatoFolio())) {
             return ResponseEntity.badRequest().body(Map.of("mensaje", "El formato seleccionado no existe"));
@@ -83,14 +93,33 @@ public class CitaController {
     }
 
     @GetMapping("/{folio}")
-    public ResponseEntity<?> obtenerDetalleCita(@PathVariable String folio) {
+    public ResponseEntity<?> obtenerDetalleCita(@PathVariable String folio, Authentication authentication) {
+        if (tieneRol(authentication, "ESTUDIANTE") && !citaConsultaRepository.estudianteTieneCita(authentication.getName(), folio)
+            || tieneRol(authentication, "COORDINADOR") && !citaConsultaRepository.coordinadorTieneCitaDeCarreraAsignada(authentication.getName(), folio)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("mensaje", "No tienes acceso a esta cita"));
+        }
         return citaRepository.findByFolio(folio)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    @GetMapping("/coordinador/{rfc}")
+    public ResponseEntity<?> listarCitasCoordinador(@PathVariable String rfc, Authentication authentication) {
+        if (authentication == null || (!tieneRol(authentication, "JEFE_COORDINADORES") && !authentication.getName().equalsIgnoreCase(rfc))) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("mensaje", "Solo puedes consultar tus propias citas"));
+        }
+        if (!catalogoConsultaRepository.existeCoordinador(rfc)) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(citaConsultaRepository.listarPorCarrerasCoordinador(rfc));
+    }
+
     @PatchMapping("/{folio}/estado")
-    public ResponseEntity<?> marcarCitaAtendida(@PathVariable String folio, @RequestBody CambiarEstadoCitaDTO request) {
+    public ResponseEntity<?> marcarCitaAtendida(@PathVariable String folio, @RequestBody CambiarEstadoCitaDTO request, Authentication authentication) {
+        if (tieneRol(authentication, "COORDINADOR")
+            && !citaConsultaRepository.coordinadorTieneCitaDeCarreraAsignada(authentication.getName(), folio)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("mensaje", "No tienes acceso a esta cita"));
+        }
         if (!"ATENDIDA".equals(request.estado())) {
             return ResponseEntity.badRequest().body(Map.of("mensaje", "Solo se permite marcar una cita como ATENDIDA"));
         }
@@ -112,8 +141,15 @@ public class CitaController {
     }
 
     @GetMapping("/estudiantes/{numControl}")
-    public ResponseEntity<?> listarCitasEstudiante(@PathVariable String numControl) {
+    public ResponseEntity<?> listarCitasEstudiante(@PathVariable String numControl, Authentication authentication) {
+        if (authentication == null || !authentication.getName().equals(numControl)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("mensaje", "Solo puedes consultar tus propias citas"));
+        }
         List<CitaResumenDTO> citas = citaConsultaRepository.listarPorEstudiante(numControl);
         return ResponseEntity.ok(citas);
+    }
+
+    private boolean tieneRol(Authentication authentication, String role) {
+        return authentication != null && authentication.getAuthorities().stream().anyMatch(authority -> authority.getAuthority().equals("ROLE_" + role));
     }
 }

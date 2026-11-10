@@ -1,3 +1,3 @@
 package mx.tecnm.oaxaca.coordinatec.dtos;
 
-public record EstudianteSesionDTO(String numControl, String nombre, String carrera, String rol) {}
+public record EstudianteSesionDTO(String numControl, String nombre, String carrera, String rol, String token) {}

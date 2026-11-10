@@ -2,6 +2,9 @@
   min-width: 0;
 }
 
+.agenda-page__back { margin: 0 0 12px; padding: 8px 11px; border: 1px solid #dce5ef; border-radius: 8px; background: #fff; color: #315b91; font: inherit; font-size: .8rem; font-weight: 700; cursor: pointer; }
+.agenda-page__back:hover { background: #f3f7fc; }
+
 .agenda-page__filters {
   display: flex;
   flex-wrap: wrap;

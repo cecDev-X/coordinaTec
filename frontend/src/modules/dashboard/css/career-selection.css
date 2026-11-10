@@ -1,0 +1,20 @@
+.career-selection { max-width: 1120px; margin: 0 auto; color: #243958; }
+.career-selection__header { margin-bottom: 22px; }
+.career-selection__eyebrow { color: #55769e; font-size: .7rem; font-weight: 800; letter-spacing: .12em; }
+.career-selection__header h1 { margin: 7px 0; font-size: 1.65rem; letter-spacing: -.03em; }
+.career-selection__header p { margin: 0; color: #718096; font-size: .9rem; }
+.career-selection__grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.career-selection__card { display: flex; min-width: 0; align-items: center; gap: 13px; padding: 16px; border: 1px solid #e2eaf2; border-radius: 12px; background: #fff; color: #243958; text-align: left; font: inherit; cursor: pointer; box-shadow: 0 5px 18px #24395808; transition: border-color .15s, box-shadow .15s, transform .15s; }
+.career-selection__card:hover, .career-selection__card:focus-visible { border-color: #91acd0; box-shadow: 0 8px 22px #24395812; transform: translateY(-1px); }
+.career-selection__card:focus-visible { outline: 3px solid #b5cae5; outline-offset: 2px; }
+.career-selection__card--all { border-color: #cbd9ea; background: linear-gradient(110deg, #fff, #f5f8fc); }
+.career-selection__icon { display: grid; width: 42px; height: 42px; flex: 0 0 42px; place-items: center; border-radius: 11px; background: #edf3fa; color: #315b91; }
+.career-selection__copy { display: grid; min-width: 0; flex: 1; gap: 4px; }
+.career-selection__copy strong { overflow-wrap: anywhere; color: #2b3e59; font-size: .86rem; line-height: 1.35; }
+.career-selection__copy small, .career-selection__count small { color: #8796aa; font-size: .7rem; }
+.career-selection__count { display: grid; flex: 0 0 auto; gap: 2px; text-align: right; }
+.career-selection__count strong { color: #214b83; font-size: 1.05rem; }
+.career-selection__chevron { flex: 0 0 auto; color: #9aaabe; }
+.career-selection__empty { padding: 20px; border: 1px solid #e2eaf2; border-radius: 12px; background: #fff; color: #718096; }
+@media (max-width: 760px) { .career-selection__grid { grid-template-columns: 1fr; } }
+@media (max-width: 450px) { .career-selection__card { gap: 9px; padding: 12px; } .career-selection__icon { width: 36px; height: 36px; flex-basis: 36px; } }

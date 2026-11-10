@@ -6,6 +6,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
+import java.util.List;
 
 @Repository
 public class EstudianteAuthRepository {
@@ -34,6 +35,15 @@ public class EstudianteAuthRepository {
         return Boolean.TRUE.equals(jdbc.queryForObject(
             "SELECT EXISTS (SELECT 1 FROM estudiante WHERE numerocontrol = ?)", Boolean.class, numControl
         ));
+    }
+
+    public List<String> listarCarreras() {
+        return jdbc.queryForList("SELECT nombre FROM carrera ORDER BY nombre", String.class);
+    }
+
+    public boolean existeCarrera(String nombre) {
+        return Boolean.TRUE.equals(jdbc.queryForObject(
+            "SELECT EXISTS (SELECT 1 FROM carrera WHERE nombre = ?)", Boolean.class, nombre));
     }
 
     public void registrar(RegistroEstudianteDTO estudiante, String passwordHash) {

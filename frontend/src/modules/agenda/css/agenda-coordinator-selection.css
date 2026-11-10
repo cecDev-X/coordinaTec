@@ -1,0 +1,20 @@
+.agenda-coordinator-selection { max-width: 1120px; margin: 0 auto; color: #243958; }
+.agenda-coordinator-selection > header { margin-bottom: 22px; }
+.agenda-coordinator-selection > header > span { color: #55769e; font-size: .7rem; font-weight: 800; letter-spacing: .12em; }
+.agenda-coordinator-selection > header h1 { margin: 7px 0; font-size: 1.65rem; letter-spacing: -.03em; }
+.agenda-coordinator-selection > header p { margin: 0; color: #718096; font-size: .9rem; }
+.agenda-coordinator-selection__grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.agenda-coordinator-selection__card { display: flex; min-width: 0; align-items: center; gap: 13px; padding: 16px; border: 1px solid #e2eaf2; border-radius: 12px; background: #fff; color: #243958; text-align: left; font: inherit; cursor: pointer; box-shadow: 0 5px 18px #24395808; transition: border-color .15s, box-shadow .15s, transform .15s; }
+.agenda-coordinator-selection__card:hover, .agenda-coordinator-selection__card:focus-visible { border-color: #91acd0; box-shadow: 0 8px 22px #24395812; transform: translateY(-1px); }
+.agenda-coordinator-selection__card:focus-visible { outline: 3px solid #b5cae5; outline-offset: 2px; }
+.agenda-coordinator-selection__card--all { border-color: #cbd9ea; background: linear-gradient(110deg, #fff, #f5f8fc); }
+.agenda-coordinator-selection__icon { display: grid; width: 42px; height: 42px; flex: 0 0 42px; place-items: center; border-radius: 11px; background: #edf3fa; color: #315b91; }
+.agenda-coordinator-selection__copy { display: grid; min-width: 0; flex: 1; gap: 4px; }
+.agenda-coordinator-selection__copy strong { overflow-wrap: anywhere; color: #2b3e59; font-size: .86rem; line-height: 1.35; }
+.agenda-coordinator-selection__copy small, .agenda-coordinator-selection__count small { color: #8796aa; font-size: .7rem; }
+.agenda-coordinator-selection__count { display: grid; flex: 0 0 auto; gap: 2px; text-align: right; }
+.agenda-coordinator-selection__count strong { color: #214b83; font-size: 1.05rem; }
+.agenda-coordinator-selection__card > svg:last-child { flex: 0 0 auto; color: #9aaabe; }
+.agenda-coordinator-selection__empty { padding: 20px; border: 1px solid #e2eaf2; border-radius: 12px; background: #fff; color: #718096; }
+@media (max-width: 760px) { .agenda-coordinator-selection__grid { grid-template-columns: 1fr; } }
+@media (max-width: 450px) { .agenda-coordinator-selection__card { gap: 9px; padding: 12px; } .agenda-coordinator-selection__icon { width: 36px; height: 36px; flex-basis: 36px; } }

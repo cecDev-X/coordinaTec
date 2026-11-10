@@ -30,6 +30,16 @@ public class CatalogoConsultaRepository {
             ));
     }
 
+    public List<EstudianteOpcionDTO> listarEstudiantesPorCoordinador(String rfc) {
+        return jdbc.query("""
+            SELECT e.numerocontrol, e.nombres, e.apellidos, e.carrera
+            FROM estudiante e JOIN coordinador_carrera cc ON cc.carrera = e.carrera
+            WHERE cc.coordinador_rfc = ?
+            ORDER BY e.apellidos, e.nombres, e.numerocontrol
+            """, (rs, row) -> new EstudianteOpcionDTO(rs.getString("numerocontrol"),
+            rs.getString("nombres") + " " + rs.getString("apellidos"), rs.getString("carrera")), rfc);
+    }
+
     public Optional<EstudianteOpcionDTO> buscarEstudiante(String numControl) {
         return jdbc.query("""
             SELECT numerocontrol, nombres, apellidos, carrera
@@ -44,14 +54,18 @@ public class CatalogoConsultaRepository {
 
     public List<CoordinadorOpcionDTO> listarCoordinadores() {
         return jdbc.query("""
-            SELECT c.rfc, c.nombre_completo, d.nombre_area
+            SELECT c.rfc, c.nombre_completo, d.nombre_area,
+                   COALESCE(array_agg(cc.carrera ORDER BY cc.carrera) FILTER (WHERE cc.carrera IS NOT NULL), ARRAY[]::varchar[]) AS carreras
             FROM coordinador c
             JOIN departamento d ON d.id = c.departamento_id
+            LEFT JOIN coordinador_carrera cc ON cc.coordinador_rfc = c.rfc
+            GROUP BY c.rfc, c.nombre_completo, d.nombre_area
             ORDER BY c.nombre_completo, c.rfc
             """, (rs, row) -> new CoordinadorOpcionDTO(
                 rs.getString("rfc"),
                 rs.getString("nombre_completo"),
-                rs.getString("nombre_area")
+                rs.getString("nombre_area"),
+                List.of((String[]) rs.getArray("carreras").getArray())
             ));
     }
 

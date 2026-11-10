@@ -15,20 +15,29 @@ crea el catálogo administrable de tipos de trámite. `V4__duracion_y_tipo_de_tr
 agrega la duración en minutos y vincula los formatos con su tipo de trámite;
 los formatos existentes reciben inicialmente 20 minutos y la duración se puede
 ajustar desde Configuración de Trámites. El backend calcula la hora de fin de cada
-nueva cita con esa duración. Para cambios futuros,
-agrega `V5__descripcion.sql`, etc. No modifiques una migración que ya se haya
+nueva cita con esa duración. V5 relaciona coordinadores con una o varias carreras,
+y V6 crea las cuentas de jefatura y el identificador de acceso de coordinador.
+V7 crea el catálogo de carreras y unifica las variantes de Sistemas existentes
+en «Ingeniería en Sistemas Computacionales», conservando las asignaciones.
+Para cambios futuros, agrega `V8__descripcion.sql`, etc. No modifiques una migración que ya se haya
 aplicado a una base de datos.
 
 El catálogo se administra con el CRUD de `/api/v1/tramites` y guarda nombre,
 periodo en días, duración de cita en minutos, requisitos, estatus activo y
 prioridad. Es distinto de la tabla `formato`, que guarda documentos específicos
 asociados a citas y referencia un tipo del catálogo.
+La selección de carreras del estudiante y del jefe utiliza la misma lista de
+`carrera`: Sistemas Computacionales, Industrial, Civil, Química, Mecatrónica,
+Mecánica, Eléctrica, Electrónica, Gestión Empresarial, Ambiental, Bioquímica y
+Administración, además de las carreras previas que no correspondían a Sistemas.
 
 `database/coordinatecdcl.sql` define roles de grupo para PostgreSQL y se ejecuta
-manualmente después de las migraciones, con permisos de administrador. No crea
-usuarios de aplicación ni activa autorización por rol en Spring; `SecurityConfig`
-y el login siguen siendo de desarrollo y deben conectarse a esos roles en una
-implementación posterior.
+manualmente después de las migraciones, con permisos de administrador. La
+autenticación de aplicación usa JWT Bearer firmado, contraseñas BCrypt y roles
+`JEFE_COORDINADORES` y `COORDINADOR`; es independiente de los roles de PostgreSQL.
+Configura `COORDINATEC_AUTH_JWT_SECRET` con una clave privada de al menos 32 bytes
+para conservar las sesiones tras reiniciar el backend. Si no se configura, se
+genera una clave nueva en cada arranque y las sesiones anteriores caducan.
 
 Desde la raíz del repositorio:
 
@@ -64,7 +73,28 @@ docker compose exec -T postgres-db psql -X -v ON_ERROR_STOP=1 -U coordina_admin 
 comparte en Git, pero cada persona elige si lo ejecuta. Crea un departamento,
 un estudiante (`DEMO0001`), un coordinador (`DEMO000000001`), un formato
 (`FMT-DEMO-001`), una cita (`CIT-DEMO-001`) y cinco tipos de trámite, además
-de un horario y un bloqueo. Se puede volver a ejecutar después de V4 para añadir
+de un horario y un bloqueo. Se puede volver a ejecutar después de V7 para añadir
 los trámites de demostración a una base que ya tenía los demás datos.
 Se puede ejecutar más de una vez sin duplicar esos registros. Los valores de
 `password_hash` son solo marcadores, no credenciales válidas.
+
+Al iniciar el backend con Docker Compose se habilita el sembrado de tres cuentas
+de prueba con contraseñas BCrypt. Se crean una vez; reiniciar la aplicación no
+restablece sus contraseñas si ya existen:
+
+| Rol | Usuario | Contraseña |
+| --- | --- | --- |
+| Jefe de coordinadores | `jefe@coordina.test` | `JefeCoordina2026!` |
+| Coordinador (Sistemas) | `TEST000000001` | `CoordinaSistemas2026!` |
+| Coordinadora (Industrial) | `TEST000000002` | `CoordinaIndustrial2026!` |
+
+Para habilitar las cuentas de demostración al ejecutar el backend desde el host,
+configura `COORDINATEC_DEMO_USERS_ENABLED=true`. El jefe inicia sesión en `#/login`
+y puede crear coordinadores desde **Coordinadores**. Cada coordinador recibe citas
+solo de sus carreras asignadas. El token de acceso dura ocho horas y se envía como
+`Authorization: Bearer <token>`.
+
+El frontend en Docker publica `/api/` mediante Nginx hacia el backend; al usar
+`npm run dev`, Vite proporciona el mismo proxy local.
+Si el puerto 80 del host ya está ocupado, usa `FRONTEND_HOST_PORT=8081`
+(`FRONTEND_HTTPS_PORT=8444` para liberar también el mapeo de 443) al iniciar Compose.

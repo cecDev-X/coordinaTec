@@ -60,6 +60,7 @@ function WeekCalendar({ monday, appointments, onAppointment }) {
                             >
                               <strong>{appointment.horaInicio.slice(0, 5)} · {appointment.tramite}</strong>
                               <span>{appointment.nombre}</span>
+                              {appointment.coordinadorNombre && <small className="week-calendar__coordinator">{appointment.coordinadorNombre}</small>}
                               <small>{appointment.numControl}</small>
                               <span className="week-calendar__appointment-status">{statusLabel(appointment.estado)}</span>
                             </button>

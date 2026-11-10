@@ -1,0 +1,47 @@
+.coordinadores-page { max-width: 1180px; margin: 0 auto; color: #243958; }
+.coordinadores-page__header { margin-bottom: 22px; }
+.coordinadores-page__eyebrow { color: #55769e; font-size: .7rem; font-weight: 800; letter-spacing: .12em; }
+.coordinadores-page__header h1 { margin: 7px 0; font-size: 1.7rem; letter-spacing: -.03em; }
+.coordinadores-page__header p { margin: 0; color: #718096; }
+.coordinadores-page__summary { display: flex; gap: 14px; margin-bottom: 18px; }
+.coordinadores-page__summary > div { display: grid; gap: 5px; min-width: 190px; padding: 15px 18px; border: 1px solid #e2eaf2; border-radius: 12px; background: #fff; box-shadow: 0 5px 20px #24395808; }
+.coordinadores-page__summary span { color: #718096; font-size: .78rem; font-weight: 600; }
+.coordinadores-page__summary strong { font-size: 1.35rem; }
+.coordinadores-page__layout { display: grid; grid-template-columns: minmax(300px, .82fr) minmax(0, 1.18fr); align-items: start; gap: 18px; }
+.coordinadores-form, .coordinadores-list { min-width: 0; padding: 22px; border: 1px solid #e2eaf2; border-radius: 14px; background: #fff; box-shadow: 0 6px 22px #2439580a; }
+.coordinadores-form { display: grid; gap: 15px; }
+.coordinadores-form__heading, .coordinadores-list__heading { display: flex; align-items: center; gap: 12px; padding-bottom: 16px; border-bottom: 1px solid #edf1f5; }
+.coordinadores-form__icon { display: grid; width: 40px; height: 40px; flex: 0 0 40px; place-items: center; border-radius: 12px; background: #edf3fa; color: #214b83; font-size: 1.5rem; }
+.coordinadores-form__heading h2, .coordinadores-list__heading h2 { margin: 0 0 4px; font-size: 1rem; }
+.coordinadores-form__heading p, .coordinadores-list__heading p { margin: 0; color: #718096; font-size: .8rem; line-height: 1.45; }
+.coordinadores-form > label { display: grid; gap: 7px; color: #435670; font-size: .82rem; font-weight: 700; }
+.coordinadores-form > label input { width: 100%; min-height: 42px; padding: 9px 11px; border: 1px solid #d5dfeb; border-radius: 8px; color: #243958; font: inherit; font-size: .86rem; font-weight: 400; outline: none; transition: border-color .15s, box-shadow .15s; }
+.coordinadores-form > label input:focus { border-color: #6b91c3; box-shadow: 0 0 0 3px #315b911a; }
+.coordinadores-form__careers { min-width: 0; margin: 0; padding: 13px; border: 1px solid #e2eaf2; border-radius: 9px; }
+.coordinadores-form__careers legend { padding: 0 5px; color: #435670; font-size: .82rem; font-weight: 700; }
+.coordinadores-form__careers > p { margin: 0 0 11px; color: #718096; font-size: .77rem; }
+.coordinadores-form__career-options { display: grid; gap: 7px; max-height: 190px; overflow-y: auto; }
+.coordinadores-career { display: flex; align-items: flex-start; gap: 9px; padding: 9px 10px; border: 1px solid #e8edf4; border-radius: 8px; color: #52657c; font-size: .78rem; line-height: 1.4; cursor: pointer; transition: background .15s, border-color .15s; }
+.coordinadores-career:hover { border-color: #b8c9df; background: #f8fafd; }
+.coordinadores-career--selected { border-color: #a8bedb; background: #f1f6fc; color: #214b83; }
+.coordinadores-career input { margin: 2px 0 0; accent-color: #214b83; }
+.coordinadores-form__submit { min-height: 43px; padding: 0 16px; border: 0; border-radius: 8px; background: #214b83; color: #fff; font: inherit; font-size: .86rem; font-weight: 700; cursor: pointer; transition: background .15s; }
+.coordinadores-form__submit:hover:not(:disabled) { background: #193b69; }
+.coordinadores-form__submit:disabled { opacity: .5; cursor: not-allowed; }
+.coordinadores-page__message { margin: 0; padding: 10px 12px; border-radius: 8px; background: #effaf4; color: #26744b; font-size: .8rem; }
+.coordinadores-page__muted, .coordinadores-page__empty { color: #718096; font-size: .84rem; }
+.coordinadores-page__empty { padding: 15px 0; }
+.coordinadores-list__heading { justify-content: space-between; margin-bottom: 2px; }
+.coordinadores-list__heading > span { display: grid; width: 32px; height: 32px; place-items: center; border-radius: 50%; background: #edf3fa; color: #214b83; font-size: .8rem; font-weight: 800; }
+.coordinadores-list__items { display: grid; }
+.coordinador-card { display: flex; align-items: flex-start; gap: 12px; padding: 16px 0; border-bottom: 1px solid #edf1f5; }
+.coordinador-card:last-child { border-bottom: 0; }
+.coordinador-card__avatar { display: grid; width: 40px; height: 40px; flex: 0 0 40px; place-items: center; border-radius: 12px; background: #edf3fa; color: #315b91; font-size: .82rem; font-weight: 800; }
+.coordinador-card__body { display: grid; gap: 4px; min-width: 0; }
+.coordinador-card__body > strong { color: #2b3e59; font-size: .87rem; }
+.coordinador-card__rfc { color: #8796aa; font-size: .74rem; }
+.coordinador-card__careers { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 5px; }
+.coordinador-card__careers > span { padding: 5px 8px; border-radius: 6px; background: #f1f5fa; color: #506681; font-size: .7rem; line-height: 1.35; }
+.coordinador-card__careers > .coordinador-card__none { background: #fff7e6; color: #946200; }
+@media (max-width: 900px) { .coordinadores-page__layout { grid-template-columns: 1fr; } }
+@media (max-width: 520px) { .coordinadores-page__summary { display: grid; grid-template-columns: 1fr 1fr; } .coordinadores-page__summary > div { min-width: 0; padding: 13px; } .coordinadores-form, .coordinadores-list { padding: 17px; } }

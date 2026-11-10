@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import StudentIcon from '../components/StudentIcon.jsx'
-import { registerStudentApi } from '../data/estudiantesData.js'
+import { fetchCarrerasApi, registerStudentApi } from '../data/estudiantesData.js'
 import '../css/student-login.css'
 
 function currentCycleLabel(date = new Date()) {
@@ -15,6 +15,21 @@ function StudentRegisterPage({ onRegisterSuccess, onBackToLogin }) {
   const [form, setForm] = useState({ numControl: '', nombres: '', apellidos: '', carrera: '', password: '', confirmPassword: '' })
   const [notice, setNotice] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [carreras, setCarreras] = useState([])
+  const [loadingCarreras, setLoadingCarreras] = useState(true)
+
+  useEffect(() => {
+    const controller = new AbortController()
+    fetchCarrerasApi({ signal: controller.signal })
+      .then(setCarreras)
+      .catch(() => {
+        if (!controller.signal.aborted) setNotice('No se pudieron cargar las carreras. Intenta de nuevo más tarde.')
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setLoadingCarreras(false)
+      })
+    return () => controller.abort()
+  }, [])
 
   function updateField(event) {
     setForm((current) => ({ ...current, [event.target.name]: event.target.value }))
@@ -74,7 +89,10 @@ function StudentRegisterPage({ onRegisterSuccess, onBackToLogin }) {
               </label>
               <label className="student-login__field-group">
                 <span className="student-login__label">Carrera <span className="student-login__req">*</span></span>
-                <input className="student-login__input student-register__plain-input" name="carrera" placeholder="Ej. Ingeniería en Sistemas Computacionales" value={form.carrera} onChange={updateField} maxLength={100} required />
+                <select className="student-login__input student-register__plain-input" name="carrera" value={form.carrera} onChange={updateField} disabled={loadingCarreras || carreras.length === 0} required>
+                  <option value="">Selecciona tu carrera</option>
+                  {carreras.map((carrera) => <option key={carrera} value={carrera}>{carrera}</option>)}
+                </select>
               </label>
               <label className="student-login__field-group">
                 <span className="student-login__label">Contraseña <span className="student-login__req">*</span></span>
@@ -85,7 +103,7 @@ function StudentRegisterPage({ onRegisterSuccess, onBackToLogin }) {
                 <span className="student-login__label">Confirmar contraseña <span className="student-login__req">*</span></span>
                 <input className="student-login__input student-register__plain-input" type="password" name="confirmPassword" value={form.confirmPassword} onChange={updateField} minLength={8} maxLength={72} autoComplete="new-password" required />
               </label>
-              <button type="submit" className="student-login__submit" disabled={isSubmitting}>
+              <button type="submit" className="student-login__submit" disabled={isSubmitting || loadingCarreras || carreras.length === 0}>
                 <span>{isSubmitting ? 'CREANDO CUENTA...' : 'CREAR CUENTA'}</span><StudentIcon name="arrow-right" size={19} />
               </button>
             </form>

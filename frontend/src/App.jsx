@@ -1,4 +1,4 @@
-import { useEffect, useSyncExternalStore } from 'react'
+import { useEffect, useState, useSyncExternalStore } from 'react'
 import LoginPage from './modules/auth/pages/LoginPage.jsx'
 import DashboardPage from './modules/dashboard/pages/DashboardPage.jsx'
 import EstudiantesModule from './modules/estudiantes/EstudiantesModule.jsx'
@@ -13,6 +13,10 @@ const routeToHash = {
   tramites: '/tramites',
   agenda: '/agenda',
   citas: '/citas',
+  coordinadores: '/coordinadores',
+  carreras: '/carreras',
+  configuracion: '/configuracion',
+  alumnos: '/alumnos',
   login: '/login',
   'student-login': '/estudiante/login',
   'student-register': '/estudiante/registro',
@@ -29,6 +33,11 @@ function getRoute() {
   if (hash === '#/tramites') return 'tramites'
   if (hash === '#/agenda') return 'agenda'
   if (hash === '#/citas') return 'citas'
+  if (hash === '#/coordinadores') return 'coordinadores'
+  if (hash === '#/carreras') return 'carreras'
+  if (hash === '#/configuracion') return 'configuracion'
+  if (hash === '#/alumnos') return 'alumnos'
+  if (hash === '#/analitica') return 'dashboard'
   if (hash === '#/estudiante/login') return 'student-login'
   if (hash === '#/estudiante/registro') return 'student-register'
   if (hash === '#/estudiante' || hash === '#/estudiante/inicio') return 'student-home'
@@ -41,6 +50,24 @@ function getRoute() {
 
 function App() {
   const route = useSyncExternalStore(subscribeToRoute, getRoute)
+  const [session, setSession] = useState(() => {
+    try { return JSON.parse(sessionStorage.getItem('coordinaTecSession') || 'null') } catch { return null }
+  })
+
+  useEffect(() => {
+    if (!session?.token) return undefined
+    const controller = new AbortController()
+    fetch('/api/v1/auth/me', {
+      headers: { Authorization: `Bearer ${session.token}` }, signal: controller.signal,
+    }).then((response) => {
+      if (response.status === 401 || response.status === 403) {
+        sessionStorage.removeItem('coordinaTecSession')
+        setSession(null)
+        window.location.hash = '/login'
+      }
+    }).catch(() => {})
+    return () => controller.abort()
+  }, [session?.token])
 
   useEffect(() => {
     const titles = {
@@ -48,6 +75,10 @@ function App() {
       tramites: 'Configuración de Trámites',
       agenda: 'Agenda y Horarios',
       citas: 'Lista de Citas Actuales',
+      coordinadores: 'Gestión de Coordinadores',
+      carreras: 'Gestión de Carreras',
+      configuracion: 'Configuración de cuenta',
+      alumnos: 'Alumnos en plataforma',
       login: 'Iniciar sesión',
       'student-login': 'Portal Estudiantil - Iniciar sesión',
       'student-register': 'Portal Estudiantil - Crear cuenta',
@@ -65,6 +96,23 @@ function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
+  async function login(credentials) {
+    const response = await fetch('/api/v1/auth/login', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(credentials),
+    })
+    const result = await response.json().catch(() => ({}))
+    if (!response.ok) throw new Error(result.mensaje || 'No se pudo iniciar sesión.')
+    sessionStorage.setItem('coordinaTecSession', JSON.stringify(result))
+    setSession(result)
+    navigateTo('dashboard')
+  }
+
+  function logout() {
+    sessionStorage.removeItem('coordinaTecSession')
+    setSession(null)
+    navigateTo('login')
+  }
+
   // Rutas del Módulo de Estudiantes
   if (route.startsWith('student-')) {
     return (
@@ -77,23 +125,28 @@ function App() {
   }
 
   // Rutas del Módulo de Coordinador / Administración
-  if (route !== 'login') {
+  if (route !== 'login' && session?.token) {
+    const adminRoutes = ['coordinadores', 'carreras', 'tramites']
+    const permittedRoute = adminRoutes.includes(route) && session.rol !== 'JEFE_COORDINADORES'
+      ? 'dashboard'
+      : route
     return (
       <DashboardPage
-        page={route}
+        page={permittedRoute}
+        role={session.rol}
+        username={session.username}
+        token={session.token}
         onNavigate={(page) => {
           window.location.hash = page === 'dashboard' ? '/panel-principal' : `/${page}`
         }}
-        onLogout={() => {
-          window.location.hash = '/login'
-        }}
+        onLogout={logout}
       />
     )
   }
 
   return (
     <LoginPage
-      onLogin={() => navigateTo('dashboard')}
+      onLogin={login}
       onGoToStudentPortal={() => navigateTo('student-login')}
     />
   )

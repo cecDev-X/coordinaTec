@@ -1,5 +1,6 @@
 package mx.tecnm.oaxaca.coordinatec;
 
+import mx.tecnm.oaxaca.coordinatec.config.JwtService;
 import mx.tecnm.oaxaca.coordinatec.entities.CitaEntity;
 import mx.tecnm.oaxaca.coordinatec.repositories.CitaConsultaRepository;
 import mx.tecnm.oaxaca.coordinatec.repositories.CitaRepository;
@@ -45,6 +46,9 @@ class CitaPersistenceTests {
     @Autowired
     private MockMvc mvc;
 
+    @Autowired
+    private JwtService jwt;
+
     @Test
     @Transactional
     void migracionCreaEsquemaYCitaSeGuardaConSusRelaciones() throws Exception {
@@ -68,19 +72,21 @@ class CitaPersistenceTests {
             Integer.class, "Departamento de prueba"
         );
         jdbc.update("INSERT INTO estudiante (numerocontrol, nombres, apellidos, carrera, password_hash) " +
-            "VALUES (?, ?, ?, ?, ?)", numControl, "Ana", "Prueba", "Sistemas", "hash-de-prueba");
+            "VALUES (?, ?, ?, ?, ?)", numControl, "Ana", "Prueba", "Ingeniería en Sistemas Computacionales", "hash-de-prueba");
         jdbc.update("INSERT INTO tramite (nombre, periodo_dias, duracion_minutos, requisitos, activo, prioridad) " +
             "VALUES (?, ?, ?, ?, ?, ?)", "Tutoría", 2, 35, "Solicitud firmada", true, "MEDIA");
         Long tramiteId = jdbc.queryForObject("SELECT id FROM tramite WHERE nombre = ?", Long.class, "Tutoría");
         jdbc.update("INSERT INTO formato (folio, asunto, tipo_tramite, tramite_id) VALUES (?, ?, ?, ?)",
             folioFormato, "Asesoría", "Tutoría", tramiteId);
-        jdbc.update("INSERT INTO coordinador (rfc, nombre_completo, password_hash, departamento_id) " +
-            "VALUES (?, ?, ?, ?)", rfc, "Coordinador de prueba", "hash-de-prueba", departamentoId);
+        jdbc.update("INSERT INTO coordinador (rfc, username, nombre_completo, password_hash, departamento_id) " +
+            "VALUES (?, ?, ?, ?, ?)", rfc, rfc, "Coordinador de prueba", "hash-de-prueba", departamentoId);
+        jdbc.update("INSERT INTO coordinador_carrera (coordinador_rfc, carrera) VALUES (?, ?)", rfc, "Ingeniería en Sistemas Computacionales");
         jdbc.update("INSERT INTO horario (dia_semana, hora_inicio, hora_salida, duracion_minutos, coordinador_rfc) " +
             "VALUES (?, ?, ?, ?, ?)", 1, LocalTime.of(10, 0), LocalTime.of(11, 0), 20, rfc);
 
         LocalDate fechaDisponibilidad = LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.MONDAY));
-        mvc.perform(get("/api/v1/coordinadores/{rfc}/horarios", rfc))
+        mvc.perform(get("/api/v1/coordinadores/{rfc}/horarios", rfc)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwt.issue(rfc, "COORDINADOR")))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$[0].diaSemana").value(1))
             .andExpect(jsonPath("$[0].horaInicio").value("10:00"));
@@ -115,7 +121,7 @@ class CitaPersistenceTests {
             assertThat(resumen.folio()).isEqualTo(folioCita);
             assertThat(resumen.numControl()).isEqualTo(numControl);
             assertThat(resumen.nombre()).isEqualTo("Ana Prueba");
-            assertThat(resumen.carrera()).isEqualTo("Sistemas");
+            assertThat(resumen.carrera()).isEqualTo("Ingeniería en Sistemas Computacionales");
             assertThat(resumen.tramite()).isEqualTo("Tutoría");
             assertThat(resumen.fecha()).isEqualTo(LocalDate.of(2026, 10, 29));
             assertThat(resumen.horaInicio()).isEqualTo(LocalTime.of(10, 0));
@@ -123,32 +129,38 @@ class CitaPersistenceTests {
             assertThat(resumen.fechaAtencion()).isNull();
         });
 
-        mvc.perform(get("/api/v1/citas/estudiantes/{numControl}", numControl))
+        mvc.perform(get("/api/v1/citas/estudiantes/{numControl}", numControl)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwt.issue(numControl, "ESTUDIANTE")))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$[0].folio").value(folioCita))
             .andExpect(jsonPath("$[0].numControl").value(numControl))
             .andExpect(jsonPath("$[0].tramite").value("Tutoría"));
 
-        mvc.perform(get("/api/v1/catalogos/citas"))
+        mvc.perform(get("/api/v1/catalogos/citas")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwt.issue(numControl, "ESTUDIANTE")))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.estudiantes[?(@.numControl == '%s')]".formatted(numControl)).isNotEmpty())
             .andExpect(jsonPath("$.coordinadores[?(@.rfc == '%s')]".formatted(rfc)).isNotEmpty())
             .andExpect(jsonPath("$.formatos[?(@.folio == '%s')]".formatted(folioFormato)).isNotEmpty())
             .andExpect(jsonPath("$.formatos[?(@.folio == '%s')].duracionMinutos".formatted(folioFormato)).value(contains(35)));
-        mvc.perform(get("/api/v1/catalogos/estudiantes/{numControl}", numControl))
+        mvc.perform(get("/api/v1/catalogos/estudiantes/{numControl}", numControl)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwt.issue(numControl, "ESTUDIANTE")))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.numControl").value(numControl))
             .andExpect(jsonPath("$.nombre").value("Ana Prueba"));
-        mvc.perform(get("/api/v1/estudiantes/{numControl}", numControl))
+        mvc.perform(get("/api/v1/estudiantes/{numControl}", numControl)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwt.issue(numControl, "ESTUDIANTE")))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.numControl").value(numControl))
             .andExpect(jsonPath("$.nombre").value("Ana Prueba"))
-            .andExpect(jsonPath("$.carrera").value("Sistemas"));
-        mvc.perform(get("/api/v1/catalogos/estudiantes/{numControl}", "NO-EXISTE"))
+            .andExpect(jsonPath("$.carrera").value("Ingeniería en Sistemas Computacionales"));
+        mvc.perform(get("/api/v1/catalogos/estudiantes/{numControl}", "NO-EXISTE")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwt.issue("NO-EXISTE", "ESTUDIANTE")))
             .andExpect(status().isNotFound());
 
         LocalDate fechaNuevaCita = fechaDisponibilidad;
         mvc.perform(post("/api/v1/citas")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwt.issue(numControl, "ESTUDIANTE"))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""
                     {
@@ -168,6 +180,7 @@ class CitaPersistenceTests {
         citas.flush();
 
         mvc.perform(post("/api/v1/citas")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwt.issue(numControl, "ESTUDIANTE"))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""
                     {
@@ -181,7 +194,7 @@ class CitaPersistenceTests {
                     """.formatted(fechaNuevaCita, rfc, numControl, folioFormato)))
             .andExpect(status().isConflict());
 
-        mvc.perform(get("/api/v1/citas"))
+        mvc.perform(get("/api/v1/citas").header(HttpHeaders.AUTHORIZATION, "Bearer " + jwt.issue("jefe@coordina.test", "JEFE_COORDINADORES")))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$[?(@.numControl == '%s' && @.estado == 'PROGRAMADA')]".formatted(numControl)).isNotEmpty());
 
@@ -192,12 +205,15 @@ class CitaPersistenceTests {
             .andExpect(status().isOk())
             .andExpect(header().string(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, "http://localhost:5173"));
         mvc.perform(patch("/api/v1/citas/{folio}/estado", folioCita)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwt.issue(rfc, "COORDINADOR"))
                 .contentType(MediaType.APPLICATION_JSON).content("{\"estado\":\"RECHAZADA\"}"))
             .andExpect(status().isBadRequest());
         mvc.perform(patch("/api/v1/citas/{folio}/estado", "FOL-INEXISTENTE")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwt.issue(rfc, "COORDINADOR"))
                 .contentType(MediaType.APPLICATION_JSON).content("{\"estado\":\"ATENDIDA\"}"))
-            .andExpect(status().isNotFound());
+            .andExpect(status().isForbidden());
         mvc.perform(patch("/api/v1/citas/{folio}/estado", folioCita)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwt.issue(rfc, "COORDINADOR"))
                 .header(HttpHeaders.ORIGIN, "http://localhost:5173")
                 .contentType(MediaType.APPLICATION_JSON).content("{\"estado\":\"ATENDIDA\"}"))
             .andExpect(status().isOk())
@@ -213,11 +229,13 @@ class CitaPersistenceTests {
             .filteredOn(resumen -> resumen.folio().equals(folioCita))
             .singleElement()
             .satisfies(resumen -> assertThat(resumen.fechaAtencion()).isNotNull());
-        mvc.perform(get("/api/v1/citas/{folio}", folioCita))
+        mvc.perform(get("/api/v1/citas/{folio}", folioCita)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwt.issue(rfc, "COORDINADOR")))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.estado").value("ATENDIDA"))
             .andExpect(jsonPath("$.fechaAtencion").isNotEmpty());
         mvc.perform(patch("/api/v1/citas/{folio}/estado", folioCita)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwt.issue(rfc, "COORDINADOR"))
                 .contentType(MediaType.APPLICATION_JSON).content("{\"estado\":\"ATENDIDA\"}"))
             .andExpect(status().isConflict());
     }

@@ -1,11 +1,22 @@
 import DashboardIcon from './DashboardIcon.jsx'
 import '../css/sidebar.css'
 
-const navigation = [
+const coordinatorNavigation = [
   { label: 'Panel Principal', icon: 'grid' },
-  { label: 'Citas', icon: 'calendar', badge: '12', badgeTone: 'amber' },
+  { label: 'Citas', icon: 'calendar' },
+  { label: 'Alumnos', icon: 'users' },
+  { label: 'Agenda y Horarios', icon: 'clock' },
+  { label: 'Configuración', icon: 'settings' },
+]
+
+const chiefNavigation = [
+  { label: 'Panel Principal', icon: 'grid' },
+  { label: 'Citas', icon: 'calendar' },
+  { label: 'Alumnos', icon: 'users' },
   { label: 'Trámites', icon: 'document' },
-  { label: 'Agenda y Horarios', icon: 'clock', badge: 'Hoy', badgeTone: 'blue' },
+  { label: 'Carreras', icon: 'school' },
+  { label: 'Coordinadores', icon: 'layers' },
+  { label: 'Agenda y Horarios', icon: 'clock' },
   { label: 'Configuración', icon: 'settings' },
 ]
 
@@ -23,12 +34,16 @@ function InstitutionLogo() {
   )
 }
 
-function DashboardSidebar({ onNavigate, onLogout, onClose, open, activePage }) {
+function DashboardSidebar({ onNavigate, onLogout, onClose, open, activePage, role, username }) {
   const activeLabel = {
     dashboard: 'Panel Principal',
     tramites: 'Trámites',
     agenda: 'Agenda y Horarios',
     citas: 'Citas',
+    coordinadores: 'Coordinadores',
+    carreras: 'Carreras',
+    configuracion: 'Configuración',
+    alumnos: 'Alumnos',
   }[activePage]
 
   return (
@@ -43,11 +58,11 @@ function DashboardSidebar({ onNavigate, onLogout, onClose, open, activePage }) {
 
       <div className="dashboard-sidebar__identity">
         <span className="dashboard-sidebar__identity-icon"><DashboardIcon name="layers" size={17} /></span>
-        <span><strong>PSICCA Admin</strong><small>Coordinación Académica ISC</small></span>
+        <span><strong>{role === 'JEFE_COORDINADORES' ? 'Jefe de Coordinadores' : 'Coordinador'}</strong><small>{username}</small></span>
       </div>
 
       <nav className="dashboard-sidebar__nav" aria-label="Navegación principal">
-        {navigation.map((item) => {
+        {(role === 'JEFE_COORDINADORES' ? chiefNavigation : coordinatorNavigation).map((item) => {
           const active = item.label === activeLabel
           return (
             <button

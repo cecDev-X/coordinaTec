@@ -1,4 +1,4 @@
--- Datos ficticios para desarrollo local. Ejecutar manualmente después de Flyway V4.
+-- Datos ficticios para desarrollo local. Ejecutar manualmente después de Flyway V7.
 -- Los valores de password_hash son marcadores que no sirven para iniciar sesión.
 -- Si se vuelve a ejecutar, conserva los datos existentes sin duplicar filas.
 
@@ -11,7 +11,7 @@ WHERE NOT EXISTS (
 );
 
 INSERT INTO estudiante (numerocontrol, nombres, apellidos, carrera, password_hash)
-VALUES ('DEMO0001', 'Ana', 'Ejemplo', 'Ingeniería en Sistemas', '!demo-no-login!')
+VALUES ('DEMO0001', 'Ana', 'Ejemplo', 'Ingeniería en Sistemas Computacionales', '!demo-no-login!')
 ON CONFLICT (numerocontrol) DO NOTHING;
 
 INSERT INTO tramite (nombre, periodo_dias, duracion_minutos, requisitos, activo, prioridad) VALUES
@@ -28,8 +28,8 @@ FROM tramite
 WHERE nombre = 'Asesoría académica'
 ON CONFLICT (folio) DO NOTHING;
 
-INSERT INTO coordinador (rfc, nombre_completo, password_hash, departamento_id)
-SELECT 'DEMO000000001', 'Coordinador de ejemplo', '!demo-no-login!', id
+INSERT INTO coordinador (rfc, username, nombre_completo, password_hash, departamento_id)
+SELECT 'DEMO000000001', 'DEMO000000001', 'Coordinador de ejemplo', '!demo-no-login!', id
 FROM departamento
 WHERE nombre_area = 'Departamento de demostración'
 ORDER BY id

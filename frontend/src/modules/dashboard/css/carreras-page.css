@@ -1,0 +1,45 @@
+.carreras-page { max-width: 1180px; margin: 0 auto; color: #243958; }
+.carreras-page__header { margin-bottom: 20px; }
+.carreras-page__eyebrow { color: #55769e; font-size: .7rem; font-weight: 800; letter-spacing: .12em; }
+.carreras-page__header h1 { margin: 7px 0; font-size: 1.7rem; letter-spacing: -.03em; }
+.carreras-page__header p { margin: 0; color: #718096; }
+.carreras-page__count { display: inline-flex; align-items: center; gap: 12px; margin-bottom: 18px; padding: 12px 17px; border: 1px solid #e2eaf2; border-radius: 12px; background: #fff; box-shadow: 0 5px 20px #24395808; }
+.carreras-page__count-icon { display: grid; width: 38px; height: 38px; place-items: center; border-radius: 11px; background: #edf3fa; color: #315b91; font-size: 1.15rem; }
+.carreras-page__count > span:last-child { display: grid; gap: 2px; }
+.carreras-page__count strong { font-size: 1.15rem; }
+.carreras-page__count small { color: #718096; font-size: .75rem; }
+.carreras-page__layout { display: grid; grid-template-columns: minmax(270px, .7fr) minmax(0, 1.3fr); align-items: start; gap: 18px; }
+.carreras-form, .carreras-list { min-width: 0; padding: 22px; border: 1px solid #e2eaf2; border-radius: 14px; background: #fff; box-shadow: 0 6px 22px #2439580a; }
+.carreras-form { display: grid; gap: 11px; }
+.carreras-form__heading { display: flex; align-items: center; gap: 12px; margin-bottom: 6px; padding-bottom: 16px; border-bottom: 1px solid #edf1f5; }
+.carreras-form__heading > span { display: grid; width: 40px; height: 40px; flex: 0 0 40px; place-items: center; border-radius: 12px; background: #edf3fa; color: #214b83; font-size: 1.5rem; }
+.carreras-form__heading h2, .carreras-list__heading h2 { margin: 0 0 4px; font-size: 1rem; }
+.carreras-form__heading p, .carreras-list__heading p { margin: 0; color: #718096; font-size: .8rem; line-height: 1.45; }
+.carreras-form > label { color: #435670; font-size: .82rem; font-weight: 700; }
+.carreras-form > input, .carrera-item__edit input { width: 100%; min-height: 42px; padding: 9px 11px; border: 1px solid #d5dfeb; border-radius: 8px; color: #243958; font: inherit; font-size: .84rem; outline: none; transition: border-color .15s, box-shadow .15s; }
+.carreras-form > input:focus, .carrera-item__edit input:focus { border-color: #6b91c3; box-shadow: 0 0 0 3px #315b911a; }
+.carreras-form > button { min-height: 42px; margin-top: 3px; border: 0; border-radius: 8px; background: #214b83; color: #fff; font: inherit; font-size: .85rem; font-weight: 700; cursor: pointer; }
+.carreras-form > button:hover:not(:disabled), .carrera-item__edit button[type=submit]:hover { background: #193b69; }
+.carreras-form > button:disabled { opacity: .5; cursor: not-allowed; }
+.carreras-form > small { color: #8796aa; font-size: .72rem; }
+.carreras-list__heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 6px; padding-bottom: 16px; border-bottom: 1px solid #edf1f5; }
+.carreras-list__heading > span { display: grid; width: 32px; height: 32px; place-items: center; border-radius: 50%; background: #edf3fa; color: #214b83; font-size: .8rem; font-weight: 800; }
+.carreras-list__items { display: grid; }
+.carrera-item { display: flex; align-items: center; gap: 11px; min-height: 62px; padding: 10px 0; border-bottom: 1px solid #edf1f5; }
+.carrera-item:last-child { border-bottom: 0; }
+.carrera-item__symbol { display: grid; width: 34px; height: 34px; flex: 0 0 34px; place-items: center; border-radius: 10px; background: #f1f5fa; color: #52749e; }
+.carrera-item > strong { min-width: 0; color: #34445f; font-size: .83rem; font-weight: 650; line-height: 1.4; }
+.carrera-item__actions { display: flex; gap: 5px; margin-left: auto; }
+.carrera-item__actions button, .carrera-item__edit button { padding: 7px 9px; border: 1px solid #dce5ef; border-radius: 7px; background: #fff; color: #315b91; font: inherit; font-size: .73rem; font-weight: 700; cursor: pointer; }
+.carrera-item__actions button:hover, .carrera-item__edit button:hover { background: #f3f7fc; }
+.carrera-item__actions .carrera-item__delete { color: #b54752; }
+.carrera-item__edit { display: grid; width: 100%; grid-template-columns: minmax(0, 1fr) auto auto; gap: 7px; align-items: center; }
+.carrera-item__edit button[type=submit] { border-color: #214b83; background: #214b83; color: #fff; }
+.carrera-item__edit .carrera-item__cancel { color: #62748a; }
+.carreras-page__notice, .carreras-page__error { margin: 12px 0; padding: 10px 12px; border-radius: 8px; font-size: .8rem; }
+.carreras-page__notice { background: #effaf4; color: #26744b; }
+.carreras-page__error { background: #fff1f0; color: #ad3e38; }
+.carreras-page__error button { margin-left: 8px; border: 0; background: transparent; color: inherit; font: inherit; font-weight: 800; text-decoration: underline; cursor: pointer; }
+.carreras-page__empty { padding: 15px 0; color: #718096; font-size: .84rem; }
+@media (max-width: 900px) { .carreras-page__layout { grid-template-columns: 1fr; } }
+@media (max-width: 560px) { .carreras-form, .carreras-list { padding: 17px; } .carrera-item { align-items: flex-start; } .carrera-item > strong { padding-top: 7px; } .carrera-item__actions { flex-direction: column; } }

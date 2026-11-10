@@ -3,10 +3,11 @@ import AgendaBanner from '../components/AgendaBanner.jsx'
 import CitaFormModal from '../components/CitaFormModal.jsx'
 import AgendaToolbar from '../components/AgendaToolbar.jsx'
 import WeekCalendar from '../components/WeekCalendar.jsx'
+import AgendaCoordinatorSelection from '../components/AgendaCoordinatorSelection.jsx'
 import { appointmentsForWeek, isPending, mondayOf, shiftWeek, statusLabel } from '../data/agendaData.js'
 import '../css/agenda-page.css'
 
-function AgendaPage({ onAction }) {
+function AgendaPage({ onAction, token, role, username }) {
   const [monday, setMonday] = useState(() => mondayOf(new Date()))
   const [appointments, setAppointments] = useState([])
   const [filter, setFilter] = useState('all')
@@ -15,18 +16,35 @@ function AgendaPage({ onAction }) {
   const [attempt, setAttempt] = useState(0)
   const [createOpen, setCreateOpen] = useState(false)
   const [createMessage, setCreateMessage] = useState('')
+  const [coordinators, setCoordinators] = useState([])
+  const [selectedCoordinator, setSelectedCoordinator] = useState(undefined)
 
   useEffect(() => {
     const controller = new AbortController()
 
-    fetch('/api/v1/citas', { signal: controller.signal })
-      .then(async (response) => {
+    const headers = { Authorization: `Bearer ${token}` }
+    const loadAppointments = role === 'JEFE_COORDINADORES'
+      ? fetch('/api/v1/catalogos/citas', { signal: controller.signal, headers }).then(async (response) => {
+        if (!response.ok) throw new Error(`Error HTTP ${response.status}`)
+        const catalog = await response.json()
+        if (!Array.isArray(catalog.coordinadores)) throw new Error('Respuesta inesperada')
+        setCoordinators(catalog.coordinadores)
+        const results = await Promise.all(catalog.coordinadores.map(async (coordinator) => {
+          const appointmentsResponse = await fetch(`/api/v1/citas/coordinador/${encodeURIComponent(coordinator.rfc)}`, { signal: controller.signal, headers })
+          if (!appointmentsResponse.ok) throw new Error(`No se pudo cargar la agenda de ${coordinator.nombre}.`)
+          const coordinatorAppointments = await appointmentsResponse.json()
+          if (!Array.isArray(coordinatorAppointments)) throw new Error('Respuesta inesperada')
+          return coordinatorAppointments.map((appointment) => ({ ...appointment, coordinadorRfc: coordinator.rfc, coordinadorNombre: coordinator.nombre }))
+        }))
+        return results.flat()
+      })
+      : fetch(`/api/v1/citas/coordinador/${encodeURIComponent(username)}`, { signal: controller.signal, headers }).then(async (response) => {
         if (!response.ok) throw new Error(`Error HTTP ${response.status}`)
         const data = await response.json()
         if (!Array.isArray(data)) throw new Error('Respuesta inesperada')
-        return data
+        return data.map((appointment) => ({ ...appointment, coordinadorRfc: username }))
       })
-      .then(setAppointments)
+    loadAppointments.then(setAppointments)
       .catch(() => {
         if (!controller.signal.aborted) setError('No se pudieron cargar las citas. Intenta de nuevo.')
       })
@@ -35,10 +53,13 @@ function AgendaPage({ onAction }) {
       })
 
     return () => controller.abort()
-  }, [attempt])
+  }, [attempt, token, role, username])
 
-  const weekAppointments = appointmentsForWeek(appointments, monday)
-  const visibleAppointments = appointmentsForWeek(appointments, monday, filter)
+  const coordinatorAppointments = selectedCoordinator && role === 'JEFE_COORDINADORES'
+    ? appointments.filter((appointment) => appointment.coordinadorRfc === selectedCoordinator)
+    : appointments
+  const weekAppointments = appointmentsForWeek(coordinatorAppointments, monday)
+  const visibleAppointments = appointmentsForWeek(coordinatorAppointments, monday, filter)
   const filters = [
     { key: 'all', label: 'Todas', count: weekAppointments.length },
     { key: 'pending', label: 'Pendientes', count: weekAppointments.filter((appointment) => isPending(appointment.estado)).length },
@@ -51,8 +72,13 @@ function AgendaPage({ onAction }) {
     setAttempt((current) => current + 1)
   }
 
+  if (role === 'JEFE_COORDINADORES' && !loading && !error && selectedCoordinator === undefined) {
+    return <AgendaCoordinatorSelection coordinators={coordinators} appointments={appointments} onSelect={setSelectedCoordinator} />
+  }
+
   return (
     <div className="agenda-page">
+      {role === 'JEFE_COORDINADORES' && <button type="button" className="agenda-page__back" onClick={() => setSelectedCoordinator(undefined)}>← Todas las agendas</button>}
       <AgendaBanner onRequests={() => onAction('La bandeja de solicitudes estará disponible próximamente.')} />
       <AgendaToolbar
         monday={monday}
@@ -90,12 +116,15 @@ function AgendaPage({ onAction }) {
           <WeekCalendar
             monday={monday}
             appointments={visibleAppointments}
-            onAppointment={(appointment) => onAction(`Cita ${appointment.folio}: ${appointment.nombre} · ${appointment.tramite} · ${appointment.horaInicio.slice(0, 5)} · ${statusLabel(appointment.estado)}.`)}
+            onAppointment={(appointment) => onAction(`Cita ${appointment.folio}${appointment.coordinadorNombre ? ` · ${appointment.coordinadorNombre}` : ''}: ${appointment.nombre} · ${appointment.tramite} · ${appointment.horaInicio.slice(0, 5)} · ${statusLabel(appointment.estado)}.`)}
           />
         </>
       )}
       {createOpen && (
         <CitaFormModal
+          token={token}
+          role={role}
+          username={username}
           onClose={() => setCreateOpen(false)}
           onCreated={(cita) => {
             setCreateOpen(false)

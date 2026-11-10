@@ -1,18 +1,22 @@
 import { useState } from 'react'
 import AuthArtwork from '../components/AuthArtwork.jsx'
 import LoginForm from '../components/LoginForm.jsx'
-import SocialLogin from '../components/SocialLogin.jsx'
 import '../css/login-page.css'
 
 function LoginPage({ onLogin, onGoToStudentPortal }) {
   const [notice, setNotice] = useState('')
+  const [submitting, setSubmitting] = useState(false)
 
-  function handleLogin(username) {
-    onLogin(username)
-  }
-
-  function handleSocialLogin(provider) {
-    setNotice(`El acceso con ${provider} estará disponible al configurar la autenticación.`)
+  async function handleLogin(credentials) {
+    setSubmitting(true)
+    setNotice('')
+    try {
+      await onLogin(credentials)
+    } catch (error) {
+      setNotice(error.message || 'No fue posible iniciar sesión.')
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   return (
@@ -26,17 +30,7 @@ function LoginPage({ onLogin, onGoToStudentPortal }) {
           </header>
 
           <LoginForm onSubmit={handleLogin} />
-          <SocialLogin onSelect={handleSocialLogin} />
-
-          <p className="login-page__register">
-            ¿No tienes una cuenta?{' '}
-            <button
-              type="button"
-              onClick={() => setNotice('El registro de cuentas estará disponible próximamente.')}
-            >
-              Regístrate
-            </button>
-          </p>
+          {submitting && <p role="status">Iniciando sesión…</p>}
 
           {onGoToStudentPortal && (
             <p className="login-page__register">

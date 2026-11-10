@@ -6,10 +6,12 @@ import mx.tecnm.oaxaca.coordinatec.dtos.EstudianteSesionDTO;
 import mx.tecnm.oaxaca.coordinatec.dtos.InicioSesionEstudianteDTO;
 import mx.tecnm.oaxaca.coordinatec.dtos.RegistroEstudianteDTO;
 import mx.tecnm.oaxaca.coordinatec.repositories.EstudianteAuthRepository;
+import mx.tecnm.oaxaca.coordinatec.config.JwtService;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Map;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/estudiantes")
@@ -27,14 +30,24 @@ public class EstudianteAuthController {
 
     private final EstudianteAuthRepository estudiantes;
     private final PasswordEncoder passwordEncoder;
+    private final JwtService jwtService;
 
-    public EstudianteAuthController(EstudianteAuthRepository estudiantes, PasswordEncoder passwordEncoder) {
+    public EstudianteAuthController(EstudianteAuthRepository estudiantes, PasswordEncoder passwordEncoder, JwtService jwtService) {
         this.estudiantes = estudiantes;
         this.passwordEncoder = passwordEncoder;
+        this.jwtService = jwtService;
+    }
+
+    @GetMapping("/carreras")
+    public List<String> listarCarreras() {
+        return estudiantes.listarCarreras();
     }
 
     @GetMapping("/{numControl}")
-    public ResponseEntity<?> obtenerPerfil(@PathVariable String numControl) {
+    public ResponseEntity<?> obtenerPerfil(@PathVariable String numControl, Authentication authentication) {
+        if (authentication == null || !authentication.getName().equals(numControl)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("mensaje", "Solo puedes consultar tu perfil"));
+        }
         return estudiantes.buscarPorControl(numControl)
             .<ResponseEntity<?>>map(cuenta -> ResponseEntity.ok(perfil(cuenta)))
             .orElseGet(() -> ResponseEntity.notFound().build());
@@ -43,6 +56,9 @@ public class EstudianteAuthController {
     @PostMapping("/registro")
     public ResponseEntity<?> registrar(@Valid @RequestBody RegistroEstudianteDTO request) {
         String numControl = request.numControl().trim();
+        if (!estudiantes.existeCarrera(request.carrera().trim())) {
+            return ResponseEntity.badRequest().body(Map.of("mensaje", "Selecciona una carrera válida"));
+        }
         if (estudiantes.existe(numControl)) {
             return ResponseEntity.status(HttpStatus.CONFLICT)
                 .body(Map.of("mensaje", "Ya existe una cuenta con ese número de control"));
@@ -75,7 +91,8 @@ public class EstudianteAuthController {
             cuenta.numControl(),
             cuenta.nombres() + " " + cuenta.apellidos(),
             cuenta.carrera(),
-            "ESTUDIANTE"
+            "ESTUDIANTE",
+            jwtService.issue(cuenta.numControl(), "ESTUDIANTE")
         );
     }
 }

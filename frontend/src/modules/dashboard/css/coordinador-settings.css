@@ -1,0 +1,39 @@
+.coordinator-settings { max-width: 920px; margin: 0 auto; color: #243958; }
+.coordinator-settings__header { margin-bottom: 26px; }
+.coordinator-settings__eyebrow { color: #55769e; font-size: .7rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+.coordinator-settings__header h1 { margin: 7px 0; font-size: 1.7rem; letter-spacing: -.03em; }
+.coordinator-settings__header p, .coordinator-settings__section-heading p { margin: 0; color: #718096; line-height: 1.55; }
+.coordinator-settings__profile, .coordinator-settings__card, .coordinator-settings__security { border: 1px solid #e2eaf2; border-radius: 16px; background: #fff; box-shadow: 0 8px 28px #2439580a; }
+.coordinator-settings__profile { display: flex; align-items: center; gap: 16px; padding: 22px 24px; margin-bottom: 18px; }
+.coordinator-settings__avatar { display: grid; width: 54px; height: 54px; flex: 0 0 54px; place-items: center; border-radius: 16px; background: #eaf1fa; color: #214b83; font-size: 1.3rem; font-weight: 800; }
+.coordinator-settings__profile-copy { min-width: 0; }
+.coordinator-settings__profile-copy h2 { margin: 3px 0; font-size: 1.05rem; overflow-wrap: anywhere; }
+.coordinator-settings__profile-copy p { margin: 0; color: #718096; font-size: .88rem; }
+.coordinator-settings__profile-copy p span { padding: 0 4px; }
+.coordinator-settings__status { display: inline-flex; align-items: center; gap: 7px; margin-left: auto; padding: 7px 10px; border-radius: 20px; background: #effaf4; color: #26744b; font-size: .76rem; font-weight: 700; white-space: nowrap; }
+.coordinator-settings__status i { width: 7px; height: 7px; border-radius: 50%; background: #38a169; }
+.coordinator-settings__card { padding: 24px; }
+.coordinator-settings__section-heading { display: flex; align-items: center; gap: 13px; padding-bottom: 18px; }
+.coordinator-settings__section-icon { display: grid; width: 40px; height: 40px; place-items: center; border-radius: 12px; background: #edf3fa; color: #214b83; font-size: 1.15rem; }
+.coordinator-settings__section-heading h2 { margin: 0 0 4px; font-size: 1.05rem; }
+.coordinator-settings__section-heading p { font-size: .85rem; }
+.coordinator-settings__option { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 17px 0; border-top: 1px solid #edf1f5; cursor: pointer; }
+.coordinator-settings__option span { display: grid; gap: 4px; }
+.coordinator-settings__option strong { font-size: .9rem; }
+.coordinator-settings__option small { color: #718096; font-size: .8rem; line-height: 1.45; }
+.coordinator-settings__option input { width: 40px; height: 22px; flex: 0 0 auto; accent-color: #214b83; cursor: pointer; }
+.coordinator-settings__footer { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-top: 18px; border-top: 1px solid #edf1f5; }
+.coordinator-settings__footer span { color: #718096; font-size: .8rem; }
+.coordinator-settings__footer button { min-height: 40px; padding: 0 16px; border: 0; border-radius: 9px; background: #214b83; color: #fff; font: inherit; font-size: .85rem; font-weight: 700; cursor: pointer; }
+.coordinator-settings__footer button:hover { background: #193b69; }
+.coordinator-settings__security { display: flex; align-items: center; gap: 13px; margin-top: 18px; padding: 17px 20px; background: #f5f9fd; box-shadow: none; }
+.coordinator-settings__security-icon { display: grid; width: 34px; height: 34px; flex: 0 0 34px; place-items: center; border-radius: 50%; background: #e0f2e9; color: #26744b; font-weight: 800; }
+.coordinator-settings__security strong { font-size: .85rem; }
+.coordinator-settings__security p { margin: 4px 0 0; color: #718096; font-size: .8rem; line-height: 1.5; }
+@media (max-width: 600px) {
+  .coordinator-settings__profile { flex-wrap: wrap; padding: 18px; }
+  .coordinator-settings__status { margin-left: 70px; }
+  .coordinator-settings__card { padding: 18px; }
+  .coordinator-settings__footer { align-items: stretch; flex-direction: column; }
+  .coordinator-settings__footer button { width: 100%; }
+}

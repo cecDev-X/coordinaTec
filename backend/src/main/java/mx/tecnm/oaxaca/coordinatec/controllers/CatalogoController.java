@@ -4,6 +4,7 @@ import mx.tecnm.oaxaca.coordinatec.dtos.CitaCatalogosDTO;
 import mx.tecnm.oaxaca.coordinatec.repositories.CatalogoConsultaRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -22,16 +23,26 @@ public class CatalogoController {
     }
 
     @GetMapping("/citas")
-    public CitaCatalogosDTO obtenerCatalogosParaCita() {
+    public CitaCatalogosDTO obtenerCatalogosParaCita(Authentication authentication) {
+        var estudiantes = catalogos.listarEstudiantes();
+        if (authentication.getAuthorities().stream().anyMatch(authority -> authority.getAuthority().equals("ROLE_ESTUDIANTE"))) {
+            estudiantes = estudiantes.stream().filter(estudiante -> estudiante.numControl().equals(authentication.getName())).toList();
+        } else if (authentication.getAuthorities().stream().anyMatch(authority -> authority.getAuthority().equals("ROLE_COORDINADOR"))) {
+            estudiantes = catalogos.listarEstudiantesPorCoordinador(authentication.getName());
+        }
         return new CitaCatalogosDTO(
-            catalogos.listarEstudiantes(),
+            estudiantes,
             catalogos.listarCoordinadores(),
             catalogos.listarFormatos()
         );
     }
 
     @GetMapping("/estudiantes/{numControl}")
-    public ResponseEntity<?> buscarEstudiante(@PathVariable String numControl) {
+    public ResponseEntity<?> buscarEstudiante(@PathVariable String numControl, Authentication authentication) {
+        if (authentication.getAuthorities().stream().anyMatch(authority -> authority.getAuthority().equals("ROLE_ESTUDIANTE"))
+            && !authentication.getName().equals(numControl)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(java.util.Map.of("mensaje", "Solo puedes consultar tus datos"));
+        }
         return catalogos.buscarEstudiante(numControl)
             .<ResponseEntity<?>>map(ResponseEntity::ok)
             .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).body(

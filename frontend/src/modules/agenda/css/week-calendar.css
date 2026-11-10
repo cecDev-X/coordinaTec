@@ -126,6 +126,8 @@
   white-space: nowrap;
 }
 
+.week-calendar__appointment .week-calendar__coordinator { color: #315b91; font-weight: 700; }
+
 .week-calendar__appointment strong {
   color: inherit;
   font-size: var(--dashboard-copy);

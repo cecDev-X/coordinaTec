@@ -1,4 +1,9 @@
-const API_BASE_URL = 'http://localhost:8080/api/v1'
+const API_BASE_URL = '/api/v1'
+
+function studentHeaders() {
+  const token = sessionStorage.getItem('coordinaTecStudentToken')
+  return token ? { Authorization: `Bearer ${token}` } : {}
+}
 
 export const initialStudentProfile = {
   nombre: 'Diego',
@@ -254,7 +259,7 @@ export function buildScheduleWeeks(horarios, startDate = new Date(), weekCount =
 }
 
 export async function fetchCitaCatalogosApi() {
-  const response = await fetch(`${API_BASE_URL}/catalogos/citas`)
+  const response = await fetch(`${API_BASE_URL}/catalogos/citas`, { headers: studentHeaders() })
   if (!response.ok) throw new Error(`No se pudieron consultar coordinadores y formatos (${response.status}).`)
   return response.json()
 }
@@ -366,8 +371,15 @@ export function registerStudentApi({ numControl, nombres, apellidos, carrera, pa
   return postStudentAuth('registro', { numControl, nombres, apellidos, carrera, password })
 }
 
+export async function fetchCarrerasApi({ signal } = {}) {
+  const response = await fetch(`${API_BASE_URL}/estudiantes/carreras`, { signal })
+  if (!response.ok) throw new Error('No se pudieron consultar las carreras.')
+  return response.json()
+}
+
 export async function fetchStudentProfileApi(numControl) {
-  const response = await fetch(`${API_BASE_URL}/estudiantes/${encodeURIComponent(numControl)}`)
+  const response = await fetch(`${API_BASE_URL}/estudiantes/${encodeURIComponent(numControl)}`, { headers: studentHeaders() })
+  if (response.status === 401 || response.status === 403) return null
   if (response.status === 404) return null
   if (!response.ok) throw new Error(`No se pudo consultar el perfil (${response.status}).`)
   return response.json()
@@ -396,7 +408,7 @@ export async function fetchTramitesApi() {
 export async function createCitaApi({ numControlEstudiante, fecha, horaInicio, motivo, coordinadorRfc, formatoFolio }) {
   const response = await fetch(`${API_BASE_URL}/citas`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...studentHeaders() },
     body: JSON.stringify({
       numControlEstudiante,
       fecha,
@@ -414,7 +426,12 @@ export async function createCitaApi({ numControlEstudiante, fecha, horaInicio, m
 }
 
 export async function fetchCitasEstudianteApi(numControl) {
-  const response = await fetch(`${API_BASE_URL}/citas/estudiantes/${encodeURIComponent(numControl)}`)
+  const response = await fetch(`${API_BASE_URL}/citas/estudiantes/${encodeURIComponent(numControl)}`, { headers: studentHeaders() })
+  if (response.status === 401 || response.status === 403) {
+    const error = new Error('Tu sesión ha expirado. Inicia sesión nuevamente.')
+    error.status = response.status
+    throw error
+  }
   if (!response.ok) throw new Error(`No se pudieron consultar tus citas (${response.status}).`)
   return response.json()
 }

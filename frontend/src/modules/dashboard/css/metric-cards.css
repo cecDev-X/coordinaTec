@@ -17,6 +17,24 @@
   background: #fff;
 }
 
+.metric-card--interactive {
+  width: 100%;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease;
+}
+
+.metric-card--interactive:hover,
+.metric-card--interactive:focus-visible {
+  border-color: #8ca9d2;
+  box-shadow: 0 6px 18px #24395814;
+  transform: translateY(-1px);
+}
+
+.metric-card--interactive:focus-visible { outline: 3px solid #9bb9e6; outline-offset: 2px; }
+
 .metric-card__top {
   display: flex;
   align-items: flex-start;

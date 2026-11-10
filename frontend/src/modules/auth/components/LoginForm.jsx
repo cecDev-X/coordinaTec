@@ -9,22 +9,22 @@ function LoginForm({ onSubmit }) {
     event.preventDefault()
     const formData = new FormData(event.currentTarget)
     const username = formData.get('username') || ''
-    onSubmit(String(username))
+    const password = formData.get('password') || ''
+    onSubmit({ username: String(username), password: String(password) })
   }
 
   return (
     <form className="login-form" onSubmit={handleSubmit}>
       <div className="login-form__fields">
         <div className="login-form__field">
-          <label className="sr-only" htmlFor="username">Correo electrónico</label>
+          <label className="sr-only" htmlFor="username">Usuario o RFC</label>
           <span className="login-form__icon"><InterfaceIcon name="user" /></span>
           <input
             id="username"
             name="username"
-            type="email"
-            placeholder="Correo electrónico"
-            autoComplete="email"
-            inputMode="email"
+            type="text"
+            placeholder="Usuario o RFC"
+            autoComplete="username"
             autoCapitalize="none"
             spellCheck={false}
             required

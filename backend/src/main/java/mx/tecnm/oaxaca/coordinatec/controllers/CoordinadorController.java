@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
 import java.time.LocalDate;
+import org.springframework.security.core.Authentication;
 
 @RestController
 @RequestMapping("/api/v1/coordinadores")
@@ -22,12 +23,20 @@ public class CoordinadorController {
     }
 
     @GetMapping("/{rfc}/horarios")
-    public ResponseEntity<?> obtenerHorarios(@PathVariable String rfc) {
+    public ResponseEntity<?> obtenerHorarios(@PathVariable String rfc, Authentication authentication) {
+        if (authentication == null || (!authentication.getAuthorities().stream().anyMatch(authority -> authority.getAuthority().equals("ROLE_JEFE_COORDINADORES"))
+            && !authentication.getName().equalsIgnoreCase(rfc))) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("mensaje", "Solo puedes consultar tu propio horario"));
+        }
         return ResponseEntity.ok(disponibilidad.listarHorarios(rfc));
     }
 
     @PostMapping("/{rfc}/horarios")
-    public ResponseEntity<?> crearHorario(@PathVariable String rfc, @RequestBody HorarioRequestDTO dto) {
+    public ResponseEntity<?> crearHorario(@PathVariable String rfc, @RequestBody HorarioRequestDTO dto, Authentication authentication) {
+        if (authentication == null || (!authentication.getAuthorities().stream().anyMatch(authority -> authority.getAuthority().equals("ROLE_JEFE_COORDINADORES"))
+            && !authentication.getName().equalsIgnoreCase(rfc))) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("mensaje", "Solo puedes modificar tu propio horario"));
+        }
         return ResponseEntity.status(HttpStatus.CREATED).body(Map.of(
             "mensaje", "Bloque de horario configurado exitosamente",
             "rfc", rfc
