@@ -10,6 +10,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.time.LocalDate;
+import java.time.LocalTime;
 
 @Repository
 public interface CitaRepository extends JpaRepository<CitaEntity, String> {
@@ -18,6 +20,9 @@ public interface CitaRepository extends JpaRepository<CitaEntity, String> {
     Optional<CitaEntity> findByFolio(String folio);
     
     List<CitaEntity> findByNumControlEstudiante(String numControlEstudiante);
+
+    @Query(value = "SELECT EXISTS (SELECT 1 FROM cita WHERE coordinador_rfc = :rfc AND fecha_programada = :fecha AND estado IN ('PROGRAMADA', 'PENDIENTE') AND folio <> :folio AND hora_inicio < :fin AND hora_fin > :inicio)", nativeQuery = true)
+    boolean existsOverlap(@Param("rfc") String rfc, @Param("fecha") LocalDate fecha, @Param("inicio") LocalTime inicio, @Param("fin") LocalTime fin, @Param("folio") String folio);
 
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Transactional

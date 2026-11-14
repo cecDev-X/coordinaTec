@@ -38,6 +38,13 @@ class AccesoCoordinadoresTests {
         String ajena = "Ingeniería Civil";
         jdbc.update("INSERT INTO jefe_coordinadores (username, nombre_completo, password_hash) VALUES (?, ?, ?)", jefe, "Jefa de prueba", passwords.encode("ClaveJefatura123!"));
         jdbc.update("INSERT INTO departamento (nombre_area) VALUES (?)", "Departamento " + unique);
+        mvc.perform(get("/api/v1/jefe-coordinadores/agenda").header("Authorization", "Bearer " + jwt.issue(jefe, "JEFE_COORDINADORES")))
+            .andExpect(status().isOk()).andExpect(jsonPath("$.rfc").isNotEmpty()).andExpect(jsonPath("$.nombre").value("Agenda de Jefatura"));
+        String otroRfc = "O" + unique;
+        Integer departamentoId = jdbc.queryForObject("SELECT id FROM departamento WHERE nombre_area = ?", Integer.class, "Departamento " + unique);
+        jdbc.update("INSERT INTO coordinador (rfc, username, nombre_completo, password_hash, departamento_id) VALUES (?, ?, 'Otro coordinador', ?, ?)",
+            otroRfc, otroRfc, passwords.encode("OtraClave123!"), departamentoId);
+        jdbc.update("INSERT INTO coordinador_carrera (coordinador_rfc, carrera) VALUES (?, ?)", otroRfc, "Ingeniería en Sistemas Computacionales");
         jdbc.update("INSERT INTO estudiante (numerocontrol, nombres, apellidos, carrera, password_hash) VALUES (?, 'Ana', 'Prueba', ?, ?)", "S" + unique, carrera, passwords.encode("ClaveEstudiante123!"));
         jdbc.update("INSERT INTO estudiante (numerocontrol, nombres, apellidos, carrera, password_hash) VALUES (?, 'Luis', 'Prueba', ?, ?)", "I" + unique, otraCarrera, passwords.encode("ClaveEstudiante123!"));
         jdbc.update("INSERT INTO estudiante (numerocontrol, nombres, apellidos, carrera, password_hash) VALUES (?, 'Mar', 'Prueba', ?, ?)", "M" + unique, ajena, passwords.encode("ClaveEstudiante123!"));
@@ -71,8 +78,23 @@ class AccesoCoordinadoresTests {
         assertThat(jdbc.queryForList("SELECT carrera FROM coordinador_carrera WHERE coordinador_rfc = ? ORDER BY carrera", String.class, rfc))
             .containsExactlyInAnyOrder(otraCarrera, carrera, "Ingeniería Mecatrónica");
 
+        String token = "Bearer " + jwt.issue(rfc, "COORDINADOR");
         Integer tramite = jdbc.queryForObject("INSERT INTO tramite (nombre, periodo_dias, duracion_minutos, requisitos, activo, prioridad) VALUES (?, 1, 20, 'Solicitud', true, 'MEDIA') RETURNING id",
             Integer.class, "Tutoría " + unique);
+        mvc.perform(get("/api/v1/carrera-tramites/carreras").header("Authorization", token))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$[?(@ == 'Ingeniería en Sistemas Computacionales')]").isNotEmpty())
+            .andExpect(jsonPath("$[?(@ == 'Ingeniería Civil')]").isEmpty());
+        mvc.perform(get("/api/v1/carrera-tramites/{carrera}", carrera).header("Authorization", token))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$[?(@.id == %d)]".formatted(tramite)).isNotEmpty());
+        mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put("/api/v1/carrera-tramites/{carrera}/{tramiteId}", carrera, tramite)
+                .header("Authorization", token).contentType(MediaType.APPLICATION_JSON).content("{\"habilitado\":true}"))
+            .andExpect(status().isOk());
+        assertThat(jdbc.queryForObject("SELECT habilitado FROM carrera_tramite WHERE carrera = ? AND tramite_id = ?", Boolean.class, carrera, tramite)).isTrue();
+        mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put("/api/v1/carrera-tramites/{carrera}/{tramiteId}", ajena, tramite)
+                .header("Authorization", token).contentType(MediaType.APPLICATION_JSON).content("{\"habilitado\":true}"))
+            .andExpect(status().isForbidden());
         String formato = "FMT-" + unique;
         jdbc.update("INSERT INTO formato (folio, asunto, tipo_tramite, tramite_id) VALUES (?, 'Prueba', 'Tutoría', ?)", formato, tramite);
         jdbc.update("INSERT INTO cita (folio, fecha_programada, hora_inicio, hora_fin, estado, coordinador_rfc, estudiante_numerocontrol, formato_folio) VALUES (?, '2030-11-05', '10:00', '10:20', 'PROGRAMADA', ?, ?, ?)",
@@ -81,6 +103,8 @@ class AccesoCoordinadoresTests {
             "IN-" + unique, rfc, "I" + unique, formato);
         jdbc.update("INSERT INTO cita (folio, fecha_programada, hora_inicio, hora_fin, estado, coordinador_rfc, estudiante_numerocontrol, formato_folio) VALUES (?, '2030-11-05', '10:40', '11:00', 'PROGRAMADA', ?, ?, ?)",
             "ME-" + unique, rfc, "M" + unique, formato);
+        jdbc.update("INSERT INTO cita (folio, fecha_programada, hora_inicio, hora_fin, estado, coordinador_rfc, estudiante_numerocontrol, formato_folio) VALUES (?, '2030-11-05', '11:00', '11:20', 'PROGRAMADA', ?, ?, ?)",
+            "OTRO-SI-" + unique, otroRfc, "S" + unique, formato);
 
         mvc.perform(get("/api/v1/citas/coordinador/{rfc}", rfc)
                 .header("Authorization", "Bearer " + jwt.issue(jefe, "JEFE_COORDINADORES")))
@@ -90,16 +114,16 @@ class AccesoCoordinadoresTests {
         mvc.perform(post("/api/v1/auth/login").contentType(MediaType.APPLICATION_JSON)
                 .content("{\"username\":\"" + rfc + "\",\"password\":\"ClaveCoordinadora123!\"}"))
             .andExpect(status().isOk()).andExpect(jsonPath("$.rol").value("COORDINADOR"));
-        String token = "Bearer " + jwt.issue(rfc, "COORDINADOR");
         mvc.perform(get("/api/v1/jefe-coordinadores").header("Authorization", token)).andExpect(status().isForbidden());
         mvc.perform(get("/api/v1/citas").header("Authorization", token)).andExpect(status().isForbidden());
         mvc.perform(get("/api/v1/citas/coordinador/{rfc}", rfc).header("Authorization", token))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$[?(@.folio == 'SI-%s')]".formatted(unique)).isNotEmpty())
             .andExpect(jsonPath("$[?(@.folio == 'IN-%s')]".formatted(unique)).isNotEmpty())
-            .andExpect(jsonPath("$[?(@.folio == 'ME-%s')]".formatted(unique)).isEmpty());
+            .andExpect(jsonPath("$[?(@.folio == 'ME-%s')]".formatted(unique)).isNotEmpty())
+            .andExpect(jsonPath("$[?(@.folio == 'OTRO-SI-%s')]".formatted(unique)).isEmpty());
         mvc.perform(get("/api/v1/citas/{folio}", "ME-" + unique).header("Authorization", token))
-            .andExpect(status().isForbidden());
+            .andExpect(status().isOk());
         mvc.perform(get("/api/v1/citas/{folio}", "SI-" + unique).header("Authorization", token))
             .andExpect(status().isOk());
         mvc.perform(get("/api/v1/citas/coordinador/{rfc}", "OTRO").header("Authorization", token)).andExpect(status().isForbidden());

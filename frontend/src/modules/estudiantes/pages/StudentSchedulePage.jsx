@@ -134,7 +134,7 @@ function StudentSchedulePage({
                   </button>
                 )
               })}
-            </div> : <p className="student-schedule__availability-message">No hay fechas habilitadas en los horarios del coordinador.</p>}
+            </div> : <p className="student-schedule__availability-message">No hay días habilitados para este trámite.</p>}
           </section>
 
           {/* Cuadrícula de Horarios Disponibles */}

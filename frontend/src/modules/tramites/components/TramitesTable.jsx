@@ -1,6 +1,6 @@
 import '../css/tramites-table.css'
 
-function TramitesTable({ rows, total, emptyMessage, busyId, onEdit, onToggle, onDelete }) {
+function TramitesTable({ rows, total, emptyMessage, busyId, onEdit, onToggle, onDelete, readOnly = false }) {
   return (
     <section className="tramites-table" aria-label="Trámites registrados">
       <p className="tramites-table__mobile-hint">Desliza la tabla para ver todas las columnas →</p>
@@ -13,7 +13,7 @@ function TramitesTable({ rows, total, emptyMessage, busyId, onEdit, onToggle, on
             <col className="tramites-table__col-duration" />
             <col className="tramites-table__col-requirements" />
             <col className="tramites-table__col-status" />
-            <col className="tramites-table__col-actions" />
+            {!readOnly && <col className="tramites-table__col-actions" />}
           </colgroup>
           <thead>
             <tr>
@@ -23,7 +23,7 @@ function TramitesTable({ rows, total, emptyMessage, busyId, onEdit, onToggle, on
               <th scope="col">Duración<br />de cita</th>
               <th scope="col">Requisitos</th>
               <th scope="col">Estatus</th>
-              <th scope="col">Acciones</th>
+              {!readOnly && <th scope="col">Acciones</th>}
             </tr>
           </thead>
           <tbody>
@@ -39,7 +39,7 @@ function TramitesTable({ rows, total, emptyMessage, busyId, onEdit, onToggle, on
                     {tramite.estatus}
                   </span>
                 </td>
-                <td className="tramites-table__actions-cell">
+                {!readOnly && <td className="tramites-table__actions-cell">
                   <div className="tramites-table__actions">
                     <button type="button" className="tramites-table__action" onClick={() => onEdit(tramite)} disabled={busyId !== null}>Editar</button>
                     <button type="button" className="tramites-table__action" onClick={() => onToggle(tramite)} disabled={busyId !== null}>
@@ -47,10 +47,10 @@ function TramitesTable({ rows, total, emptyMessage, busyId, onEdit, onToggle, on
                     </button>
                     <button type="button" className="tramites-table__action tramites-table__action--delete" onClick={() => onDelete(tramite)} disabled={busyId !== null}>Eliminar</button>
                   </div>
-                </td>
+                </td>}
               </tr>
             )) : (
-              <tr><td colSpan="7" className="tramites-table__empty">{emptyMessage}</td></tr>
+              <tr><td colSpan={readOnly ? 6 : 7} className="tramites-table__empty">{emptyMessage}</td></tr>
             )}
           </tbody>
         </table>

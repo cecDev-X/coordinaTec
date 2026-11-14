@@ -8,6 +8,7 @@ import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import mx.tecnm.oaxaca.coordinatec.dtos.HorarioRequestDTO;
 
 @Repository
 public class DisponibilidadRepository {
@@ -20,19 +21,49 @@ public class DisponibilidadRepository {
 
     public List<Map<String, Object>> listarHorarios(String rfc) {
         return jdbc.query("""
-            SELECT dia_semana, hora_inicio, hora_salida, duracion_minutos
-            FROM horario
-            WHERE coordinador_rfc = ?
-            ORDER BY dia_semana, hora_inicio
-            """, (rs, row) -> Map.of(
-                "diaSemana", rs.getInt("dia_semana"),
-                "horaInicio", rs.getObject("hora_inicio", LocalTime.class).toString(),
-                "horaSalida", rs.getObject("hora_salida", LocalTime.class).toString(),
-                "duracionMinutos", rs.getInt("duracion_minutos")
-            ), rfc);
+            SELECT h.id, h.dia_semana, h.hora_inicio, h.hora_salida,
+                   COALESCE(array_agg(DISTINCT ht.tramite_id ORDER BY ht.tramite_id) FILTER (WHERE ht.tramite_id IS NOT NULL), ARRAY[]::bigint[]) AS tramite_ids,
+                   COALESCE(array_agg(DISTINCT t.nombre ORDER BY t.nombre) FILTER (WHERE t.nombre IS NOT NULL), ARRAY[]::varchar[]) AS tramite_nombres
+            FROM horario h
+            LEFT JOIN horario_tramite ht ON ht.horario_id = h.id
+            LEFT JOIN tramite t ON t.id = ht.tramite_id
+            WHERE h.coordinador_rfc = ?
+            GROUP BY h.id, h.dia_semana, h.hora_inicio, h.hora_salida
+            ORDER BY h.dia_semana, h.hora_inicio
+            """, (rs, row) -> {
+                Object[] ids = (Object[]) rs.getArray("tramite_ids").getArray();
+                List<Long> tramiteIds = java.util.Arrays.stream(ids).map(id -> ((Number) id).longValue()).toList();
+                Object[] names = (Object[]) rs.getArray("tramite_nombres").getArray();
+                List<String> tramiteNombres = java.util.Arrays.stream(names).map(String::valueOf).toList();
+                return Map.of("diaSemana", rs.getInt("dia_semana"),
+                    "horaInicio", rs.getObject("hora_inicio", LocalTime.class).toString(),
+                    "horaSalida", rs.getObject("hora_salida", LocalTime.class).toString(), "tramiteIds", tramiteIds,
+                    "tramites", tramiteNombres);
+            }, rfc);
     }
 
-    public List<String> listarDisponibilidad(String rfc, LocalDate fecha, int duracionCita) {
+    public void guardarHorarios(String rfc, List<HorarioRequestDTO> horarios) {
+        jdbc.update("DELETE FROM horario WHERE coordinador_rfc = ?", rfc);
+        for (HorarioRequestDTO horario : horarios) {
+            Integer horarioId = jdbc.queryForObject("""
+                INSERT INTO horario (dia_semana, hora_inicio, hora_salida, coordinador_rfc)
+                VALUES (?, ?, ?, ?) RETURNING id
+                """, Integer.class, horario.diaSemana(), horario.horaInicio(), horario.horaSalida(), rfc);
+            for (Long tramiteId : horario.tramiteIds().stream().distinct().toList()) {
+                jdbc.update("INSERT INTO horario_tramite (horario_id, tramite_id) VALUES (?, ?)", horarioId, tramiteId);
+            }
+        }
+    }
+
+    public boolean existeCoordinador(String rfc) {
+        return Boolean.TRUE.equals(jdbc.queryForObject("SELECT EXISTS (SELECT 1 FROM coordinador WHERE rfc = ?)", Boolean.class, rfc));
+    }
+
+    public boolean existeTramiteActivo(Long tramiteId) {
+        return Boolean.TRUE.equals(jdbc.queryForObject("SELECT EXISTS (SELECT 1 FROM tramite WHERE id = ? AND activo = TRUE)", Boolean.class, tramiteId));
+    }
+
+    public List<String> listarDisponibilidad(String rfc, LocalDate fecha, int duracionCita, Long tramiteId, String carrera) {
         if (duracionCita < 1 || jdbc.queryForObject(
             "SELECT EXISTS (SELECT 1 FROM bloqueo_calendario WHERE coordinador_rfc = ? AND fecha_bloqueada = ?)",
             Boolean.class, rfc, fecha
@@ -42,15 +73,18 @@ public class DisponibilidadRepository {
 
         int diaSemana = fecha.getDayOfWeek().getValue();
         List<BloqueHorario> horarios = jdbc.query("""
-            SELECT hora_inicio, hora_salida, duracion_minutos
-            FROM horario
-            WHERE coordinador_rfc = ? AND dia_semana = ?
-            ORDER BY hora_inicio
+            SELECT h.hora_inicio, h.hora_salida
+            FROM horario h
+            WHERE h.coordinador_rfc = ? AND h.dia_semana = ?
+              AND EXISTS (SELECT 1 FROM horario_tramite ht WHERE ht.horario_id = h.id AND ht.tramite_id = ?)
+              AND EXISTS (SELECT 1 FROM coordinador_carrera cc WHERE cc.coordinador_rfc = h.coordinador_rfc AND cc.carrera = ?)
+              AND EXISTS (SELECT 1 FROM carrera_tramite ct WHERE ct.carrera = ? AND ct.tramite_id = ? AND ct.habilitado = TRUE)
+            ORDER BY h.hora_inicio
             """, (rs, row) -> new BloqueHorario(
                 rs.getObject("hora_inicio", LocalTime.class),
                 rs.getObject("hora_salida", LocalTime.class),
-                rs.getInt("duracion_minutos")
-            ), rfc, diaSemana);
+                0
+            ), rfc, diaSemana, tramiteId, carrera, carrera, tramiteId);
 
         List<BloqueHorario> ocupadas = jdbc.query("""
             SELECT hora_inicio, hora_fin
@@ -68,7 +102,7 @@ public class DisponibilidadRepository {
         for (BloqueHorario horario : horarios) {
             for (LocalTime inicio = horario.inicio();
                  !inicio.plusMinutes(duracionCita).isAfter(horario.fin());
-                 inicio = inicio.plusMinutes(horario.duracionMinutos())) {
+                 inicio = inicio.plusMinutes(duracionCita)) {
                 LocalTime inicioCandidato = inicio;
                 LocalTime fin = inicioCandidato.plusMinutes(duracionCita);
                 boolean yaPaso = fecha.equals(LocalDate.now()) && !inicioCandidato.isAfter(ahora);

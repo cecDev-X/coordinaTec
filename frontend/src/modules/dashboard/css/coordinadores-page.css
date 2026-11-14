@@ -28,6 +28,47 @@
 .coordinadores-form__submit { min-height: 43px; padding: 0 16px; border: 0; border-radius: 8px; background: #214b83; color: #fff; font: inherit; font-size: .86rem; font-weight: 700; cursor: pointer; transition: background .15s; }
 .coordinadores-form__submit:hover:not(:disabled) { background: #193b69; }
 .coordinadores-form__submit:disabled { opacity: .5; cursor: not-allowed; }
+.coordinadores-form__submit, .coordinadores-form__cancel,
+.coordinador-card__actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  padding: 0 14px;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  font: inherit;
+  font-size: .79rem;
+  font-weight: 750;
+  letter-spacing: .01em;
+  cursor: pointer;
+  transition: background .16s ease, border-color .16s ease, color .16s ease, box-shadow .16s ease, transform .16s ease;
+}
+.coordinadores-form__submit { min-height: 44px; background: linear-gradient(135deg, #315f9d, #214b83); box-shadow: 0 4px 10px #214b8324; }
+.coordinadores-form__submit:hover:not(:disabled) { background: #193b69; box-shadow: 0 6px 14px #214b8333; transform: translateY(-1px); }
+.coordinadores-form__cancel { justify-self: start; border-color: #dce5ef; background: #f7f9fc; color: #52657c; }
+.coordinadores-form__cancel:hover { border-color: #bdcad9; background: #eef3f8; color: #30465f; }
+.coordinador-card__actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 9px; }
+.coordinador-card__actions button { min-height: 33px; padding: 0 12px; font-size: .74rem; }
+.coordinador-card__edit { border-color: #d6e3f2 !important; background: #f2f7fd; color: #28578f; }
+.coordinador-card__edit:hover { border-color: #a9c3e1 !important; background: #e4effb; color: #1e477a; box-shadow: 0 3px 9px #214b8318; }
+.coordinador-card__delete { border-color: #f0d8d8 !important; background: #fff7f6; color: #a34747; }
+.coordinador-card__delete:hover { border-color: #e6b8b8 !important; background: #fcedeb; color: #8d3030; box-shadow: 0 3px 9px #a3474718; }
+.coordinadores-form__submit:focus-visible, .coordinadores-form__cancel:focus-visible,
+.coordinador-card__actions button:focus-visible { outline: 3px solid #7ca5d7; outline-offset: 2px; }
+.coordinador-card__actions button:active, .coordinadores-form__cancel:active { transform: translateY(1px); }
+.jefas-form { display: grid; gap: 18px; margin-top: 20px; padding: 22px; border: 1px solid #dce7f2; border-radius: 14px; background: linear-gradient(135deg, #f8fbff, #fff 62%); box-shadow: 0 6px 22px #2439580a; }
+.jefas-form__intro { display: flex; align-items: center; gap: 12px; }
+.jefas-form__badge { display: grid; width: 42px; height: 42px; flex: 0 0 42px; place-items: center; border: 1px solid #dce7f2; border-radius: 12px; background: #edf4fc; color: #315b91; font-size: .78rem; font-weight: 850; letter-spacing: .03em; }
+.jefas-form__intro h2 { margin: 0 0 4px; color: #2b3e59; font-size: 1rem; }
+.jefas-form__intro p { margin: 0; color: #718096; font-size: .8rem; line-height: 1.45; }
+.jefas-form > form { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)) auto; align-items: end; gap: 12px; }
+.jefas-form label { display: grid; gap: 7px; min-width: 0; color: #435670; font-size: .78rem; font-weight: 700; }
+.jefas-form input { width: 100%; min-height: 42px; padding: 9px 11px; border: 1px solid #d5dfeb; border-radius: 8px; background: #fff; color: #243958; font: inherit; font-size: .83rem; font-weight: 400; outline: none; transition: border-color .15s, box-shadow .15s; }
+.jefas-form input:focus { border-color: #6b91c3; box-shadow: 0 0 0 3px #315b911a; }
+.jefas-form__submit { min-height: 42px; padding: 0 15px; border: 1px solid #214b83; border-radius: 8px; background: #214b83; color: #fff; font: inherit; font-size: .78rem; font-weight: 750; white-space: nowrap; cursor: pointer; transition: background .16s, box-shadow .16s, transform .16s; }
+.jefas-form__submit:hover { background: #193b69; box-shadow: 0 5px 13px #214b832a; transform: translateY(-1px); }
+.jefas-form__submit:focus-visible { outline: 3px solid #7ca5d7; outline-offset: 2px; }
 .coordinadores-page__message { margin: 0; padding: 10px 12px; border-radius: 8px; background: #effaf4; color: #26744b; font-size: .8rem; }
 .coordinadores-page__muted, .coordinadores-page__empty { color: #718096; font-size: .84rem; }
 .coordinadores-page__empty { padding: 15px 0; }
@@ -45,3 +86,5 @@
 .coordinador-card__careers > .coordinador-card__none { background: #fff7e6; color: #946200; }
 @media (max-width: 900px) { .coordinadores-page__layout { grid-template-columns: 1fr; } }
 @media (max-width: 520px) { .coordinadores-page__summary { display: grid; grid-template-columns: 1fr 1fr; } .coordinadores-page__summary > div { min-width: 0; padding: 13px; } .coordinadores-form, .coordinadores-list { padding: 17px; } }
+@media (max-width: 900px) { .jefas-form > form { grid-template-columns: repeat(2, minmax(0, 1fr)); } .jefas-form__submit { align-self: end; } }
+@media (max-width: 560px) { .jefas-form { padding: 17px; } .jefas-form > form { grid-template-columns: 1fr; } .jefas-form__submit { width: 100%; } }

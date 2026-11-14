@@ -10,6 +10,6 @@ import java.util.List;
 public interface TramiteRepository extends JpaRepository<TramiteEntity, Long> {
     List<TramiteEntity> findAllByOrderByNombreAsc();
 
-    @Query(value = "SELECT EXISTS (SELECT 1 FROM formato WHERE tramite_id = :tramiteId)", nativeQuery = true)
+    @Query(value = "SELECT EXISTS (SELECT 1 FROM formato WHERE tramite_id = :tramiteId) OR EXISTS (SELECT 1 FROM horario_tramite WHERE tramite_id = :tramiteId)", nativeQuery = true)
     boolean estaEnUso(@Param("tramiteId") Long tramiteId);
 }

@@ -50,11 +50,6 @@ class TramiteCrudTests {
         mvc.perform(post("/api/v1/tramites")
                 .header("Authorization", "Bearer " + jwt.issue("TEST000000001", "COORDINADOR"))
                 .contentType(MediaType.APPLICATION_JSON).content(crear))
-            .andExpect(status().isForbidden());
-
-        mvc.perform(post("/api/v1/tramites")
-                .header("Authorization", jefatura())
-                .contentType(MediaType.APPLICATION_JSON).content(crear))
             .andExpect(status().isCreated())
             .andExpect(jsonPath("$.nombre").value(nombre))
             .andExpect(jsonPath("$.periodo").value(3))

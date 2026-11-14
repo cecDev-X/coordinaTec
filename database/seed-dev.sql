@@ -1,4 +1,4 @@
--- Datos ficticios para desarrollo local. Ejecutar manualmente después de Flyway V7.
+-- Datos ficticios para desarrollo local. Ejecutar manualmente después de Flyway V10.
 -- Los valores de password_hash son marcadores que no sirven para iniciar sesión.
 -- Si se vuelve a ejecutar, conserva los datos existentes sin duplicar filas.
 
@@ -36,13 +36,21 @@ ORDER BY id
 LIMIT 1
 ON CONFLICT (rfc) DO NOTHING;
 
-INSERT INTO horario (dia_semana, hora_inicio, hora_salida, duracion_minutos, coordinador_rfc)
-SELECT 1, '10:00', '12:00', 20, 'DEMO000000001'
+INSERT INTO horario (dia_semana, hora_inicio, hora_salida, coordinador_rfc)
+SELECT 1, '10:00', '12:00', 'DEMO000000001'
 WHERE NOT EXISTS (
     SELECT 1 FROM horario
     WHERE coordinador_rfc = 'DEMO000000001'
       AND dia_semana = 1 AND hora_inicio = '10:00'
 );
+
+INSERT INTO horario_tramite (horario_id, tramite_id)
+SELECT h.id, t.id
+FROM horario h CROSS JOIN tramite t
+WHERE h.coordinador_rfc = 'DEMO000000001'
+  AND h.dia_semana = 1 AND h.hora_inicio = '10:00'
+  AND t.nombre = 'Asesoría académica'
+ON CONFLICT DO NOTHING;
 
 INSERT INTO bloqueo_calendario (fecha_bloqueada, motivo, coordinador_rfc)
 SELECT '2030-11-02', 'Bloqueo de demostración', 'DEMO000000001'

@@ -5,5 +5,6 @@ import java.util.List;
 public record CitaCatalogosDTO(
     List<EstudianteOpcionDTO> estudiantes,
     List<CoordinadorOpcionDTO> coordinadores,
-    List<FormatoOpcionDTO> formatos
+    List<FormatoOpcionDTO> formatos,
+    List<Long> tramitesHabilitados
 ) {}

@@ -1,6 +1,6 @@
 import '../css/citas-table.css'
 
-function CitasTable({ rows, total, page, pageCount, onPageChange, onMarkAttended, updatingFolio, emptyMessage }) {
+function CitasTable({ rows, total, page, pageCount, onPageChange, onMarkAttended, onEdit, onDelete, canManage, updatingFolio, emptyMessage }) {
   return (
     <section className="citas-table" aria-label="Citas actuales registradas">
       <p className="citas-table__mobile-hint">Desliza la tabla para ver todas las columnas →</p>
@@ -41,6 +41,10 @@ function CitasTable({ rows, total, page, pageCount, onPageChange, onMarkAttended
                   <span className={`citas-table__status citas-table__status--${cita.estatus.toLocaleLowerCase('es').replace(/[^a-z0-9-]/g, '-')}`}>{cita.estatus}</span>
                 </td>
                 <td className="citas-table__actions-cell">
+                  {canManage && <>
+                    <button type="button" className="citas-table__action" onClick={() => onEdit(cita.folio)}>Editar</button>{' '}
+                    <button type="button" className="citas-table__action" onClick={() => onDelete(cita.folio)} disabled={updatingFolio !== null}>Eliminar</button>{' '}
+                  </>}
                   {cita.estado === 'PROGRAMADA' ? (
                     <button
                       type="button"

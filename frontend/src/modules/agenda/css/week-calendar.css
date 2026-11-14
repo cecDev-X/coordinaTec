@@ -160,3 +160,11 @@
     font-size: var(--dashboard-copy);
   }
 }
+.week-calendar__legend { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 0 2px 10px; color: #718096; font-size: .72rem; }
+.week-calendar__legend .week-calendar__hint { margin: 0; }
+.week-calendar__legend > span { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.week-calendar__legend i { width: 10px; height: 10px; border: 1px solid #9ccdb2; border-radius: 3px; background: #e9f7ef; }
+.week-calendar td.week-calendar__cell--available { background: #f2faf5; }
+.week-calendar__availability { display: grid; gap: 3px; margin-bottom: 6px; padding: 6px 7px; border: 1px solid #cde8d7; border-left: 3px solid #55a777; border-radius: 6px; background: #e9f7ef; color: #276442; font-size: .66rem; line-height: 1.35; }
+.week-calendar__availability strong { font-size: .68rem; }
+.week-calendar__availability small { color: #47775c; }

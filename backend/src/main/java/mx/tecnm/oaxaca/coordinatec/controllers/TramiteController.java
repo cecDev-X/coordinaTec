@@ -75,7 +75,7 @@ public class TramiteController {
         if (!tramites.existsById(id)) return ResponseEntity.notFound().build();
         if (tramites.estaEnUso(id)) {
             return ResponseEntity.status(HttpStatus.CONFLICT)
-                .body(Map.of("mensaje", "Este tipo está asociado a formatos; desactívalo en vez de eliminarlo"));
+                .body(Map.of("mensaje", "Este trámite está asociado a formatos o a horarios de atención; desactívalo en vez de eliminarlo"));
         }
         tramites.deleteById(id);
         return ResponseEntity.noContent().build();

@@ -265,13 +265,13 @@ export async function fetchCitaCatalogosApi() {
 }
 
 export async function fetchHorariosCoordinadorApi(rfc) {
-  const response = await fetch(`${API_BASE_URL}/coordinadores/${encodeURIComponent(rfc)}/horarios`)
+  const response = await fetch(`${API_BASE_URL}/coordinadores/${encodeURIComponent(rfc)}/horarios`, { headers: studentHeaders() })
   if (!response.ok) throw new Error(`No se pudo consultar el horario del coordinador (${response.status}).`)
   return response.json()
 }
 
-export async function fetchDisponibilidadApi(rfc, fecha, duracionMinutos) {
-  const params = new URLSearchParams({ fecha, duracionMinutos: String(duracionMinutos) })
+export async function fetchDisponibilidadApi(rfc, fecha, tramiteId, carrera) {
+  const params = new URLSearchParams({ fecha, tramiteId: String(tramiteId), carrera })
   const response = await fetch(`${API_BASE_URL}/coordinadores/${encodeURIComponent(rfc)}/disponibilidad?${params}`)
   if (!response.ok) throw new Error(`No se pudo consultar la disponibilidad (${response.status}).`)
   const slots = await response.json()

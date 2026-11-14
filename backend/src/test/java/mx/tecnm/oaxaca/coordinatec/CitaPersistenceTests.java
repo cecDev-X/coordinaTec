@@ -81,8 +81,11 @@ class CitaPersistenceTests {
         jdbc.update("INSERT INTO coordinador (rfc, username, nombre_completo, password_hash, departamento_id) " +
             "VALUES (?, ?, ?, ?, ?)", rfc, rfc, "Coordinador de prueba", "hash-de-prueba", departamentoId);
         jdbc.update("INSERT INTO coordinador_carrera (coordinador_rfc, carrera) VALUES (?, ?)", rfc, "Ingeniería en Sistemas Computacionales");
-        jdbc.update("INSERT INTO horario (dia_semana, hora_inicio, hora_salida, duracion_minutos, coordinador_rfc) " +
-            "VALUES (?, ?, ?, ?, ?)", 1, LocalTime.of(10, 0), LocalTime.of(11, 0), 20, rfc);
+         Integer horarioId = jdbc.queryForObject("INSERT INTO horario (dia_semana, hora_inicio, hora_salida, coordinador_rfc) " +
+             "VALUES (?, ?, ?, ?) RETURNING id", Integer.class, 1, LocalTime.of(10, 0), LocalTime.of(11, 0), rfc);
+         jdbc.update("INSERT INTO horario_tramite (horario_id, tramite_id) VALUES (?, ?)", horarioId, tramiteId);
+         jdbc.update("INSERT INTO carrera_tramite (carrera, tramite_id, habilitado) VALUES (?, ?, TRUE) ON CONFLICT (carrera, tramite_id) DO UPDATE SET habilitado = TRUE",
+             "Ingeniería en Sistemas Computacionales", tramiteId);
 
         LocalDate fechaDisponibilidad = LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.MONDAY));
         mvc.perform(get("/api/v1/coordinadores/{rfc}/horarios", rfc)
@@ -92,10 +95,11 @@ class CitaPersistenceTests {
             .andExpect(jsonPath("$[0].horaInicio").value("10:00"));
         mvc.perform(get("/api/v1/coordinadores/{rfc}/disponibilidad", rfc)
                 .param("fecha", fechaDisponibilidad.toString())
-                .param("duracionMinutos", "20"))
+                .param("tramiteId", tramiteId.toString())
+                .param("carrera", "Ingeniería en Sistemas Computacionales"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$[0]").value("10:00"))
-            .andExpect(jsonPath("$[2]").value("10:40"));
+            .andExpect(jsonPath("$.length()").value(1));
 
         CitaEntity cita = new CitaEntity();
         cita.setFolio(folioCita);

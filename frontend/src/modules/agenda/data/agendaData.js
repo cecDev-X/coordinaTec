@@ -38,11 +38,13 @@ export function appointmentsForWeek(appointments, monday, filter = 'all') {
   ))
 }
 
-export function hoursFor(appointments) {
+export function hoursFor(appointments, availability = []) {
   const appointmentHours = appointments.map((appointment) => Number(appointment.horaInicio?.slice(0, 2)))
     .filter((hour) => Number.isInteger(hour) && hour >= 0 && hour <= 23)
-  const first = Math.min(8, ...appointmentHours)
-  const last = Math.max(17, ...appointmentHours)
+  const availabilityStarts = availability.map((block) => Number(block.horaInicio?.slice(0, 2))).filter(Number.isFinite)
+  const availabilityEnds = availability.map((block) => Math.ceil(Number(block.horaSalida?.slice(0, 2)) + Number(block.horaSalida?.slice(3, 5)) / 60 - 1)).filter(Number.isFinite)
+  const first = Math.min(8, ...appointmentHours, ...availabilityStarts)
+  const last = Math.max(17, ...appointmentHours, ...availabilityEnds)
 
   return Array.from({ length: last - first + 1 }, (_, index) => String(first + index).padStart(2, '0'))
 }

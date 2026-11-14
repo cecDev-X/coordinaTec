@@ -52,13 +52,14 @@ public class CatalogoConsultaRepository {
             ), numControl).stream().findFirst();
     }
 
-    public List<CoordinadorOpcionDTO> listarCoordinadores() {
+    public List<CoordinadorOpcionDTO> listarCoordinadores(boolean incluirJefatura) {
         return jdbc.query("""
             SELECT c.rfc, c.nombre_completo, d.nombre_area,
                    COALESCE(array_agg(cc.carrera ORDER BY cc.carrera) FILTER (WHERE cc.carrera IS NOT NULL), ARRAY[]::varchar[]) AS carreras
             FROM coordinador c
             JOIN departamento d ON d.id = c.departamento_id
             LEFT JOIN coordinador_carrera cc ON cc.coordinador_rfc = c.rfc
+            WHERE ? OR c.jefe_username IS NULL
             GROUP BY c.rfc, c.nombre_completo, d.nombre_area
             ORDER BY c.nombre_completo, c.rfc
             """, (rs, row) -> new CoordinadorOpcionDTO(
@@ -66,20 +67,24 @@ public class CatalogoConsultaRepository {
                 rs.getString("nombre_completo"),
                 rs.getString("nombre_area"),
                 List.of((String[]) rs.getArray("carreras").getArray())
-            ));
+            ), incluirJefatura);
     }
 
     public List<FormatoOpcionDTO> listarFormatos() {
         return jdbc.query("""
-            SELECT f.folio, f.asunto, t.nombre AS tipo_tramite, t.duracion_minutos
+            SELECT f.folio, f.asunto, t.nombre AS tipo_tramite, t.duracion_minutos,
+                   COALESCE(array_agg(DISTINCT ct.carrera) FILTER (WHERE ct.habilitado = TRUE AND t.activo = TRUE), ARRAY[]::varchar[]) AS carreras_habilitadas
             FROM formato f
             JOIN tramite t ON t.id = f.tramite_id
+            LEFT JOIN carrera_tramite ct ON ct.tramite_id = t.id
+            GROUP BY f.folio, f.asunto, t.nombre, t.duracion_minutos, f.fecha
             ORDER BY f.fecha DESC, f.folio
             """, (rs, row) -> new FormatoOpcionDTO(
                 rs.getString("folio"),
                 rs.getString("asunto"),
                 rs.getString("tipo_tramite"),
-                rs.getInt("duracion_minutos")
+                rs.getInt("duracion_minutos"),
+                List.of((String[]) rs.getArray("carreras_habilitadas").getArray())
             ));
     }
 
@@ -90,6 +95,14 @@ public class CatalogoConsultaRepository {
             JOIN tramite t ON t.id = f.tramite_id
             WHERE f.folio = ?
             """, Integer.class, folio);
+    }
+
+    public Long obtenerTramiteIdFormato(String folio) {
+        return jdbc.queryForObject("SELECT tramite_id FROM formato WHERE folio = ?", Long.class, folio);
+    }
+
+    public int obtenerDuracionTramite(Long tramiteId) {
+        return jdbc.queryForObject("SELECT duracion_minutos FROM tramite WHERE id = ? AND activo = TRUE", Integer.class, tramiteId);
     }
 
     public boolean existeEstudiante(String numControl) {

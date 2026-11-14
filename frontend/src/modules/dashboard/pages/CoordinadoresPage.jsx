@@ -8,7 +8,9 @@ function CoordinadoresPage({ token }) {
   const [coordinadores, setCoordinadores] = useState([])
   const [seleccionadas, setSeleccionadas] = useState([])
   const [mensaje, setMensaje] = useState('')
+  const [jefaMensaje, setJefaMensaje] = useState('')
   const [cargando, setCargando] = useState(true)
+  const [editing, setEditing] = useState(null)
 
   const cargarDatos = useCallback(async () => {
     setCargando(true)
@@ -38,8 +40,8 @@ function CoordinadoresPage({ token }) {
     setMensaje('')
     const data = new FormData(form)
     try {
-      const response = await fetch(`${API}/api/v1/jefe-coordinadores`, {
-        method: 'POST',
+      const response = await fetch(editing ? `${API}/api/v1/jefe-coordinadores/${encodeURIComponent(editing.rfc)}` : `${API}/api/v1/jefe-coordinadores`, {
+        method: editing ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ rfc: data.get('rfc'), nombreCompleto: data.get('nombreCompleto'), password: data.get('password'), carreras: seleccionadas }),
       })
@@ -48,10 +50,40 @@ function CoordinadoresPage({ token }) {
       setMensaje(result.mensaje)
       form.reset()
       setSeleccionadas([])
+      setEditing(null)
       await cargarDatos()
     } catch (error) {
       setMensaje(error.message || 'No fue posible conectar con el servidor.')
     }
+  }
+
+  async function crearJefa(event) {
+    event.preventDefault()
+    const form = event.currentTarget
+    const data = new FormData(form)
+    setJefaMensaje('')
+    try {
+      const response = await fetch(`${API}/api/v1/jefe-coordinadores/jefas`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ username: data.get('username'), nombreCompleto: data.get('nombreCompleto'), password: data.get('password') }),
+      })
+      const result = await response.json().catch(() => ({}))
+      if (!response.ok) throw new Error(result.mensaje || 'No se pudo crear la cuenta de Jefe(a) de Coordinación.')
+      form.reset()
+      setJefaMensaje(`${result.mensaje}. Usuario: ${result.username}`)
+    } catch (error) { setJefaMensaje(error.message || 'No fue posible conectar con el servidor.') }
+  }
+
+  async function eliminarCoordinador(coordinador) {
+    if (!window.confirm(`¿Eliminar a ${coordinador.nombreCompleto}?`)) return
+    try {
+      const response = await fetch(`${API}/api/v1/jefe-coordinadores/${encodeURIComponent(coordinador.rfc)}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } })
+      const result = await response.json().catch(() => ({}))
+      if (!response.ok) throw new Error(result.mensaje || 'No se pudo eliminar el coordinador.')
+      setMensaje('Coordinador eliminado.')
+      await cargarDatos()
+    } catch (error) { setMensaje(error.message) }
   }
 
   return (
@@ -69,10 +101,10 @@ function CoordinadoresPage({ token }) {
 
       <div className="coordinadores-page__layout">
         <form className="coordinadores-form" onSubmit={crearCoordinador}>
-          <div className="coordinadores-form__heading"><span className="coordinadores-form__icon" aria-hidden="true">＋</span><div><h2>Agregar coordinador</h2><p>Se creará una cuenta para acceder al panel.</p></div></div>
-          <label>RFC<input name="rfc" maxLength="13" placeholder="Ej. ABCD900101XX1" required /></label>
-          <label>Nombre completo<input name="nombreCompleto" maxLength="150" placeholder="Nombre y apellidos" required /></label>
-          <label>Contraseña inicial<input name="password" type="password" minLength="8" maxLength="72" placeholder="Mínimo 8 caracteres" required /></label>
+          <div className="coordinadores-form__heading"><span className="coordinadores-form__icon" aria-hidden="true">＋</span><div><h2>{editing ? 'Editar coordinador' : 'Agregar coordinador'}</h2><p>{editing ? 'Actualiza su nombre, carreras o contraseña.' : 'Se creará una cuenta para acceder al panel.'}</p></div></div>
+          <label>RFC<input key={editing?.rfc || 'new-rfc'} name="rfc" defaultValue={editing?.rfc || ''} maxLength="13" placeholder="Ej. ABCD900101XX1" required disabled={Boolean(editing)} /></label>
+          <label>Nombre completo<input key={editing?.rfc || 'new-name'} name="nombreCompleto" defaultValue={editing?.nombreCompleto || ''} maxLength="150" placeholder="Nombre y apellidos" required /></label>
+          <label>{editing ? 'Cambiar contraseña (opcional)' : 'Contraseña inicial'}<input name="password" type="password" minLength="8" maxLength="72" placeholder={editing ? 'Dejar vacío para conservarla' : 'Mínimo 8 caracteres'} required={!editing} /></label>
           <fieldset className="coordinadores-form__careers"><legend>Carreras asignadas</legend>
             <p>Selecciona las áreas que podrá atender.</p>
             {cargando ? <span className="coordinadores-page__muted">Cargando carreras…</span> : carreras.length === 0 ? <span className="coordinadores-page__muted">Primero registra una carrera.</span> : (
@@ -84,7 +116,8 @@ function CoordinadoresPage({ token }) {
               ))}</div>
             )}
           </fieldset>
-          <button className="coordinadores-form__submit" type="submit" disabled={cargando || seleccionadas.length === 0}>Crear cuenta</button>
+          <button className="coordinadores-form__submit" type="submit" disabled={cargando || seleccionadas.length === 0}>{editing ? 'Guardar cambios' : 'Crear cuenta'}</button>
+          {editing && <button className="coordinadores-form__cancel" type="button" onClick={() => { setEditing(null); setSeleccionadas([]) }}>Cancelar edición</button>}
           {mensaje && <p className="coordinadores-page__message" role="status">{mensaje}</p>}
         </form>
 
@@ -96,12 +129,30 @@ function CoordinadoresPage({ token }) {
                 <span className="coordinador-card__avatar" aria-hidden="true">{coordinador.nombreCompleto.split(/\s+/).slice(0, 2).map((part) => part[0]).join('').toLocaleUpperCase('es')}</span>
                 <div className="coordinador-card__body"><strong>{coordinador.nombreCompleto}</strong><span className="coordinador-card__rfc">{coordinador.rfc}</span>
                   <div className="coordinador-card__careers">{coordinador.carreras.length ? coordinador.carreras.map((carrera) => <span key={carrera}>{carrera}</span>) : <span className="coordinador-card__none">Sin carreras asignadas</span>}</div>
+                  <div className="coordinador-card__actions" aria-label={`Acciones para ${coordinador.nombreCompleto}`}>
+                    <button className="coordinador-card__edit" type="button" onClick={() => { setEditing(coordinador); setSeleccionadas(coordinador.carreras) }}>Editar</button>
+                    <button className="coordinador-card__delete" type="button" onClick={() => eliminarCoordinador(coordinador)}>Eliminar</button>
+                  </div>
                 </div>
               </article>
             ))}</div>
           )}
         </section>
       </div>
+
+      <section className="jefas-form" aria-labelledby="jefas-form-title">
+        <div className="jefas-form__intro">
+          <span className="jefas-form__badge" aria-hidden="true">JC</span>
+          <div><h2 id="jefas-form-title">Agregar Jefe(a) de Coordinación</h2><p>Se creará una cuenta independiente con el rol de Jefe(a) de Coordinación.</p></div>
+        </div>
+        <form onSubmit={crearJefa}>
+          <label>Usuario<input name="username" maxLength="120" autoComplete="username" placeholder="Ej. jefa@coordina.test" required /></label>
+          <label>Nombre completo<input name="nombreCompleto" maxLength="150" autoComplete="name" placeholder="Nombre y apellidos" required /></label>
+          <label>Contraseña inicial<input name="password" type="password" minLength="8" maxLength="72" autoComplete="new-password" placeholder="Mínimo 8 caracteres" required /></label>
+          <button className="jefas-form__submit" type="submit">Crear Jefe(a) de Coordinación</button>
+        </form>
+        {jefaMensaje && <p className="coordinadores-page__message" role="status">{jefaMensaje}</p>}
+      </section>
     </section>
   )
 }

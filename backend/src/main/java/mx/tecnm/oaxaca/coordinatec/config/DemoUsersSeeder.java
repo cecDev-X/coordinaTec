@@ -33,6 +33,26 @@ public class DemoUsersSeeder implements ApplicationRunner {
             "jefe@coordina.test", "Jefe de coordinadores", passwords.encode("JefeCoordina2026!"));
         crearCoordinador("TEST000000001", "Coordinador de Sistemas", "CoordinaSistemas2026!", "Ingeniería en Sistemas Computacionales", departmentId);
         crearCoordinador("TEST000000002", "Coordinadora de Industrial", "CoordinaIndustrial2026!", "Ingeniería Industrial", departmentId);
+        jdbc.update("""
+            UPDATE cita c
+            SET coordinador_rfc = (
+                SELECT cc.coordinador_rfc
+                FROM estudiante e
+                JOIN coordinador_carrera cc ON cc.carrera = e.carrera
+                JOIN coordinador destino ON destino.rfc = cc.coordinador_rfc
+                WHERE e.numerocontrol = c.estudiante_numerocontrol
+                  AND e.numerocontrol = '23161128'
+                ORDER BY (destino.nombre_completo ILIKE '%Sistemas%') DESC, destino.nombre_completo
+                LIMIT 1
+            )
+            WHERE c.estudiante_numerocontrol = '23161128'
+              AND c.coordinador_rfc = 'DEMO000000001'
+              AND EXISTS (
+                  SELECT 1 FROM estudiante e
+                  JOIN coordinador_carrera cc ON cc.carrera = e.carrera
+                  WHERE e.numerocontrol = c.estudiante_numerocontrol
+              )
+            """);
     }
 
     private void crearCoordinador(String rfc, String name, String password, String carrera, Integer departmentId) {

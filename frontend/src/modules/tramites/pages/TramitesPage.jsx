@@ -3,9 +3,10 @@ import DashboardIcon from '../../dashboard/components/DashboardIcon.jsx'
 import TramitesFilters from '../components/TramitesFilters.jsx'
 import TramiteFormModal from '../components/TramiteFormModal.jsx'
 import TramitesTable from '../components/TramitesTable.jsx'
+import CarreraTramitesPanel from '../components/CarreraTramitesPanel.jsx'
 import '../css/tramites-page.css'
 
-function TramitesPage({ token }) {
+function TramitesPage({ token, role }) {
   const [tramites, setTramites] = useState([])
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState('')
@@ -144,6 +145,7 @@ function TramitesPage({ token }) {
           />
         </>
       )}
+      <CarreraTramitesPanel token={token} role={role} />
       {editing !== null && (
         <TramiteFormModal
           token={token}

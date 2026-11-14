@@ -1,12 +1,12 @@
 import { dateKey, hoursFor, isPending, statusLabel, weekdays } from '../data/agendaData.js'
 import '../css/week-calendar.css'
 
-function WeekCalendar({ monday, appointments, onAppointment }) {
+function WeekCalendar({ monday, appointments, availability = [], onAppointment }) {
   const days = weekdays.map((label, index) => {
     const date = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + index)
     return { label, day: date.getDate(), key: dateKey(date) }
   })
-  const hours = hoursFor(appointments)
+  const hours = hoursFor(appointments, availability)
   const byDayAndHour = new Map()
 
   for (const appointment of appointments) {
@@ -22,7 +22,7 @@ function WeekCalendar({ monday, appointments, onAppointment }) {
 
   return (
     <section className="week-calendar" aria-label="Citas de la semana">
-      <p className="week-calendar__hint">Desliza para ver todos los días →</p>
+      <div className="week-calendar__legend"><p className="week-calendar__hint">Desliza para ver todos los días →</p><span><i /> Horario habilitado</span></div>
       <div className="week-calendar__scroll">
         <table>
           <colgroup>
@@ -44,10 +44,20 @@ function WeekCalendar({ monday, appointments, onAppointment }) {
               <tr key={hour}>
                 <th scope="row">{hour}:00</th>
                 {days.map((day) => {
+                  const weekday = ((new Date(`${day.key}T12:00:00`).getDay() + 6) % 7) + 1
+                  const hourStart = `${hour}:00`
+                  const hourEnd = `${String(Number(hour) + 1).padStart(2, '0')}:00`
+                  const activeBlocks = availability.filter((block) => block.diaSemana === weekday && block.horaInicio < hourEnd && block.horaSalida > hourStart)
                   const group = byDayAndHour.get(`${day.key}-${hour}`) || []
                   return (
-                    <td key={day.key}>
+                    <td key={day.key} className={activeBlocks.length ? 'week-calendar__cell--available' : undefined}>
                       <div className="week-calendar__appointments">
+                        {activeBlocks.filter((block) => block.horaInicio.slice(0, 2) === hour).map((block) => (
+                          <div className="week-calendar__availability" key={`${block.horaInicio}-${block.horaSalida}`}>
+                            <strong>Atención {block.horaInicio.slice(0, 5)}–{block.horaSalida.slice(0, 5)}</strong>
+                            {block.tramites?.length > 0 && <small>{block.tramites.join(' · ')}</small>}
+                          </div>
+                        ))}
                         {group.map((appointment) => {
                           const tone = appointment.estado === 'ATENDIDA' ? 'attended' : isPending(appointment.estado) ? 'pending' : 'other'
                           return (

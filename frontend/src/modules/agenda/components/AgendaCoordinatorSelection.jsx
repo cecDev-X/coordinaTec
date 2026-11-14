@@ -4,20 +4,14 @@ import '../css/agenda-coordinator-selection.css'
 function AgendaCoordinatorSelection({ coordinators, appointments, onSelect }) {
   return (
     <section className="agenda-coordinator-selection">
-      <header><span>VISTA DE COORDINACIÓN</span><h1>Agenda y horarios</h1><p>Consulta la agenda de cada coordinador o revisa todas las agendas en conjunto.</p></header>
+      <header><span>VISTA DE COORDINACIÓN</span><h1>Agenda y horarios</h1><p>Selecciona la agenda de jefatura o consulta por separado la de cada coordinador.</p></header>
       <div className="agenda-coordinator-selection__grid">
-        <button type="button" className="agenda-coordinator-selection__card agenda-coordinator-selection__card--all" onClick={() => onSelect(null)}>
-          <span className="agenda-coordinator-selection__icon"><DashboardIcon name="calendar" size={19} /></span>
-          <span className="agenda-coordinator-selection__copy"><strong>Todas las agendas</strong><small>Vista institucional conjunta</small></span>
-          <span className="agenda-coordinator-selection__count"><strong>{appointments.length}</strong><small>citas</small></span>
-          <DashboardIcon name="chevron" size={16} />
-        </button>
         {coordinators.map((coordinator) => {
           const count = appointments.filter((appointment) => appointment.coordinadorRfc === coordinator.rfc).length
           return (
             <button type="button" className="agenda-coordinator-selection__card" key={coordinator.rfc} onClick={() => onSelect(coordinator.rfc)}>
-              <span className="agenda-coordinator-selection__icon"><DashboardIcon name="users" size={18} /></span>
-              <span className="agenda-coordinator-selection__copy"><strong>{coordinator.nombre}</strong><small>{coordinator.rfc}</small></span>
+              <span className={`agenda-coordinator-selection__icon${coordinator.esJefatura ? ' agenda-coordinator-selection__icon--chief' : ''}`}><DashboardIcon name={coordinator.esJefatura ? 'calendar' : 'users'} size={18} /></span>
+              <span className="agenda-coordinator-selection__copy"><strong>{coordinator.nombre}</strong><small>{coordinator.esJefatura ? 'Agenda personal de jefatura' : coordinator.rfc}</small></span>
               <span className="agenda-coordinator-selection__count"><strong>{count}</strong><small>citas</small></span>
               <DashboardIcon name="chevron" size={16} />
             </button>

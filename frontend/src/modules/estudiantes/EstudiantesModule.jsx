@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import {
   buildScheduleWeeks,
   createCitaApi,
@@ -21,11 +21,11 @@ import './css/estudiantes-layout.css'
 function EstudiantesModule({ route, onNavigate, onLogoutToAdmin }) {
   const [student, setStudent] = useState(null)
   const [selectedTramite, setSelectedTramite] = useState(null)
-  const [selectedDay, setSelectedDay] = useState(null)
+  const [selectedDayId, setSelectedDayId] = useState(null)
   const [selectedSlot, setSelectedSlot] = useState(null)
   const [tramites, setTramites] = useState([])
   const [citaCatalogos, setCitaCatalogos] = useState({ coordinadores: [], formatos: [] })
-  const [semanas, setSemanas] = useState([])
+  const [scheduleBlocks, setScheduleBlocks] = useState([])
   const [horarios, setHorarios] = useState([])
   const [isLoadingAvailability, setIsLoadingAvailability] = useState(false)
   const [citaError, setCitaError] = useState('')
@@ -35,6 +35,15 @@ function EstudiantesModule({ route, onNavigate, onLogoutToAdmin }) {
   const [isLoadingPortal, setIsLoadingPortal] = useState(true)
   const [portalError, setPortalError] = useState('')
   const [isSubmittingCita, setIsSubmittingCita] = useState(false)
+
+  const semanas = useMemo(() => {
+    const allowedBlocks = selectedTramite
+      ? scheduleBlocks.filter((block) => (block.tramiteIds || []).map(Number).includes(Number(selectedTramite.id)))
+      : []
+    return buildScheduleWeeks(allowedBlocks)
+  }, [scheduleBlocks, selectedTramite])
+  const availableDays = semanas.flatMap((week) => week.dias)
+  const selectedDay = availableDays.find((day) => day.id === selectedDayId) || availableDays[0] || null
 
   function applyCitas(records) {
     const mapped = records.map(mapCitaFromDatabase)
@@ -76,24 +85,24 @@ function EstudiantesModule({ route, onNavigate, onLogoutToAdmin }) {
         onNavigate('student-login')
         return
       }
-      setStudent(withStudentPresentation(profile))
-      setTramites(catalogoTramites)
+       setStudent(withStudentPresentation(profile))
+       const idsHabilitados = new Set((catalogosCita.tramitesHabilitados || []).map(Number))
+       const tramitesDeCarrera = catalogoTramites.filter((tramite) => idsHabilitados.has(Number(tramite.id)))
+       setTramites(tramitesDeCarrera)
       const catalogosAsignados = {
         ...catalogosCita,
         coordinadores: catalogosCita.coordinadores.filter((coordinador) => coordinador.carreras?.includes(profile.carrera)),
       }
       setCitaCatalogos(catalogosAsignados)
-      setSelectedTramite((current) => current || catalogoTramites[0] || null)
+       setSelectedTramite((current) => tramitesDeCarrera.find((tramite) => Number(tramite.id) === Number(current?.id)) || tramitesDeCarrera[0] || null)
       applyCitas(citas)
       const coordinador = catalogosAsignados.coordinadores[0]
       const horarioCoordinador = coordinador
         ? await fetchHorariosCoordinadorApi(coordinador.rfc)
         : []
       if (!mounted) return
-      const weeks = buildScheduleWeeks(horarioCoordinador)
-      setSemanas(weeks)
-      setSelectedDay((current) => weeks.flatMap((week) => week.dias).find((day) => day.id === current?.id) || weeks[0]?.dias[0] || null)
-      setIsLoadingPortal(false)
+       setScheduleBlocks(horarioCoordinador)
+       setIsLoadingPortal(false)
     }).catch((error) => {
       if (!mounted) return
       if (error.status === 401 || error.status === 403) {
@@ -113,7 +122,8 @@ function EstudiantesModule({ route, onNavigate, onLogoutToAdmin }) {
 
   const coordinadorCita = citaCatalogos.coordinadores[0]
   const formatoCita = citaCatalogos.formatos.find((formato) =>
-    normalizeLabel(formato.tipoTramite) === normalizeLabel(selectedTramite?.nombre || selectedTramite?.titulo),
+    normalizeLabel(formato.tipoTramite) === normalizeLabel(selectedTramite?.nombre || selectedTramite?.titulo)
+      && formato.carrerasHabilitadas?.includes(student?.carrera),
   )
 
   useEffect(() => {
@@ -127,7 +137,7 @@ function EstudiantesModule({ route, onNavigate, onLogoutToAdmin }) {
         setIsLoadingAvailability(true)
         setCitaError('')
       }
-      return fetchDisponibilidadApi(coordinadorCita.rfc, selectedDay.id, formatoCita.duracionMinutos)
+      return fetchDisponibilidadApi(coordinadorCita.rfc, selectedDay.id, selectedTramite.id, student.carrera)
     }).then((slots) => {
       if (!mounted) return
       setHorarios(slots)
@@ -142,7 +152,7 @@ function EstudiantesModule({ route, onNavigate, onLogoutToAdmin }) {
     })
 
     return () => { mounted = false }
-  }, [route, selectedDay, coordinadorCita, formatoCita])
+  }, [route, selectedDay, coordinadorCita, formatoCita, selectedTramite?.id, student?.carrera])
 
   function handleLoginSuccess(studentRecord) {
     sessionStorage.setItem('coordinaTecStudentControl', studentRecord.numControl)
@@ -228,7 +238,7 @@ function EstudiantesModule({ route, onNavigate, onLogoutToAdmin }) {
         selectedSlot={selectedSlot}
         isLoadingAvailability={isLoadingAvailability}
         bookingError={getBookingError({ selectedTramite, formatoCita, coordinadorCita, semanas, citaError })}
-        onSelectDay={(day) => { setSelectedDay(day); setSelectedSlot(null) }}
+        onSelectDay={(day) => { setSelectedDayId(day.id); setSelectedSlot(null) }}
         onSelectSlot={setSelectedSlot}
         onBack={() => onNavigate('student-home')}
         onContinue={() => onNavigate('student-confirm')}
@@ -306,7 +316,7 @@ function getBookingError({ selectedTramite, formatoCita, coordinadorCita, semana
   if (!selectedTramite) return 'Selecciona un trámite para agendar una cita.'
   if (!formatoCita) return 'Este trámite aún no tiene un formato asociado en el catálogo de coordinación.'
   if (!coordinadorCita) return 'No hay un coordinador disponible para registrar citas.'
-  if (!semanas.length) return 'El coordinador no tiene horarios disponibles configurados.'
+  if (!semanas.length) return 'El coordinador no habilitó días para atender este trámite.'
   return ''
 }
 

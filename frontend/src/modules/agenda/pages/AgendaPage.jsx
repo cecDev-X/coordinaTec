@@ -4,6 +4,7 @@ import CitaFormModal from '../components/CitaFormModal.jsx'
 import AgendaToolbar from '../components/AgendaToolbar.jsx'
 import WeekCalendar from '../components/WeekCalendar.jsx'
 import AgendaCoordinatorSelection from '../components/AgendaCoordinatorSelection.jsx'
+import AvailabilityEditor from '../components/AvailabilityEditor.jsx'
 import { appointmentsForWeek, isPending, mondayOf, shiftWeek, statusLabel } from '../data/agendaData.js'
 import '../css/agenda-page.css'
 
@@ -18,23 +19,31 @@ function AgendaPage({ onAction, token, role, username }) {
   const [createMessage, setCreateMessage] = useState('')
   const [coordinators, setCoordinators] = useState([])
   const [selectedCoordinator, setSelectedCoordinator] = useState(undefined)
+  const [availabilityBlocks, setAvailabilityBlocks] = useState([])
 
   useEffect(() => {
     const controller = new AbortController()
 
     const headers = { Authorization: `Bearer ${token}` }
     const loadAppointments = role === 'JEFE_COORDINADORES'
-      ? fetch('/api/v1/catalogos/citas', { signal: controller.signal, headers }).then(async (response) => {
-        if (!response.ok) throw new Error(`Error HTTP ${response.status}`)
-        const catalog = await response.json()
+      ? Promise.all([
+        fetch('/api/v1/jefe-coordinadores/agenda', { signal: controller.signal, headers }),
+        fetch('/api/v1/catalogos/citas', { signal: controller.signal, headers }),
+      ]).then(async ([ownAgendaResponse, catalogResponse]) => {
+        if (!ownAgendaResponse.ok || !catalogResponse.ok) throw new Error('No se pudieron cargar las agendas de coordinación.')
+        const [ownAgenda, catalog] = await Promise.all([ownAgendaResponse.json(), catalogResponse.json()])
         if (!Array.isArray(catalog.coordinadores)) throw new Error('Respuesta inesperada')
-        setCoordinators(catalog.coordinadores)
-        const results = await Promise.all(catalog.coordinadores.map(async (coordinator) => {
+        const allCoordinators = [
+          { rfc: ownAgenda.rfc, nombre: ownAgenda.nombre, esJefatura: true },
+          ...catalog.coordinadores.filter((coordinator) => coordinator.rfc !== ownAgenda.rfc),
+        ]
+        setCoordinators(allCoordinators)
+        const results = await Promise.all(allCoordinators.map(async (coordinator) => {
           const appointmentsResponse = await fetch(`/api/v1/citas/coordinador/${encodeURIComponent(coordinator.rfc)}`, { signal: controller.signal, headers })
           if (!appointmentsResponse.ok) throw new Error(`No se pudo cargar la agenda de ${coordinator.nombre}.`)
           const coordinatorAppointments = await appointmentsResponse.json()
           if (!Array.isArray(coordinatorAppointments)) throw new Error('Respuesta inesperada')
-          return coordinatorAppointments.map((appointment) => ({ ...appointment, coordinadorRfc: coordinator.rfc, coordinadorNombre: coordinator.nombre }))
+          return coordinatorAppointments.map((appointment) => ({ ...appointment, coordinadorRfc: coordinator.rfc, coordinadorNombre: coordinator.nombre, esJefatura: coordinator.esJefatura || false }))
         }))
         return results.flat()
       })
@@ -65,6 +74,28 @@ function AgendaPage({ onAction, token, role, username }) {
     { key: 'pending', label: 'Pendientes', count: weekAppointments.filter((appointment) => isPending(appointment.estado)).length },
     { key: 'attended', label: 'Atendidas', count: weekAppointments.filter((appointment) => appointment.estado === 'ATENDIDA').length },
   ]
+  const scheduleRfc = role === 'JEFE_COORDINADORES' ? selectedCoordinator : username
+
+  useEffect(() => {
+    if (!scheduleRfc) return undefined
+    const controller = new AbortController()
+    fetch(`/api/v1/coordinadores/${encodeURIComponent(scheduleRfc)}/horarios`, {
+      headers: { Authorization: `Bearer ${token}` }, signal: controller.signal,
+    }).then(async (response) => {
+      if (!response.ok) throw new Error('No se pudieron cargar los bloques disponibles.')
+      const data = await response.json()
+      if (!Array.isArray(data)) throw new Error('Respuesta de horarios inesperada')
+      setAvailabilityBlocks(data.map((block) => ({
+        ...block,
+        diaSemana: Number(block.diaSemana),
+        horaInicio: block.horaInicio.slice(0, 5),
+        horaSalida: block.horaSalida.slice(0, 5),
+      })))
+    }).catch(() => {
+      if (!controller.signal.aborted) setAvailabilityBlocks([])
+    })
+    return () => controller.abort()
+  }, [scheduleRfc, token])
 
   function handleRetry() {
     setLoading(true)
@@ -78,8 +109,9 @@ function AgendaPage({ onAction, token, role, username }) {
 
   return (
     <div className="agenda-page">
-      {role === 'JEFE_COORDINADORES' && <button type="button" className="agenda-page__back" onClick={() => setSelectedCoordinator(undefined)}>← Todas las agendas</button>}
+      {role === 'JEFE_COORDINADORES' && <button type="button" className="agenda-page__back" onClick={() => setSelectedCoordinator(undefined)}>← Cambiar agenda</button>}
       <AgendaBanner onRequests={() => onAction('La bandeja de solicitudes estará disponible próximamente.')} />
+      {scheduleRfc && <AvailabilityEditor token={token} coordinatorRfc={scheduleRfc} onSaved={setAvailabilityBlocks} />}
       <AgendaToolbar
         monday={monday}
         onToday={() => setMonday(mondayOf(new Date()))}
@@ -116,6 +148,7 @@ function AgendaPage({ onAction, token, role, username }) {
           <WeekCalendar
             monday={monday}
             appointments={visibleAppointments}
+            availability={availabilityBlocks}
             onAppointment={(appointment) => onAction(`Cita ${appointment.folio}${appointment.coordinadorNombre ? ` · ${appointment.coordinadorNombre}` : ''}: ${appointment.nombre} · ${appointment.tramite} · ${appointment.horaInicio.slice(0, 5)} · ${statusLabel(appointment.estado)}.`)}
           />
         </>
@@ -125,6 +158,7 @@ function AgendaPage({ onAction, token, role, username }) {
           token={token}
           role={role}
           username={username}
+          defaultCoordinatorRfc={role === 'JEFE_COORDINADORES' ? selectedCoordinator : undefined}
           onClose={() => setCreateOpen(false)}
           onCreated={(cita) => {
             setCreateOpen(false)

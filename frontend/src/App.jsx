@@ -126,7 +126,7 @@ function App() {
 
   // Rutas del Módulo de Coordinador / Administración
   if (route !== 'login' && session?.token) {
-    const adminRoutes = ['coordinadores', 'carreras', 'tramites']
+    const adminRoutes = ['coordinadores', 'carreras']
     const permittedRoute = adminRoutes.includes(route) && session.rol !== 'JEFE_COORDINADORES'
       ? 'dashboard'
       : route
@@ -135,6 +135,7 @@ function App() {
         page={permittedRoute}
         role={session.rol}
         username={session.username}
+        displayName={session.nombre}
         token={session.token}
         onNavigate={(page) => {
           window.location.hash = page === 'dashboard' ? '/panel-principal' : `/${page}`

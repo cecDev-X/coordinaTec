@@ -16,7 +16,7 @@ function calculatedEndTime(startTime, durationMinutes) {
   return `${String(Math.floor(totalMinutes / 60)).padStart(2, '0')}:${String(totalMinutes % 60).padStart(2, '0')}`
 }
 
-function CitaFormModal({ onClose, onCreated, token, role, username }) {
+function CitaFormModal({ onClose, onCreated, token, role, username, defaultCoordinatorRfc, initialCitation }) {
   const [catalogos, setCatalogos] = useState({ estudiantes: [], coordinadores: [], formatos: [] })
   const [loading, setLoading] = useState(true)
   const [catalogError, setCatalogError] = useState('')
@@ -27,12 +27,12 @@ function CitaFormModal({ onClose, onCreated, token, role, username }) {
     const tomorrow = new Date()
     tomorrow.setDate(tomorrow.getDate() + 1)
     return {
-      fecha: localDateValue(tomorrow),
-      horaInicio: '10:00',
-      motivo: '',
-      coordinadorRfc: '',
-      numControlEstudiante: '',
-      formatoFolio: '',
+      fecha: initialCitation?.fecha || localDateValue(tomorrow),
+      horaInicio: initialCitation?.horaInicio?.slice(0, 5) || '10:00',
+      motivo: initialCitation?.motivo || '',
+      coordinadorRfc: initialCitation?.coordinadorRfc || defaultCoordinatorRfc || '',
+      numControlEstudiante: initialCitation?.numControlEstudiante || '',
+      formatoFolio: initialCitation?.formatoFolio || '',
     }
   })
 
@@ -57,11 +57,14 @@ function CitaFormModal({ onClose, onCreated, token, role, username }) {
           : data.estudiantes
         setCatalogos({ ...data, coordinadores, estudiantes })
         const estudiante = estudiantes[0]
+        const formatoDisponible = data.formatos.find((formato) => formato.carrerasHabilitadas?.includes(estudiante?.carrera))
         setForm((current) => ({
           ...current,
           numControlEstudiante: current.numControlEstudiante || estudiante?.numControl || '',
-          coordinadorRfc: current.coordinadorRfc || coordinadores.find((coordinador) => coordinador.carreras?.includes(estudiante?.carrera))?.rfc || '',
-          formatoFolio: current.formatoFolio || data.formatos[0]?.folio || '',
+          coordinadorRfc: defaultCoordinatorRfc && coordinadores.some((coordinador) => coordinador.rfc === defaultCoordinatorRfc && coordinador.carreras?.includes(estudiante?.carrera))
+            ? defaultCoordinatorRfc
+            : current.coordinadorRfc || coordinadores.find((coordinador) => coordinador.carreras?.includes(estudiante?.carrera))?.rfc || '',
+          formatoFolio: initialCitation ? current.formatoFolio : formatoDisponible?.folio || '',
         }))
       })
       .catch(() => {
@@ -72,9 +75,19 @@ function CitaFormModal({ onClose, onCreated, token, role, username }) {
       })
 
     return () => controller.abort()
-  }, [attempt, role, username, token])
+  }, [attempt, role, username, token, defaultCoordinatorRfc, initialCitation])
 
+  const estudianteSeleccionado = catalogos.estudiantes.find((estudiante) => estudiante.numControl === form.numControlEstudiante)
+  const formatosDisponibles = catalogos.formatos.filter((formato) => formato.carrerasHabilitadas?.includes(estudianteSeleccionado?.carrera))
   const formatoSeleccionado = catalogos.formatos.find((formato) => formato.folio === form.formatoFolio)
+  const formatoExistenteConservado = initialCitation
+    && initialCitation.numControlEstudiante === form.numControlEstudiante
+    && initialCitation.formatoFolio === form.formatoFolio
+    ? formatoSeleccionado
+    : null
+  const opcionesFormato = formatoExistenteConservado && !formatosDisponibles.some((formato) => formato.folio === formatoExistenteConservado.folio)
+    ? [formatoExistenteConservado, ...formatosDisponibles]
+    : formatosDisponibles
   const coordinadoresDisponibles = catalogos.coordinadores.filter((coordinador) =>
     coordinador.carreras?.includes(catalogos.estudiantes.find((estudiante) => estudiante.numControl === form.numControlEstudiante)?.carrera))
   const duracionMinutos = formatoSeleccionado?.duracionMinutos
@@ -82,11 +95,16 @@ function CitaFormModal({ onClose, onCreated, token, role, username }) {
 
   function updateField(event) {
     const { name, value } = event.target
+    const estudiante = catalogos.estudiantes.find((item) => item.numControl === value)
+    const formatoDisponible = catalogos.formatos.find((formato) => formato.carrerasHabilitadas?.includes(estudiante?.carrera))
     setForm((current) => ({
       ...current,
       [name]: value,
       ...(name === 'numControlEstudiante' ? {
-        coordinadorRfc: catalogos.coordinadores.find((coordinador) => coordinador.carreras?.includes(catalogos.estudiantes.find((estudiante) => estudiante.numControl === value)?.carrera))?.rfc || '',
+        formatoFolio: formatoDisponible?.folio || '',
+        coordinadorRfc: (defaultCoordinatorRfc && catalogos.coordinadores.some((coordinador) => coordinador.rfc === defaultCoordinatorRfc && coordinador.carreras?.includes(catalogos.estudiantes.find((estudiante) => estudiante.numControl === value)?.carrera))
+          ? defaultCoordinatorRfc
+          : catalogos.coordinadores.find((coordinador) => coordinador.carreras?.includes(catalogos.estudiantes.find((estudiante) => estudiante.numControl === value)?.carrera))?.rfc) || '',
       } : {}),
     }))
   }
@@ -99,6 +117,10 @@ function CitaFormModal({ onClose, onCreated, token, role, username }) {
       setSubmitError('La duración del trámite excede el horario del día. Elige otra hora de inicio o trámite.')
       return
     }
+    if (!formatosDisponibles.some((formato) => formato.folio === form.formatoFolio) && !formatoExistenteConservado) {
+      setSubmitError('No hay un formato para los trámites habilitados de la carrera seleccionada.')
+      return
+    }
 
     if (new Date(`${form.fecha}T${form.horaInicio}:00`) <= new Date()) {
       setSubmitError('Selecciona una fecha y hora futuras.')
@@ -107,8 +129,8 @@ function CitaFormModal({ onClose, onCreated, token, role, username }) {
 
     setSubmitting(true)
     try {
-      const response = await fetch('/api/v1/citas', {
-        method: 'POST',
+      const response = await fetch(initialCitation ? `/api/v1/citas/${encodeURIComponent(initialCitation.folio)}` : '/api/v1/citas', {
+        method: initialCitation ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({
           ...form,
@@ -140,8 +162,8 @@ function CitaFormModal({ onClose, onCreated, token, role, username }) {
       <section className="cita-form-modal" role="dialog" aria-modal="true" aria-labelledby="cita-form-title">
         <header className="cita-form-modal__header">
           <div>
-            <h2 id="cita-form-title">Agregar cita</h2>
-            <p>Completa los datos para registrar una nueva cita.</p>
+            <h2 id="cita-form-title">{initialCitation ? 'Editar cita' : 'Agregar cita'}</h2>
+            <p>{initialCitation ? 'Actualiza los datos de la cita.' : 'Completa los datos para registrar una nueva cita.'}</p>
           </div>
           <button type="button" className="cita-form-modal__close" aria-label="Cerrar formulario" onClick={onClose} disabled={submitting}>×</button>
         </header>
@@ -183,12 +205,13 @@ function CitaFormModal({ onClose, onCreated, token, role, username }) {
                 <label>
                   Formato / trámite
                   <select name="formatoFolio" value={form.formatoFolio} onChange={updateField} required>
-                    {catalogos.formatos.map((formato) => (
+                    {opcionesFormato.map((formato) => (
                       <option key={formato.folio} value={formato.folio}>
                         {formato.tipoTramite} · {formato.folio} · {formato.duracionMinutos} min
                       </option>
                     ))}
                   </select>
+                  {formatosDisponibles.length === 0 && <small>No hay formatos para los trámites habilitados de esta carrera.</small>}
                 </label>
                 <div className="cita-form-modal__row">
                   <label>
@@ -216,7 +239,7 @@ function CitaFormModal({ onClose, onCreated, token, role, username }) {
                 <footer className="cita-form-modal__actions">
                   <button type="button" className="cita-form-modal__cancel" onClick={onClose} disabled={submitting}>Cancelar</button>
                   <button type="submit" className="cita-form-modal__submit" disabled={submitting}>
-                    {submitting ? 'Guardando...' : 'Guardar cita'}
+                    {submitting ? 'Guardando...' : initialCitation ? 'Guardar cambios' : 'Guardar cita'}
                   </button>
                 </footer>
               </>

@@ -5,6 +5,7 @@ const coordinatorNavigation = [
   { label: 'Panel Principal', icon: 'grid' },
   { label: 'Citas', icon: 'calendar' },
   { label: 'Alumnos', icon: 'users' },
+  { label: 'Trámites', icon: 'document' },
   { label: 'Agenda y Horarios', icon: 'clock' },
   { label: 'Configuración', icon: 'settings' },
 ]
@@ -22,14 +23,8 @@ const chiefNavigation = [
 
 function InstitutionLogo() {
   return (
-    <div className="institution-logo" aria-label="Tecnológico Nacional de México">
-      <svg viewBox="0 0 34 34" fill="none" aria-hidden="true">
-        <path d="M17 2 20 4l4-1 1 4 4 2-2 4 2 4-3 3 1 4-4 2-1 4-5-1-3 3-3-3-4 1-1-4-4-2 2-4-2-4 3-3-1-4 4-2 1-4 4 1z" fill="#243958" />
-        <circle cx="17" cy="16" r="8" fill="#fff" />
-        <path d="M11 17c2-1 4-1 6 1 2-2 4-2 6-1v5c-2-1-4-1-6 1-2-2-4-2-6-1v-5ZM17 11v7" stroke="#243958" strokeWidth="1.4" />
-        <circle cx="17" cy="10" r="2" fill="#243958" />
-      </svg>
-      <span>TECNOLÓGICO<br />NACIONAL DE MÉXICO</span>
+    <div className="institution-logo">
+      <img src="/tecnm.webp" alt="Tecnológico Nacional de México" />
     </div>
   )
 }

@@ -1,0 +1,21 @@
+.career-tramites { display: grid; gap: 13px; margin-top: 24px; padding: 20px; border: 1px solid #e2e9f1; border-radius: 14px; background: #fff; box-shadow: 0 5px 18px #24395808; }
+.career-tramites__header { display: flex; align-items: flex-end; justify-content: space-between; gap: 18px; }
+.career-tramites__eyebrow { color: #6480a1; font-size: .64rem; font-weight: 800; letter-spacing: .1em; }
+.career-tramites__header h2 { margin: 4px 0; color: #243958; font-size: 1.08rem; }
+.career-tramites__header p { max-width: 650px; margin: 0; color: #718096; font-size: .78rem; line-height: 1.5; }
+.career-tramites__career-select { display: grid; min-width: min(300px, 100%); gap: 5px; color: #52657c; font-size: .72rem; font-weight: 700; }
+.career-tramites__career-select select { min-height: 39px; padding: 7px 10px; border: 1px solid #d5dfeb; border-radius: 8px; background: #fff; color: #243958; font: inherit; font-size: .78rem; }
+.career-tramites__single-career { max-width: 320px; padding: 10px 12px; border: 1px solid #e3eaf2; border-radius: 8px; background: #f8fafc; color: #52657c; font-size: .74rem; }
+.career-tramites__list { display: grid; gap: 7px; margin: 0; padding: 0; list-style: none; }
+.career-tramites__item { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 11px 13px; border: 1px solid #e9eef4; border-radius: 9px; }
+.career-tramites__item > div { display: grid; gap: 3px; }
+.career-tramites__item strong { color: #344b67; font-size: .8rem; }
+.career-tramites__item small { color: #79889b; font-size: .68rem; }
+.career-tramites__item--inactive { opacity: .62; background: #f7f8fa; }
+.career-tramites__toggle { display: inline-flex; align-items: center; gap: 9px; color: #52657c; font-size: .72rem; font-weight: 700; white-space: nowrap; }
+.career-tramites__toggle input { width: 17px; height: 17px; accent-color: #315b91; cursor: pointer; }
+.career-tramites__toggle input:disabled { cursor: not-allowed; }
+.career-tramites__feedback, .career-tramites__empty { margin: 0; color: #52759c; font-size: .76rem; }
+.career-tramites__feedback--error { color: #a33b3b; }
+.career-tramites__note { margin: 0; color: #8290a1; font-size: .68rem; }
+@media (max-width: 600px) { .career-tramites { padding: 15px; } .career-tramites__header { align-items: stretch; flex-direction: column; } .career-tramites__career-select { min-width: 0; } }

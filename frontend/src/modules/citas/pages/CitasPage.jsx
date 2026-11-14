@@ -3,6 +3,7 @@ import DashboardIcon from '../../dashboard/components/DashboardIcon.jsx'
 import CitasFilters from '../components/CitasFilters.jsx'
 import CitasTable from '../components/CitasTable.jsx'
 import CareerSelection from '../../dashboard/components/CareerSelection.jsx'
+import CitaFormModal from '../../agenda/components/CitaFormModal.jsx'
 import '../css/citas-page.css'
 
 const pageSize = 4
@@ -31,6 +32,9 @@ function CitasPage({ role, username, token }) {
   const [page, setPage] = useState(1)
   const [careers, setCareers] = useState([])
   const [selectedCareer, setSelectedCareer] = useState(undefined)
+  const [formOpen, setFormOpen] = useState(false)
+  const [editing, setEditing] = useState(null)
+  const [jefaturaRfc, setJefaturaRfc] = useState('')
 
   useEffect(() => {
     const controller = new AbortController()
@@ -46,15 +50,23 @@ function CitasPage({ role, username, token }) {
       const [appointments, catalog] = await Promise.all([appointmentsResponse.json(), catalogResponse.json()])
       if (!Array.isArray(appointments) || !Array.isArray(catalog.coordinadores)) throw new Error('Respuesta inesperada')
       if (role === 'JEFE_COORDINADORES') {
-        const careersResponse = await fetch('/api/v1/jefe-coordinadores/carreras', { signal: controller.signal, headers: { Authorization: `Bearer ${token}` } })
-        if (!careersResponse.ok) throw new Error('No se pudo cargar el catálogo de carreras.')
-        return { appointments, careers: await careersResponse.json() }
+        const [careersResponse, ownAgendaResponse] = await Promise.all([
+          fetch('/api/v1/jefe-coordinadores/carreras', { signal: controller.signal, headers: { Authorization: `Bearer ${token}` } }),
+          fetch('/api/v1/jefe-coordinadores/agenda', { signal: controller.signal, headers: { Authorization: `Bearer ${token}` } }),
+        ])
+        if (!careersResponse.ok || !ownAgendaResponse.ok) throw new Error('No se pudo cargar la agenda y el catálogo de carreras.')
+        const [availableCareers, ownAgenda] = await Promise.all([careersResponse.json(), ownAgendaResponse.json()])
+        setJefaturaRfc(ownAgenda.rfc)
+        return { appointments, careers: availableCareers }
       }
       const coordinator = catalog.coordinadores.find((item) => item.rfc.toLocaleLowerCase() === username?.toLocaleLowerCase())
       return { appointments, careers: coordinator?.carreras || [] }
     }).then(({ appointments, careers: availableCareers }) => {
       setCitas(appointments)
       setCareers(availableCareers)
+      if (role === 'COORDINADOR' && availableCareers.length === 1) {
+        setSelectedCareer(availableCareers[0])
+      }
     })
       .catch(() => {
         if (!controller.signal.aborted) setError('No se pudieron cargar las citas. Intenta de nuevo.')
@@ -127,6 +139,28 @@ function CitasPage({ role, username, token }) {
     }
   }
 
+  async function handleDelete(folio) {
+    if (!window.confirm(`¿Eliminar la cita ${folio}? Esta acción no se puede deshacer.`)) return
+    setUpdatingFolio(folio)
+    setActionError('')
+    try {
+      const response = await fetch(`/api/v1/citas/${encodeURIComponent(folio)}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } })
+      if (!response.ok) throw new Error(response.status === 404 ? 'La cita ya no existe.' : 'No se pudo eliminar la cita.')
+      setCitas((current) => current.filter((cita) => cita.folio !== folio))
+      setActionMessage(`La cita ${folio} fue eliminada.`)
+    } catch (cause) { setActionError(cause.message) } finally { setUpdatingFolio(null) }
+  }
+
+  async function handleEdit(folio) {
+    setActionError('')
+    try {
+      const response = await fetch(`/api/v1/citas/${encodeURIComponent(folio)}`, { headers: { Authorization: `Bearer ${token}` } })
+      if (!response.ok) throw new Error('No se pudieron cargar los datos de la cita.')
+      setEditing(await response.json())
+      setFormOpen(true)
+    } catch (cause) { setActionError(cause.message) }
+  }
+
   if (!loading && !error && selectedCareer === undefined) {
     const careerSummary = careers.map((nombre) => ({ nombre, total: rows.filter((cita) => cita.carrera === nombre).length }))
     return (
@@ -144,7 +178,8 @@ function CitasPage({ role, username, token }) {
           <h1>{selectedCareer ? `Citas · ${selectedCareer}` : 'Todas las citas'}</h1>
           <p>Consulta y actualiza las citas registradas en coordinación.</p>
         </div>
-        <button type="button" className="citas-page__back" onClick={() => { setSelectedCareer(undefined); setFilters({ search: '', tramite: 'Todos', estatus: 'Todos' }); setPage(1) }}>← Carreras</button>
+        {(role !== 'COORDINADOR' || careers.length > 1) && <button type="button" className="citas-page__back" onClick={() => { setSelectedCareer(undefined); setFilters({ search: '', tramite: 'Todos', estatus: 'Todos' }); setPage(1) }}>← Carreras</button>}
+        {role === 'JEFE_COORDINADORES' && <button type="button" className="citas-page__back" onClick={() => { setEditing(null); setFormOpen(true) }}>＋ Nueva cita</button>}
       </header>
       {loading && <p className="citas-page__feedback" role="status">Cargando citas...</p>}
       {error && (
@@ -165,11 +200,15 @@ function CitasPage({ role, username, token }) {
             pageCount={Math.max(1, Math.ceil(filtered.length / pageSize))}
             onPageChange={setPage}
             onMarkAttended={handleMarkAttended}
+            canManage={role === 'JEFE_COORDINADORES'}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
             updatingFolio={updatingFolio}
             emptyMessage={citas.length === 0 ? 'No hay citas registradas.' : 'No se encontraron citas con esos filtros.'}
           />
         </>
       )}
+      {formOpen && <CitaFormModal token={token} role={role} username={username} defaultCoordinatorRfc={jefaturaRfc} initialCitation={editing} onClose={() => { setFormOpen(false); setEditing(null) }} onCreated={() => { setFormOpen(false); setEditing(null); setLoading(true); setAttempt((current) => current + 1) }} />}
     </div>
   )
 }

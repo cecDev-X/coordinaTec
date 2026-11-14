@@ -1,6 +1,7 @@
 package mx.tecnm.oaxaca.coordinatec.controllers;
 
 import mx.tecnm.oaxaca.coordinatec.dtos.CambiarEstadoCitaDTO;
+import mx.tecnm.oaxaca.coordinatec.dtos.ActualizarCitaDTO;
 import mx.tecnm.oaxaca.coordinatec.dtos.CrearCitaDTO;
 import mx.tecnm.oaxaca.coordinatec.dtos.CitaResumenDTO;
 import mx.tecnm.oaxaca.coordinatec.entities.CitaEntity;
@@ -8,6 +9,7 @@ import mx.tecnm.oaxaca.coordinatec.repositories.CitaConsultaRepository;
 import mx.tecnm.oaxaca.coordinatec.repositories.CatalogoConsultaRepository;
 import mx.tecnm.oaxaca.coordinatec.repositories.CitaRepository;
 import mx.tecnm.oaxaca.coordinatec.repositories.DisponibilidadRepository;
+import mx.tecnm.oaxaca.coordinatec.repositories.CarreraTramiteRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -36,6 +38,9 @@ public class CitaController {
     @Autowired
     private DisponibilidadRepository disponibilidadRepository;
 
+    @Autowired
+    private CarreraTramiteRepository carreraTramiteRepository;
+
     @GetMapping
     public List<CitaResumenDTO> listarCitas() {
         return citaConsultaRepository.listar();
@@ -63,8 +68,14 @@ public class CitaController {
         }
 
         int duracionMinutos = catalogoConsultaRepository.obtenerDuracionFormato(request.formatoFolio());
+        Long tramiteId = catalogoConsultaRepository.obtenerTramiteIdFormato(request.formatoFolio());
+        String carreraEstudiante = carreraTramiteRepository.obtenerCarreraEstudiante(request.numControlEstudiante());
+        if (!carreraTramiteRepository.estaHabilitado(carreraEstudiante, tramiteId)) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(Map.of("mensaje", "Este trámite no está habilitado para la carrera del estudiante"));
+        }
         if (!disponibilidadRepository.listarDisponibilidad(
-            request.coordinadorRfc(), request.fecha(), duracionMinutos
+            request.coordinadorRfc(), request.fecha(), duracionMinutos, tramiteId, carreraEstudiante
         ).contains(request.horaInicio().toString())) {
             return ResponseEntity.status(HttpStatus.CONFLICT)
                 .body(Map.of("mensaje", "Ese horario ya no está disponible; selecciona otro"));
@@ -95,7 +106,7 @@ public class CitaController {
     @GetMapping("/{folio}")
     public ResponseEntity<?> obtenerDetalleCita(@PathVariable String folio, Authentication authentication) {
         if (tieneRol(authentication, "ESTUDIANTE") && !citaConsultaRepository.estudianteTieneCita(authentication.getName(), folio)
-            || tieneRol(authentication, "COORDINADOR") && !citaConsultaRepository.coordinadorTieneCitaDeCarreraAsignada(authentication.getName(), folio)) {
+            || tieneRol(authentication, "COORDINADOR") && !citaConsultaRepository.coordinadorTieneCita(authentication.getName(), folio)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("mensaje", "No tienes acceso a esta cita"));
         }
         return citaRepository.findByFolio(folio)
@@ -111,13 +122,13 @@ public class CitaController {
         if (!catalogoConsultaRepository.existeCoordinador(rfc)) {
             return ResponseEntity.notFound().build();
         }
-        return ResponseEntity.ok(citaConsultaRepository.listarPorCarrerasCoordinador(rfc));
+        return ResponseEntity.ok(citaConsultaRepository.listarPorCoordinador(rfc));
     }
 
     @PatchMapping("/{folio}/estado")
     public ResponseEntity<?> marcarCitaAtendida(@PathVariable String folio, @RequestBody CambiarEstadoCitaDTO request, Authentication authentication) {
         if (tieneRol(authentication, "COORDINADOR")
-            && !citaConsultaRepository.coordinadorTieneCitaDeCarreraAsignada(authentication.getName(), folio)) {
+            && !citaConsultaRepository.coordinadorTieneCita(authentication.getName(), folio)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("mensaje", "No tienes acceso a esta cita"));
         }
         if (!"ATENDIDA".equals(request.estado())) {
@@ -138,6 +149,46 @@ public class CitaController {
                     "fechaAtencion", cita.getFechaAtencion()
                 )))
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    @PutMapping("/{folio}")
+    public ResponseEntity<?> actualizarCita(@PathVariable String folio, @Valid @RequestBody ActualizarCitaDTO request, Authentication authentication) {
+        if (!tieneRol(authentication, "JEFE_COORDINADORES")) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("mensaje", "Solo jefatura puede editar citas"));
+        }
+        CitaEntity cita = citaRepository.findByFolio(folio).orElse(null);
+        if (cita == null) return ResponseEntity.notFound().build();
+        if (!catalogoConsultaRepository.existeEstudiante(request.numControlEstudiante())
+            || !catalogoConsultaRepository.existeCoordinador(request.coordinadorRfc())
+            || !catalogoConsultaRepository.existeFormato(request.formatoFolio())) {
+            return ResponseEntity.badRequest().body(Map.of("mensaje", "Estudiante, coordinador o formato inválido"));
+        }
+        if (!citaConsultaRepository.coordinadorAtiendeEstudiante(request.coordinadorRfc(), request.numControlEstudiante())) {
+            return ResponseEntity.badRequest().body(Map.of("mensaje", "El coordinador no atiende la carrera del estudiante"));
+        }
+        int duration = catalogoConsultaRepository.obtenerDuracionFormato(request.formatoFolio());
+        var end = request.horaInicio().plusMinutes(duration);
+        if (end.isBefore(request.horaInicio()) || end.equals(request.horaInicio())) {
+            return ResponseEntity.badRequest().body(Map.of("mensaje", "La duración excede el horario del día"));
+        }
+        Boolean conflict = citaRepository.existsOverlap(request.coordinadorRfc(), request.fecha(), request.horaInicio(), end, folio);
+        if (Boolean.TRUE.equals(conflict)) return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("mensaje", "El horario se cruza con otra cita"));
+        cita.setFecha(request.fecha());
+        cita.setHoraInicio(request.horaInicio());
+        cita.setHoraFin(end);
+        cita.setMotivo(request.motivo());
+        cita.setCoordinadorRfc(request.coordinadorRfc());
+        cita.setNumControlEstudiante(request.numControlEstudiante());
+        cita.setFormatoFolio(request.formatoFolio());
+        return ResponseEntity.ok(citaRepository.save(cita));
+    }
+
+    @DeleteMapping("/{folio}")
+    public ResponseEntity<?> eliminarCita(@PathVariable String folio, Authentication authentication) {
+        if (!tieneRol(authentication, "JEFE_COORDINADORES")) return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        if (!citaRepository.existsById(folio)) return ResponseEntity.notFound().build();
+        citaRepository.deleteById(folio);
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/estudiantes/{numControl}")

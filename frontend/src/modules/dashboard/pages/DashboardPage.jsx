@@ -22,7 +22,7 @@ function isCompactViewport() {
   return window.matchMedia('(max-width: 820px)').matches
 }
 
-function DashboardPage({ onLogout, onNavigate, page = 'dashboard', role, username, token }) {
+function DashboardPage({ onLogout, onNavigate, page = 'dashboard', role, username, displayName, token }) {
   const compact = useSyncExternalStore(subscribeToViewport, isCompactViewport)
   const [menuOpen, setMenuOpen] = useState(false)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
@@ -47,7 +47,7 @@ function DashboardPage({ onLogout, onNavigate, page = 'dashboard', role, usernam
   }
 
   let content
-  if (page === 'tramites') content = <TramitesPage token={token} />
+  if (page === 'tramites') content = <TramitesPage token={token} role={role} />
   else if (page === 'agenda') content = <AgendaPage onAction={setNotice} token={token} role={role} username={username} />
   else if (page === 'citas') content = <CitasPage role={role} username={username} token={token} />
   else if (page === 'coordinadores') content = <CoordinadoresPage token={token} />
@@ -71,6 +71,9 @@ function DashboardPage({ onLogout, onNavigate, page = 'dashboard', role, usernam
       <div className="dashboard__main">
         <DashboardTopbar
           title={{ dashboard: 'Panel Principal', tramites: 'Administración de Trámites', agenda: 'Agenda y Horarios', citas: 'Lista de Citas Actuales', coordinadores: 'Gestión de Coordinadores', carreras: 'Gestión de Carreras', configuracion: 'Configuración de cuenta', alumnos: 'Alumnos en plataforma' }[page]}
+          displayName={displayName}
+          role={role}
+          username={username}
           menuOpen={compact ? menuOpen : !sidebarCollapsed}
           onToggleMenu={() => {
             if (compact) setMenuOpen((open) => !open)

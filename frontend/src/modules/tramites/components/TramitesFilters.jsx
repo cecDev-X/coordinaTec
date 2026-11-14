@@ -2,7 +2,7 @@ import { useState } from 'react'
 import DashboardIcon from '../../dashboard/components/DashboardIcon.jsx'
 import '../css/tramites-filters.css'
 
-function TramitesFilters({ filters, onChange, onAdd, periodOptions }) {
+function TramitesFilters({ filters, onChange, onAdd, periodOptions, readOnly = false }) {
   const [showMore, setShowMore] = useState(false)
 
   return (
@@ -37,9 +37,9 @@ function TramitesFilters({ filters, onChange, onAdd, periodOptions }) {
           </select>
           <DashboardIcon name="down" size={12} />
         </label>
-        <button type="button" className="tramites-filters__add" onClick={onAdd}>
+        {!readOnly && <button type="button" className="tramites-filters__add" onClick={onAdd}>
           <DashboardIcon name="plus" size={15} /> Agregar nuevo trámite
-        </button>
+        </button>}
       </div>
       <button
         type="button"
