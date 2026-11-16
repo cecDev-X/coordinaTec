@@ -1,0 +1,13 @@
+www.coordinatec.site {
+    redir https://coordinatec.site{uri} permanent
+}
+
+coordinatec.site {
+    encode gzip zstd
+    reverse_proxy student-frontend:80
+}
+
+admin.coordinatec.site {
+    encode gzip zstd
+    reverse_proxy admin-frontend:80
+}

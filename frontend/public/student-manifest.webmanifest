@@ -1,0 +1,14 @@
+{
+  "name": "CoordinaTec · Estudiantes",
+  "short_name": "CoordinaTec",
+  "description": "Portal estudiantil de citas y trámites",
+  "start_url": "/#/estudiante/login",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#243958",
+  "icons": [
+    { "src": "/ito-pwa-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/ito-pwa-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

@@ -1,0 +1,76 @@
+name: coordinatec
+
+services:
+  postgres-db:
+    image: postgres:15-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: coordina_admin
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env.production}
+      POSTGRES_DB: coordina_tec_db
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U coordina_admin -d coordina_tec_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks: [internal]
+
+  spring-backend:
+    build: ./backend
+    restart: unless-stopped
+    depends_on:
+      postgres-db:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:5432/coordina_tec_db
+      SPRING_DATASOURCE_USERNAME: coordina_admin
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env.production}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: validate
+      SPRING_JPA_SHOW_SQL: "false"
+      COORDINATEC_AUTH_JWT_SECRET: ${COORDINATEC_AUTH_JWT_SECRET:?Set COORDINATEC_AUTH_JWT_SECRET in .env.production}
+      COORDINATEC_DEMO_USERS_ENABLED: "false"
+      COORDINATEC_BOOTSTRAP_ADMIN_USERNAME: ${COORDINATEC_BOOTSTRAP_ADMIN_USERNAME:-}
+      COORDINATEC_BOOTSTRAP_ADMIN_PASSWORD: ${COORDINATEC_BOOTSTRAP_ADMIN_PASSWORD:-}
+    networks: [internal]
+
+  student-frontend:
+    build:
+      context: ./frontend
+      args:
+        PORTAL_MODE: student
+    restart: unless-stopped
+    depends_on: [spring-backend]
+    networks: [internal]
+
+  admin-frontend:
+    build:
+      context: ./frontend
+      args:
+        PORTAL_MODE: admin
+    restart: unless-stopped
+    depends_on: [spring-backend]
+    networks: [internal]
+
+  proxy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    depends_on: [student-frontend, admin-frontend]
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    networks: [internal]
+
+networks:
+  internal:
+
+volumes:
+  pgdata:
+  caddy_data:
+  caddy_config:
