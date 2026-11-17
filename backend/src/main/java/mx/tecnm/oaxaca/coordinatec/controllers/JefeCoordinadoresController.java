@@ -214,21 +214,25 @@ public class JefeCoordinadoresController {
 
     @GetMapping("/alumnos")
     public List<Map<String, Object>> listarAlumnos() {
-        return jdbc.query("SELECT numerocontrol, nombres, apellidos, carrera FROM estudiante ORDER BY apellidos, nombres, numerocontrol",
+        return jdbc.query("SELECT numerocontrol, nombres, apellidos, carrera, COALESCE(correo, '') AS correo FROM estudiante ORDER BY apellidos, nombres, numerocontrol",
             (rs, row) -> Map.of("numControl", rs.getString("numerocontrol"), "nombres", rs.getString("nombres"),
-                "apellidos", rs.getString("apellidos"), "nombre", rs.getString("nombres") + " " + rs.getString("apellidos"), "carrera", rs.getString("carrera")));
+                "apellidos", rs.getString("apellidos"), "nombre", rs.getString("nombres") + " " + rs.getString("apellidos"),
+                "carrera", rs.getString("carrera"), "correo", rs.getString("correo")));
     }
 
     @PostMapping("/alumnos")
     public ResponseEntity<?> crearAlumno(@Valid @RequestBody RegistroEstudianteDTO request) {
         String control = request.numControl().trim();
+        if (!RegistroEstudianteDTO.esPasswordSegura(request.password())) {
+            return ResponseEntity.badRequest().body(Map.of("mensaje", "La contraseña debe incluir minúscula, mayúscula, número y signo especial"));
+        }
         String carrera = request.carrera().trim();
         if (!Boolean.TRUE.equals(jdbc.queryForObject("SELECT EXISTS (SELECT 1 FROM carrera WHERE nombre = ?)", Boolean.class, carrera))) {
             return ResponseEntity.badRequest().body(Map.of("mensaje", "Selecciona una carrera válida"));
         }
         try {
-            jdbc.update("INSERT INTO estudiante (numerocontrol, nombres, apellidos, carrera, password_hash) VALUES (?, ?, ?, ?, ?)",
-                control, request.nombres().trim(), request.apellidos().trim(), carrera, passwordEncoder.encode(request.password()));
+            jdbc.update("INSERT INTO estudiante (numerocontrol, nombres, apellidos, carrera, correo, password_hash) VALUES (?, ?, ?, ?, ?, ?)",
+                control, request.nombres().trim(), request.apellidos().trim(), carrera, request.correo().trim(), passwordEncoder.encode(request.password()));
         } catch (org.springframework.dao.DuplicateKeyException exception) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("mensaje", "Ya existe un alumno con ese número de control"));
         }
@@ -240,6 +244,7 @@ public class JefeCoordinadoresController {
         String nombres = request.getOrDefault("nombres", "").trim();
         String apellidos = request.getOrDefault("apellidos", "").trim();
         String carrera = request.getOrDefault("carrera", "").trim();
+        String correo = request.getOrDefault("correo", "").trim();
         String password = request.getOrDefault("password", "");
         if (nombres.isEmpty() || nombres.length() > 100 || apellidos.isEmpty() || apellidos.length() > 100) {
             return ResponseEntity.badRequest().body(Map.of("mensaje", "Nombres y apellidos son obligatorios (máximo 100 caracteres)"));
@@ -247,10 +252,14 @@ public class JefeCoordinadoresController {
         if (!Boolean.TRUE.equals(jdbc.queryForObject("SELECT EXISTS (SELECT 1 FROM carrera WHERE nombre = ?)", Boolean.class, carrera))) {
             return ResponseEntity.badRequest().body(Map.of("mensaje", "Selecciona una carrera válida"));
         }
-        if (password != null && !password.isBlank() && (password.length() < 8 || password.length() > 72)) {
-            return ResponseEntity.badRequest().body(Map.of("mensaje", "La contraseña debe tener entre 8 y 72 caracteres"));
+        if (!correo.isEmpty() && (correo.length() > 254 || !correo.matches("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$"))) {
+            return ResponseEntity.badRequest().body(Map.of("mensaje", "Ingresa un correo electrónico válido"));
         }
-        int changed = jdbc.update("UPDATE estudiante SET nombres = ?, apellidos = ?, carrera = ? WHERE numerocontrol = ?", nombres, apellidos, carrera, numControl);
+        if (!password.isBlank() && !RegistroEstudianteDTO.esPasswordSegura(password)) {
+            return ResponseEntity.badRequest().body(Map.of("mensaje", "La contraseña debe tener entre 8 y 72 caracteres, minúscula, mayúscula, número y signo especial"));
+        }
+        int changed = jdbc.update("UPDATE estudiante SET nombres = ?, apellidos = ?, carrera = ?, correo = CASE WHEN ? = '' THEN correo ELSE ? END WHERE numerocontrol = ?",
+            nombres, apellidos, carrera, correo, correo, numControl);
         if (changed == 0) return ResponseEntity.notFound().build();
         if (password != null && !password.isBlank()) jdbc.update("UPDATE estudiante SET password_hash = ? WHERE numerocontrol = ?", passwordEncoder.encode(password), numControl);
         return ResponseEntity.ok(Map.of("mensaje", "Alumno actualizado"));

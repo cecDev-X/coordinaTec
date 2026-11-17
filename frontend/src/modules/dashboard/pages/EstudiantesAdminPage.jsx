@@ -62,7 +62,7 @@ function EstudiantesAdminPage({ token, role, username }) {
     const data = new FormData(event.currentTarget)
     const payload = {
       numControl: data.get('numControl'), nombres: data.get('nombres'), apellidos: data.get('apellidos'),
-      carrera: data.get('carrera'), password: data.get('password'),
+      carrera: data.get('carrera'), correo: data.get('correo'), password: data.get('password'),
     }
     try {
       const response = await fetch(editing
@@ -138,10 +138,11 @@ function EstudiantesAdminPage({ token, role, username }) {
       {message && <p className="admin-students__feedback" role="status">{message}</p>}
       {formOpen && <div className="admin-students__modal-backdrop"><form className="admin-students__form" onSubmit={submitStudent}>
         <h2>{editing ? 'Editar alumno' : 'Agregar alumno'}</h2>
-        <label>Número de control<input name="numControl" defaultValue={editing?.numControl || ''} pattern="[A-Za-z0-9]{1,15}" maxLength="15" required disabled={Boolean(editing)} /></label>
+        <label>Número de control<input name="numControl" defaultValue={editing?.numControl || ''} pattern="(?:[0-9]{8}|C[0-9]{8})" maxLength="9" title="8 dígitos o C seguida de 8 dígitos" required disabled={Boolean(editing)} /></label>
         <label>Nombres<input name="nombres" defaultValue={editing?.nombres || ''} maxLength="100" required /></label>
         <label>Apellidos<input name="apellidos" defaultValue={editing?.apellidos || ''} maxLength="100" required /></label>
         <label>Carrera<select name="carrera" defaultValue={editing?.carrera || selectedCareer || careers[0] || ''} required>{careers.map((career) => <option key={career} value={career}>{career}</option>)}</select></label>
+        <label>Correo electrónico<input name="correo" type="email" defaultValue={editing?.correo || ''} maxLength="254" required={!editing} /></label>
         <label>{editing ? 'Nueva contraseña (opcional)' : 'Contraseña'}<input name="password" type="password" minLength="8" maxLength="72" required={!editing} /></label>
         <footer><button type="button" onClick={() => { setFormOpen(false); setEditing(null) }} disabled={saving}>Cancelar</button><button type="submit" disabled={saving}>{saving ? 'Guardando…' : 'Guardar'}</button></footer>
       </form></div>}

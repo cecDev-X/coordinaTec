@@ -19,7 +19,7 @@ public class EstudianteAuthRepository {
 
     public Optional<EstudianteCuentaDTO> buscarPorControl(String numControl) {
         return jdbc.query("""
-            SELECT numerocontrol, nombres, apellidos, carrera, password_hash
+            SELECT numerocontrol, nombres, apellidos, carrera, correo, password_hash
             FROM estudiante
             WHERE numerocontrol = ?
             """, (rs, row) -> new EstudianteCuentaDTO(
@@ -27,6 +27,7 @@ public class EstudianteAuthRepository {
                 rs.getString("nombres"),
                 rs.getString("apellidos"),
                 rs.getString("carrera"),
+                rs.getString("correo"),
                 rs.getString("password_hash")
             ), numControl).stream().findFirst();
     }
@@ -48,9 +49,9 @@ public class EstudianteAuthRepository {
 
     public void registrar(RegistroEstudianteDTO estudiante, String passwordHash) {
         jdbc.update("""
-            INSERT INTO estudiante (numerocontrol, nombres, apellidos, carrera, password_hash)
-            VALUES (?, ?, ?, ?, ?)
+            INSERT INTO estudiante (numerocontrol, nombres, apellidos, carrera, correo, password_hash)
+            VALUES (?, ?, ?, ?, ?, ?)
             """, estudiante.numControl().trim(), estudiante.nombres().trim(), estudiante.apellidos().trim(),
-            estudiante.carrera().trim(), passwordHash);
+            estudiante.carrera().trim(), estudiante.correo().trim(), passwordHash);
     }
 }

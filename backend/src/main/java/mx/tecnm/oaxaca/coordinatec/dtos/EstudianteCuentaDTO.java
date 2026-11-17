@@ -5,5 +5,6 @@ public record EstudianteCuentaDTO(
     String nombres,
     String apellidos,
     String carrera,
+    String correo,
     String passwordHash
 ) {}

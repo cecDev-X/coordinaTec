@@ -12,7 +12,7 @@ function currentCycleLabel(date = new Date()) {
 }
 
 function StudentRegisterPage({ onRegisterSuccess, onBackToLogin }) {
-  const [form, setForm] = useState({ numControl: '', nombres: '', apellidos: '', carrera: '', password: '', confirmPassword: '' })
+  const [form, setForm] = useState({ numControl: '', nombres: '', apellidos: '', carrera: '', correo: '', password: '', confirmPassword: '' })
   const [notice, setNotice] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [carreras, setCarreras] = useState([])
@@ -32,12 +32,25 @@ function StudentRegisterPage({ onRegisterSuccess, onBackToLogin }) {
   }, [])
 
   function updateField(event) {
-    setForm((current) => ({ ...current, [event.target.name]: event.target.value }))
+    const { name, value } = event.target
+    setForm((current) => ({ ...current, [name]: name === 'numControl' ? value.toUpperCase() : value }))
   }
 
   async function handleSubmit(event) {
     event.preventDefault()
     setNotice('')
+    if (!/^(?:\d{8}|C\d{8})$/.test(form.numControl)) {
+      setNotice('El número de control debe tener 8 dígitos o C seguida de 8 dígitos.')
+      return
+    }
+    if (![form.nombres, form.apellidos].every((value) => /^[\p{L}\p{M}]+(?: [\p{L}\p{M}]+)*$/u.test(value.trim()))) {
+      setNotice('El nombre y los apellidos solo pueden contener letras y espacios.')
+      return
+    }
+    if (form.password.length < 8 || form.password.length > 72 || !/[a-z]/.test(form.password) || !/[A-Z]/.test(form.password) || !/\d/.test(form.password) || !/[^A-Za-z0-9\s]/.test(form.password)) {
+      setNotice('La contraseña debe tener entre 8 y 72 caracteres e incluir minúscula, mayúscula, número y signo especial.')
+      return
+    }
     if (form.password !== form.confirmPassword) {
       setNotice('Las contraseñas no coinciden.')
       return
@@ -76,8 +89,9 @@ function StudentRegisterPage({ onRegisterSuccess, onBackToLogin }) {
               <label className="student-login__field-group">
                 <span className="student-login__label">Número de control <span className="student-login__req">*</span></span>
                 <span className="student-login__input-wrap"><span className="student-login__input-icon"><StudentIcon name="user-circle" size={20} /></span>
-                  <input className="student-login__input" name="numControl" placeholder="Ej. 23160887" value={form.numControl} onChange={updateField} maxLength={15} pattern="[A-Za-z0-9]{1,15}" title="Usa de 1 a 15 letras o números." autoComplete="username" required />
-                </span>
+                   <input className="student-login__input" name="numControl" placeholder="Ej. 23160887 o C23160887" value={form.numControl} onChange={updateField} maxLength={9} pattern="(?:[0-9]{8}|C[0-9]{8})" title="8 dígitos o C seguida de 8 dígitos." autoComplete="username" required />
+                 </span>
+                 <span className="student-register__hint">8 dígitos; si cambiaste de carrera, C seguida de 8 dígitos.</span>
               </label>
               <label className="student-login__field-group">
                 <span className="student-login__label">Nombre(s) <span className="student-login__req">*</span></span>
@@ -95,9 +109,14 @@ function StudentRegisterPage({ onRegisterSuccess, onBackToLogin }) {
                 </select>
               </label>
               <label className="student-login__field-group">
+                <span className="student-login__label">Correo electrónico <span className="student-login__req">*</span></span>
+                <input className="student-login__input student-register__plain-input" type="email" name="correo" value={form.correo} onChange={updateField} maxLength={254} autoComplete="email" required />
+                <span className="student-register__hint">Usa un correo al que tengas acceso: ahí recibirás notificaciones y actualizaciones sobre tus trámites.</span>
+              </label>
+              <label className="student-login__field-group">
                 <span className="student-login__label">Contraseña <span className="student-login__req">*</span></span>
                 <input className="student-login__input student-register__plain-input" type="password" name="password" value={form.password} onChange={updateField} minLength={8} maxLength={72} autoComplete="new-password" required />
-                <span className="student-register__hint">Usa al menos 8 caracteres.</span>
+                <span className="student-register__hint">Mínimo 8 caracteres: minúscula, mayúscula, número y signo especial.</span>
               </label>
               <label className="student-login__field-group">
                 <span className="student-login__label">Confirmar contraseña <span className="student-login__req">*</span></span>

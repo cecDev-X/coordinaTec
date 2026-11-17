@@ -34,7 +34,8 @@ class EstudianteAuthTests {
     @Test
     @Transactional
     void registroGuardaPasswordCifradaYPermiteIniciarSesion() throws Exception {
-        String numControl = "AUTH" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+        String numControl = "C" + String.format("%08d", Math.abs(UUID.randomUUID().getMostSignificantBits() % 100000000));
+        String correo = "estudiante-" + UUID.randomUUID() + "@ejemplo.com";
         mvc.perform(get("/api/v1/estudiantes/carreras"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$[?(@ == 'Ingeniería Civil')]").isNotEmpty())
@@ -42,34 +43,38 @@ class EstudianteAuthTests {
         String registro = """
             {
               "numControl": "%s",
-              "nombres": "Ana",
-              "apellidos": "Prueba",
+              "nombres": "Ana María",
+              "apellidos": "Muñoz López",
               "carrera": "Ingeniería en Sistemas Computacionales",
-              "password": "ClaveSegura123"
+              "correo": "%s",
+              "password": "ClaveSegura123!"
             }
-            """.formatted(numControl);
+            """.formatted(numControl, correo);
 
         mvc.perform(post("/api/v1/estudiantes/registro")
                 .contentType(MediaType.APPLICATION_JSON).content(registro))
             .andExpect(status().isCreated())
             .andExpect(jsonPath("$.numControl").value(numControl))
-            .andExpect(jsonPath("$.nombre").value("Ana Prueba"))
+            .andExpect(jsonPath("$.nombre").value("Ana María Muñoz López"))
+            .andExpect(jsonPath("$.correo").value(correo))
             .andExpect(jsonPath("$.rol").value("ESTUDIANTE"))
             .andExpect(jsonPath("$.token").isNotEmpty());
 
         String storedHash = jdbc.queryForObject(
             "SELECT password_hash FROM estudiante WHERE numerocontrol = ?", String.class, numControl
         );
-        assertThat(storedHash).isNotEqualTo("ClaveSegura123");
-        assertThat(passwordEncoder.matches("ClaveSegura123", storedHash)).isTrue();
+        assertThat(storedHash).isNotEqualTo("ClaveSegura123!");
+        assertThat(passwordEncoder.matches("ClaveSegura123!", storedHash)).isTrue();
+        assertThat(jdbc.queryForObject("SELECT correo FROM estudiante WHERE numerocontrol = ?", String.class, numControl)).isEqualTo(correo);
 
         String sesion = """
-            {"numControl":"%s", "password":"ClaveSegura123"}
+            {"numControl":"%s", "password":"ClaveSegura123!"}
             """.formatted(numControl);
         mvc.perform(post("/api/v1/estudiantes/sesion")
                 .contentType(MediaType.APPLICATION_JSON).content(sesion))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.numControl").value(numControl))
+            .andExpect(jsonPath("$.correo").value(correo))
             .andExpect(jsonPath("$.token").isNotEmpty());
 
         mvc.perform(post("/api/v1/estudiantes/sesion")
@@ -85,5 +90,42 @@ class EstudianteAuthTests {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(registro.replace("Ingeniería en Sistemas Computacionales", "Carrera no registrada")))
             .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @Transactional
+    void registroAceptaOchoDigitosSinPrefijo() throws Exception {
+        String numControl = String.format("%08d", Math.abs(UUID.randomUUID().getMostSignificantBits() % 100000000));
+        mvc.perform(post("/api/v1/estudiantes/registro").contentType(MediaType.APPLICATION_JSON).content("""
+            {"numControl":"%s","nombres":"José","apellidos":"De la Cruz",
+             "carrera":"Ingeniería en Sistemas Computacionales","correo":"alumno@ejemplo.com",
+             "password":"Segura123!"}
+            """.formatted(numControl)))
+            .andExpect(status().isCreated())
+            .andExpect(jsonPath("$.numControl").value(numControl));
+    }
+
+    @Test
+    void registroRechazaDatosInvalidos() throws Exception {
+        String valido = """
+            {"numControl":"23160887","nombres":"José","apellidos":"De la Cruz",
+             "carrera":"Ingeniería en Sistemas Computacionales","correo":"alumno@ejemplo.com",
+             "password":"Segura123!"}
+            """;
+        for (String invalido : new String[] {
+            valido.replace("23160887", "2316088"),
+            valido.replace("23160887", "C2316088"),
+            valido.replace("José", "José1"),
+            valido.replace("De la Cruz", "Cruz2"),
+            valido.replace("alumno@ejemplo.com", "correo-invalido"),
+            valido.replace("\"correo\":\"alumno@ejemplo.com\",", ""),
+            valido.replace("Segura123!", "segura123!"),
+            valido.replace("Segura123!", "Segura123"),
+            valido.replace("Segura123!", "Seguraabc!"),
+            valido.replace("Segura123!", "SE GURA123!")
+        }) {
+            mvc.perform(post("/api/v1/estudiantes/registro").contentType(MediaType.APPLICATION_JSON).content(invalido))
+                .andExpect(status().isBadRequest());
+        }
     }
 }

@@ -1,4 +1,10 @@
 const studentIcons = {
+  mail: (
+    <>
+      <rect x="2" y="4" width="20" height="16" rx="2" />
+      <path d="m3 6 9 7 9-7" />
+    </>
+  ),
   'grad-cap': (
     <>
       <path d="M22 10 12 5 2 10l10 5 10-5Z" />

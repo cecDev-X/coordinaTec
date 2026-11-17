@@ -7,11 +7,13 @@ import mx.tecnm.oaxaca.coordinatec.dtos.InicioSesionEstudianteDTO;
 import mx.tecnm.oaxaca.coordinatec.dtos.RegistroEstudianteDTO;
 import mx.tecnm.oaxaca.coordinatec.repositories.EstudianteAuthRepository;
 import mx.tecnm.oaxaca.coordinatec.config.JwtService;
+import mx.tecnm.oaxaca.coordinatec.notifications.WelcomeEmailService;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.core.Authentication;
+import org.springframework.core.task.TaskRejectedException;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -31,11 +33,14 @@ public class EstudianteAuthController {
     private final EstudianteAuthRepository estudiantes;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
+    private final WelcomeEmailService welcomeEmailService;
 
-    public EstudianteAuthController(EstudianteAuthRepository estudiantes, PasswordEncoder passwordEncoder, JwtService jwtService) {
+    public EstudianteAuthController(EstudianteAuthRepository estudiantes, PasswordEncoder passwordEncoder,
+                                   JwtService jwtService, WelcomeEmailService welcomeEmailService) {
         this.estudiantes = estudiantes;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
+        this.welcomeEmailService = welcomeEmailService;
     }
 
     @GetMapping("/carreras")
@@ -56,6 +61,9 @@ public class EstudianteAuthController {
     @PostMapping("/registro")
     public ResponseEntity<?> registrar(@Valid @RequestBody RegistroEstudianteDTO request) {
         String numControl = request.numControl().trim();
+        if (!RegistroEstudianteDTO.esPasswordSegura(request.password())) {
+            return ResponseEntity.badRequest().body(Map.of("mensaje", "La contraseña debe tener entre 8 y 72 caracteres, minúscula, mayúscula, número y signo especial"));
+        }
         if (!estudiantes.existeCarrera(request.carrera().trim())) {
             return ResponseEntity.badRequest().body(Map.of("mensaje", "Selecciona una carrera válida"));
         }
@@ -72,7 +80,14 @@ public class EstudianteAuthController {
         }
 
         return estudiantes.buscarPorControl(numControl)
-            .<ResponseEntity<?>>map(cuenta -> ResponseEntity.status(HttpStatus.CREATED).body(perfil(cuenta)))
+            .<ResponseEntity<?>>map(cuenta -> {
+                try {
+                    welcomeEmailService.enviarBienvenida(cuenta.nombres(), cuenta.correo());
+                } catch (TaskRejectedException exception) {
+                    // La cuenta ya se guardó: no hacer que un fallo de la cola de correo invalide el registro.
+                }
+                return ResponseEntity.status(HttpStatus.CREATED).body(perfil(cuenta));
+            })
             .orElseGet(() -> ResponseEntity.internalServerError()
                 .body(Map.of("mensaje", "No se pudo recuperar la cuenta recién creada")));
     }
@@ -91,6 +106,7 @@ public class EstudianteAuthController {
             cuenta.numControl(),
             cuenta.nombres() + " " + cuenta.apellidos(),
             cuenta.carrera(),
+            cuenta.correo(),
             "ESTUDIANTE",
             jwtService.issue(cuenta.numControl(), "ESTUDIANTE")
         );

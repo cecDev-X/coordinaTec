@@ -49,6 +49,13 @@ function StudentProfilePage({ student, onNavigateTab, onLogout }) {
                   <strong className="student-profile__tile-value">{student.carrera}</strong>
                 </div>
               </div>
+              {student.correo && <div className="student-profile__info-tile">
+                <div className="student-profile__tile-icon"><StudentIcon name="mail" size={19} /></div>
+                <div className="student-profile__tile-body">
+                  <span className="student-profile__tile-label">CORREO ELECTRÓNICO</span>
+                  <strong className="student-profile__tile-value">{student.correo}</strong>
+                </div>
+              </div>}
             </div>
           </section>
 

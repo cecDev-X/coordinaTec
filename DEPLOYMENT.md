@@ -50,5 +50,25 @@ Para actualizar: `git pull` y repetir `up -d --build` con el mismo archivo de
 secretos. **No usar `down -v`**, pues eliminaría los datos. Programar copias de
 seguridad del volumen de PostgreSQL antes de publicar datos reales.
 
+## Correo de bienvenida (Resend)
+
+El registro estudiantil guarda la cuenta aunque falle el correo de bienvenida. Si
+`RESEND_API_KEY` no está definida, no intenta enviar mensajes. Para activar el envío:
+
+1. Verificar `correo.coordinatec.site` en Resend (registros DNS DKIM y SPF).
+2. Crear en Resend una API key con permiso de envío y limitarla al dominio verificado.
+3. Añadir a `.env.production` **solo en la VPS** (sin subir la clave al repositorio):
+
+   ```dotenv
+   RESEND_API_KEY=la-clave-generada-en-resend
+   COORDINATEC_MAIL_FROM="CoordinaTec <bienvenida@correo.coordinatec.site>"
+   ```
+
+4. Reconstruir y recrear el backend con el mismo comando de arranque de arriba.
+
+El envío se realiza en segundo plano; los fallos se registran en los logs del backend.
+No hay reintentos persistentes ni recuperación de correos pendientes tras reinicios.
+Verificar el dominio para **enviar** no habilita una bandeja para recibir respuestas.
+
 No habilitar `COORDINATEC_DEMO_USERS_ENABLED` en producción. El catálogo inicial
 puede estar vacío; agregar coordinadores y trámites desde el panel de Jefatura.

@@ -82,7 +82,7 @@ function StudentLoginPage({ onLoginSuccess, onGoToRegister }) {
                     type="text"
                     className="student-login__input"
                     name="identifier"
-                    placeholder="Ej. DEMO0001"
+                     placeholder="Número de control"
                     value={identifier}
                     maxLength={15}
                     inputMode="text"

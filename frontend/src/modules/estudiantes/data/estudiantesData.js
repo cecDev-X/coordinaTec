@@ -367,8 +367,8 @@ export function loginStudentApi(numControl, password) {
   return postStudentAuth('sesion', { numControl, password })
 }
 
-export function registerStudentApi({ numControl, nombres, apellidos, carrera, password }) {
-  return postStudentAuth('registro', { numControl, nombres, apellidos, carrera, password })
+export function registerStudentApi({ numControl, nombres, apellidos, carrera, correo, password }) {
+  return postStudentAuth('registro', { numControl, nombres: nombres.trim(), apellidos: apellidos.trim(), carrera, correo: correo.trim(), password })
 }
 
 export async function fetchCarrerasApi({ signal } = {}) {
