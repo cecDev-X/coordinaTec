@@ -20,6 +20,8 @@ const routeToHash = {
   login: '/login',
   'student-login': '/estudiante/login',
   'student-register': '/estudiante/registro',
+  'student-recovery': '/estudiante/recuperar',
+  'student-reset': '/estudiante/restablecer',
   'student-home': '/estudiante/inicio',
   'student-schedule': '/estudiante/agendar',
   'student-confirm': '/estudiante/confirmar',
@@ -40,6 +42,8 @@ function getRoute() {
   if (hash === '#/analitica') return 'dashboard'
   if (hash === '#/estudiante/login') return 'student-login'
   if (hash === '#/estudiante/registro') return 'student-register'
+  if (hash === '#/estudiante/recuperar') return 'student-recovery'
+  if (hash.startsWith('#/estudiante/restablecer?') || hash === '#/estudiante/restablecer') return 'student-reset'
   if (hash === '#/estudiante' || hash === '#/estudiante/inicio') return 'student-home'
   if (hash === '#/estudiante/agendar') return 'student-schedule'
   if (hash === '#/estudiante/confirmar') return 'student-confirm'
@@ -82,6 +86,8 @@ function App() {
       login: 'Iniciar sesión',
       'student-login': 'Portal Estudiantil - Iniciar sesión',
       'student-register': 'Portal Estudiantil - Crear cuenta',
+      'student-recovery': 'Portal Estudiantil - Recuperar contraseña',
+      'student-reset': 'Portal Estudiantil - Nueva contraseña',
       'student-home': 'Inicio y Trámites | Estudiante',
       'student-schedule': 'Agendar Cita | Estudiante',
       'student-confirm': 'Detalle de Trámite | Estudiante',

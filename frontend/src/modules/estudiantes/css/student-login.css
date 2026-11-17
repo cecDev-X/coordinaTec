@@ -282,6 +282,29 @@
   font-size: 0.75rem;
 }
 
+.student-register__plain-input.is-invalid,
+.student-register__plain-input.is-invalid:focus {
+  border-color: #dc2626;
+  background-color: #fff5f5;
+}
+
+.student-register__hint--error,
+.student-register__rules li.is-invalid {
+  color: #b91c1c;
+  font-weight: 600;
+}
+
+.student-register__rules {
+  color: #475569;
+  font-size: 0.77rem;
+  line-height: 1.5;
+}
+
+.student-register__rules ul {
+  margin: 5px 0 0;
+  padding-left: 18px;
+}
+
 .student-login__notice {
   margin: 14px 0 0;
   padding: 10px 12px;

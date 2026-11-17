@@ -11,7 +11,7 @@ function currentCycleLabel(date = new Date()) {
   return `Agosto - Diciembre ${year}`
 }
 
-function StudentLoginPage({ onLoginSuccess, onGoToRegister }) {
+function StudentLoginPage({ onLoginSuccess, onGoToRegister, onRecoverPassword }) {
   const [identifier, setIdentifier] = useState('')
   const [password, setPassword] = useState('')
   const [rememberMe, setRememberMe] = useState(false)
@@ -137,7 +137,7 @@ function StudentLoginPage({ onLoginSuccess, onGoToRegister }) {
                 <button
                   type="button"
                   className="student-login__forgot"
-                  onClick={() => setNotice('La recuperación de contraseña estará disponible al integrar la autenticación institucional.')}
+                   onClick={onRecoverPassword}
                 >
                   ¿Olvidaste tu contraseña?
                 </button>

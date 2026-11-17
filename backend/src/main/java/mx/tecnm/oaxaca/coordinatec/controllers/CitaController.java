@@ -10,12 +10,18 @@ import mx.tecnm.oaxaca.coordinatec.repositories.CatalogoConsultaRepository;
 import mx.tecnm.oaxaca.coordinatec.repositories.CitaRepository;
 import mx.tecnm.oaxaca.coordinatec.repositories.DisponibilidadRepository;
 import mx.tecnm.oaxaca.coordinatec.repositories.CarreraTramiteRepository;
+import mx.tecnm.oaxaca.coordinatec.notifications.CitaConfirmationEmailService;
+import mx.tecnm.oaxaca.coordinatec.repositories.CitaConsultaRepository.ConfirmacionCita;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.core.Authentication;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.util.List;
 import java.util.Map;
@@ -25,6 +31,7 @@ import java.util.UUID;
 @RequestMapping("/api/v1/citas")
 @CrossOrigin(origins = "http://localhost:5173")
 public class CitaController {
+    private static final Logger log = LoggerFactory.getLogger(CitaController.class);
 
     @Autowired
     private CitaRepository citaRepository;
@@ -40,6 +47,9 @@ public class CitaController {
 
     @Autowired
     private CarreraTramiteRepository carreraTramiteRepository;
+
+    @Autowired
+    private CitaConfirmationEmailService citaEmailService;
 
     @GetMapping
     public List<CitaResumenDTO> listarCitas() {
@@ -98,9 +108,37 @@ public class CitaController {
         cita.setEstado("PROGRAMADA");
 
         // Guarda la entidad directamente en la Base de Datos
-        CitaEntity nuevaCita = citaRepository.save(cita);
+        CitaEntity nuevaCita = citaRepository.saveAndFlush(cita);
+
+        try {
+            citaConsultaRepository.obtenerConfirmacion(nuevaCita.getFolio()).ifPresent(confirmacion -> {
+                if (confirmacion.correo() == null || confirmacion.correo().isBlank()) return;
+                if (TransactionSynchronizationManager.isActualTransactionActive()
+                    && TransactionSynchronizationManager.isSynchronizationActive()) {
+                    TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                        @Override
+                        public void afterCommit() {
+                            enviarConfirmacion(confirmacion);
+                        }
+                    });
+                } else {
+                    enviarConfirmacion(confirmacion);
+                }
+            });
+        } catch (RuntimeException exception) {
+            // La cita ya se guardó. Un fallo de notificación no debe cambiar la respuesta a error.
+            log.warn("La cita se guardó, pero no se pudo programar el correo de confirmación", exception);
+        }
 
         return ResponseEntity.status(HttpStatus.CREATED).body(nuevaCita);
+    }
+
+    private void enviarConfirmacion(ConfirmacionCita confirmacion) {
+        try {
+            citaEmailService.enviarConfirmacion(confirmacion);
+        } catch (RuntimeException exception) {
+            log.warn("La cita se guardó, pero no se pudo poner en cola el correo de confirmación", exception);
+        }
     }
 
     @GetMapping("/{folio}")

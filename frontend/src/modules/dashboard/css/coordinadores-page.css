@@ -17,6 +17,10 @@
 .coordinadores-form > label { display: grid; gap: 7px; color: #435670; font-size: .82rem; font-weight: 700; }
 .coordinadores-form > label input { width: 100%; min-height: 42px; padding: 9px 11px; border: 1px solid #d5dfeb; border-radius: 8px; color: #243958; font: inherit; font-size: .86rem; font-weight: 400; outline: none; transition: border-color .15s, box-shadow .15s; }
 .coordinadores-form > label input:focus { border-color: #6b91c3; box-shadow: 0 0 0 3px #315b911a; }
+.coordinadores-form > label input.is-invalid, .jefas-form input.is-invalid { border-color: #dc2626; background: #fff5f5; }
+.coordinadores-form__invalid, .coordinadores-page .student-register__rules li.is-invalid { color: #b91c1c; }
+.coordinadores-page .student-register__rules { color: #475569; font-size: .76rem; font-weight: 400; }
+.coordinadores-page .student-register__rules ul { margin: 4px 0 0; padding-left: 18px; }
 .coordinadores-form__careers { min-width: 0; margin: 0; padding: 13px; border: 1px solid #e2eaf2; border-radius: 9px; }
 .coordinadores-form__careers legend { padding: 0 5px; color: #435670; font-size: .82rem; font-weight: 700; }
 .coordinadores-form__careers > p { margin: 0 0 11px; color: #718096; font-size: .77rem; }

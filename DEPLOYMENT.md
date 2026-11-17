@@ -70,5 +70,18 @@ El envío se realiza en segundo plano; los fallos se registran en los logs del b
 No hay reintentos persistentes ni recuperación de correos pendientes tras reinicios.
 Verificar el dominio para **enviar** no habilita una bandeja para recibir respuestas.
 
+Al registrar una cita, también se manda al estudiante un correo de confirmación
+con folio, trámite, fecha, horario y nombre de la persona coordinadora. Solo se
+intenta si la cita quedó guardada y el estudiante tiene correo registrado.
+La cita sigue confirmada aunque falle la notificación (no hay reintento automático).
+
+La recuperación de contraseña usa el mismo servicio de Resend. El estudiante solicita
+un enlace desde el inicio de sesión y recibe un token aleatorio de un solo uso que
+vence en 30 minutos. El token solo se almacena como hash en PostgreSQL; se limita
+la solicitud a una por cuenta cada 5 minutos y no se revela si el correo existe.
+Las cuentas antiguas sin correo registrado deberán añadirlo mediante Jefatura antes
+de poder usar la recuperación. Tras restablecer una contraseña, las sesiones JWT
+existentes siguen vigentes hasta su vencimiento (máximo 8 horas).
+
 No habilitar `COORDINATEC_DEMO_USERS_ENABLED` en producción. El catálogo inicial
 puede estar vacío; agregar coordinadores y trámites desde el panel de Jefatura.

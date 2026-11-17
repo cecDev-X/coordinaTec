@@ -36,7 +36,7 @@ public class SecurityConfig {
             .httpBasic(basic -> basic.disable())
             .formLogin(form -> form.disable())
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/error", "/api/v1/auth/login", "/api/v1/estudiantes/registro", "/api/v1/estudiantes/sesion", "/api/v1/estudiantes/carreras", "/api/v1/coordinadores/departamentos/**").permitAll()
+                .requestMatchers("/error", "/api/v1/auth/login", "/api/v1/estudiantes/registro", "/api/v1/estudiantes/sesion", "/api/v1/estudiantes/carreras", "/api/v1/estudiantes/recuperacion/**", "/api/v1/coordinadores/departamentos/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/tramites/**", "/api/v1/coordinadores/*/disponibilidad").permitAll()
                 .requestMatchers("/api/v1/estudiantes/**", "/api/v1/citas/estudiantes/**").hasRole("ESTUDIANTE")
                 .requestMatchers("/api/v1/catalogos/**").hasAnyRole("ESTUDIANTE", "COORDINADOR", "JEFE_COORDINADORES")

@@ -5,6 +5,9 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.Optional;
 
 @Repository
 public class CitaConsultaRepository {
@@ -74,6 +77,28 @@ public class CitaConsultaRepository {
         return Boolean.TRUE.equals(jdbc.queryForObject("SELECT EXISTS (SELECT 1 FROM cita WHERE estudiante_numerocontrol = ? AND folio = ?)",
             Boolean.class, numControl, folio));
     }
+
+    public Optional<ConfirmacionCita> obtenerConfirmacion(String folio) {
+        return jdbc.query("""
+            SELECT c.folio, c.fecha_programada, c.hora_inicio, c.hora_fin,
+                   e.nombres, e.correo, t.nombre AS tramite, co.nombre_completo AS coordinador
+            FROM cita c
+            JOIN estudiante e ON e.numerocontrol = c.estudiante_numerocontrol
+            JOIN formato f ON f.folio = c.formato_folio
+            JOIN tramite t ON t.id = f.tramite_id
+            JOIN coordinador co ON co.rfc = c.coordinador_rfc
+            WHERE c.folio = ? AND c.estado = 'PROGRAMADA'
+            """, (rs, row) -> new ConfirmacionCita(
+                rs.getString("folio"), rs.getString("nombres"), rs.getString("correo"),
+                rs.getString("tramite"), rs.getString("coordinador"),
+                rs.getObject("fecha_programada", LocalDate.class),
+                rs.getObject("hora_inicio", LocalTime.class),
+                rs.getObject("hora_fin", LocalTime.class)
+            ), folio).stream().findFirst();
+    }
+
+    public record ConfirmacionCita(String folio, String nombres, String correo, String tramite,
+                                   String coordinador, LocalDate fecha, LocalTime horaInicio, LocalTime horaFin) {}
 
     private List<CitaResumenDTO> query(String sql, Object... params) {
         return jdbc.query(sql, (rs, row) -> new CitaResumenDTO(

@@ -371,6 +371,18 @@ export function registerStudentApi({ numControl, nombres, apellidos, carrera, co
   return postStudentAuth('registro', { numControl, nombres: nombres.trim(), apellidos: apellidos.trim(), carrera, correo: correo.trim(), password })
 }
 
+export function requestPasswordResetApi(correo) {
+  return postStudentAuth('recuperacion/solicitar', { correo: correo.trim() })
+}
+
+export function validatePasswordResetApi(token) {
+  return postStudentAuth('recuperacion/validar', { token })
+}
+
+export function confirmPasswordResetApi(token, password) {
+  return postStudentAuth('recuperacion/confirmar', { token, password })
+}
+
 export async function fetchCarrerasApi({ signal } = {}) {
   const response = await fetch(`${API_BASE_URL}/estudiantes/carreras`, { signal })
   if (!response.ok) throw new Error('No se pudieron consultar las carreras.')

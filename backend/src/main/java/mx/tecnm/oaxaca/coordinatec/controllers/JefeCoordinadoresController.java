@@ -126,6 +126,10 @@ public class JefeCoordinadoresController {
     @PostMapping
     @Transactional
     public ResponseEntity<?> crearCoordinador(@Valid @RequestBody CrearCoordinadorDTO request) {
+        if (!nombreValido(request.nombreCompleto())) return ResponseEntity.badRequest()
+            .body(Map.of("mensaje", "El nombre solo puede contener letras y espacios"));
+        if (!RegistroEstudianteDTO.esPasswordSegura(request.password())) return ResponseEntity.badRequest()
+            .body(Map.of("mensaje", "La contraseña necesita minúscula, mayúscula, número y carácter especial"));
         String rfc = request.rfc().trim().toUpperCase();
         List<String> carreras = request.carreras().stream().map(String::trim).distinct().toList();
         if (carreras.isEmpty() || carreras.stream().anyMatch(String::isEmpty)) {
@@ -157,9 +161,11 @@ public class JefeCoordinadoresController {
 
     @PostMapping("/jefas")
     public ResponseEntity<?> crearJefa(@Valid @RequestBody CrearJefaCoordinadoresDTO request) {
+        if (!RegistroEstudianteDTO.esPasswordSegura(request.password())) return ResponseEntity.badRequest()
+            .body(Map.of("mensaje", "La contraseña necesita minúscula, mayúscula, número y carácter especial"));
         String username = request.username().trim();
         String nombre = request.nombreCompleto().trim();
-        if (nombre.isEmpty()) return ResponseEntity.badRequest().body(Map.of("mensaje", "El nombre completo es obligatorio"));
+        if (!nombreValido(nombre)) return ResponseEntity.badRequest().body(Map.of("mensaje", "El nombre solo puede contener letras y espacios"));
         boolean existe = Boolean.TRUE.equals(jdbc.queryForObject("""
             SELECT EXISTS (SELECT 1 FROM jefe_coordinadores WHERE lower(username) = lower(?))
                 OR EXISTS (SELECT 1 FROM coordinador WHERE lower(username) = lower(?))
@@ -180,7 +186,7 @@ public class JefeCoordinadoresController {
         String key = rfc.trim().toUpperCase();
         String nombre = String.valueOf(request.getOrDefault("nombreCompleto", "")).trim();
         Object carrerasValue = request.get("carreras");
-        if (nombre.isEmpty() || nombre.length() > 150 || !(carrerasValue instanceof List<?> rawCarreras) || rawCarreras.isEmpty()) {
+        if (nombre.length() > 150 || !nombreValido(nombre) || !(carrerasValue instanceof List<?> rawCarreras) || rawCarreras.isEmpty()) {
             return ResponseEntity.badRequest().body(Map.of("mensaje", "Nombre y al menos una carrera son obligatorios"));
         }
         List<String> carreras = rawCarreras.stream().map(String::valueOf).map(String::trim).distinct().toList();
@@ -193,7 +199,8 @@ public class JefeCoordinadoresController {
         jdbc.update("UPDATE coordinador SET nombre_completo = ? WHERE rfc = ?", nombre, key);
         Object password = request.get("password");
         if (password instanceof String value && !value.isBlank()) {
-            if (value.length() < 8 || value.length() > 72) return ResponseEntity.badRequest().body(Map.of("mensaje", "La contraseña debe tener entre 8 y 72 caracteres"));
+            if (!RegistroEstudianteDTO.esPasswordSegura(value)) return ResponseEntity.badRequest()
+                .body(Map.of("mensaje", "La contraseña necesita minúscula, mayúscula, número y carácter especial"));
             jdbc.update("UPDATE coordinador SET password_hash = ? WHERE rfc = ?", passwordEncoder.encode(value), key);
         }
         jdbc.update("DELETE FROM coordinador_carrera WHERE coordinador_rfc = ?", key);
@@ -246,7 +253,9 @@ public class JefeCoordinadoresController {
         String carrera = request.getOrDefault("carrera", "").trim();
         String correo = request.getOrDefault("correo", "").trim();
         String password = request.getOrDefault("password", "");
-        if (nombres.isEmpty() || nombres.length() > 100 || apellidos.isEmpty() || apellidos.length() > 100) {
+        if (nombres.length() > 100 || apellidos.length() > 100
+            || !nombres.matches("[\\p{L}\\p{M}]+(?: [\\p{L}\\p{M}]+)*")
+            || !apellidos.matches("[\\p{L}\\p{M}]+(?: [\\p{L}\\p{M}]+)*")) {
             return ResponseEntity.badRequest().body(Map.of("mensaje", "Nombres y apellidos son obligatorios (máximo 100 caracteres)"));
         }
         if (!Boolean.TRUE.equals(jdbc.queryForObject("SELECT EXISTS (SELECT 1 FROM carrera WHERE nombre = ?)", Boolean.class, carrera))) {
@@ -274,5 +283,9 @@ public class JefeCoordinadoresController {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("mensaje", "No se puede eliminar: el alumno tiene citas registradas"));
         }
         return ResponseEntity.noContent().build();
+    }
+
+    private boolean nombreValido(String nombre) {
+        return nombre != null && nombre.trim().matches("[\\p{L}\\p{M}]+(?: [\\p{L}\\p{M}]+)*");
     }
 }

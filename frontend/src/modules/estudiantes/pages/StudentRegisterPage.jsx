@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import StudentIcon from '../components/StudentIcon.jsx'
 import { fetchCarrerasApi, registerStudentApi } from '../data/estudiantesData.js'
+import { nameIsValid, passwordIsValid } from '../data/registroValidation.js'
+import PasswordRules from '../components/PasswordRules.jsx'
 import '../css/student-login.css'
 
 function currentCycleLabel(date = new Date()) {
@@ -17,6 +19,7 @@ function StudentRegisterPage({ onRegisterSuccess, onBackToLogin }) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [carreras, setCarreras] = useState([])
   const [loadingCarreras, setLoadingCarreras] = useState(true)
+  const [touched, setTouched] = useState({})
 
   useEffect(() => {
     const controller = new AbortController()
@@ -34,20 +37,22 @@ function StudentRegisterPage({ onRegisterSuccess, onBackToLogin }) {
   function updateField(event) {
     const { name, value } = event.target
     setForm((current) => ({ ...current, [name]: name === 'numControl' ? value.toUpperCase() : value }))
+    setTouched((current) => ({ ...current, [name]: true }))
   }
 
   async function handleSubmit(event) {
     event.preventDefault()
     setNotice('')
+    setTouched({ numControl: true, nombres: true, apellidos: true, correo: true, password: true, confirmPassword: true })
     if (!/^(?:\d{8}|C\d{8})$/.test(form.numControl)) {
       setNotice('El número de control debe tener 8 dígitos o C seguida de 8 dígitos.')
       return
     }
-    if (![form.nombres, form.apellidos].every((value) => /^[\p{L}\p{M}]+(?: [\p{L}\p{M}]+)*$/u.test(value.trim()))) {
+    if (![form.nombres, form.apellidos].every(nameIsValid)) {
       setNotice('El nombre y los apellidos solo pueden contener letras y espacios.')
       return
     }
-    if (form.password.length < 8 || form.password.length > 72 || !/[a-z]/.test(form.password) || !/[A-Z]/.test(form.password) || !/\d/.test(form.password) || !/[^A-Za-z0-9\s]/.test(form.password)) {
+    if (!passwordIsValid(form.password)) {
       setNotice('La contraseña debe tener entre 8 y 72 caracteres e incluir minúscula, mayúscula, número y signo especial.')
       return
     }
@@ -95,11 +100,13 @@ function StudentRegisterPage({ onRegisterSuccess, onBackToLogin }) {
               </label>
               <label className="student-login__field-group">
                 <span className="student-login__label">Nombre(s) <span className="student-login__req">*</span></span>
-                <input className="student-login__input student-register__plain-input" name="nombres" value={form.nombres} onChange={updateField} maxLength={100} autoComplete="given-name" required />
+                 <input className={`student-login__input student-register__plain-input ${touched.nombres && form.nombres && !nameIsValid(form.nombres) ? 'is-invalid' : ''}`} aria-invalid={Boolean(touched.nombres && form.nombres && !nameIsValid(form.nombres))} name="nombres" value={form.nombres} onChange={updateField} maxLength={100} autoComplete="given-name" required />
+                 {touched.nombres && form.nombres && !nameIsValid(form.nombres) && <span className="student-register__hint student-register__hint--error">Solo se permiten letras y espacios, sin números ni signos.</span>}
               </label>
               <label className="student-login__field-group">
                 <span className="student-login__label">Apellidos <span className="student-login__req">*</span></span>
-                <input className="student-login__input student-register__plain-input" name="apellidos" value={form.apellidos} onChange={updateField} maxLength={100} autoComplete="family-name" required />
+                 <input className={`student-login__input student-register__plain-input ${touched.apellidos && form.apellidos && !nameIsValid(form.apellidos) ? 'is-invalid' : ''}`} aria-invalid={Boolean(touched.apellidos && form.apellidos && !nameIsValid(form.apellidos))} name="apellidos" value={form.apellidos} onChange={updateField} maxLength={100} autoComplete="family-name" required />
+                 {touched.apellidos && form.apellidos && !nameIsValid(form.apellidos) && <span className="student-register__hint student-register__hint--error">Solo se permiten letras y espacios, sin números ni signos.</span>}
               </label>
               <label className="student-login__field-group">
                 <span className="student-login__label">Carrera <span className="student-login__req">*</span></span>
@@ -115,12 +122,13 @@ function StudentRegisterPage({ onRegisterSuccess, onBackToLogin }) {
               </label>
               <label className="student-login__field-group">
                 <span className="student-login__label">Contraseña <span className="student-login__req">*</span></span>
-                <input className="student-login__input student-register__plain-input" type="password" name="password" value={form.password} onChange={updateField} minLength={8} maxLength={72} autoComplete="new-password" required />
-                <span className="student-register__hint">Mínimo 8 caracteres: minúscula, mayúscula, número y signo especial.</span>
+                 <input className={`student-login__input student-register__plain-input ${touched.password && form.password && !passwordIsValid(form.password) ? 'is-invalid' : ''}`} aria-invalid={Boolean(touched.password && form.password && !passwordIsValid(form.password))} type="password" name="password" value={form.password} onChange={updateField} minLength={8} maxLength={72} autoComplete="new-password" required />
+                 <PasswordRules password={form.password} showErrors={touched.password} />
               </label>
               <label className="student-login__field-group">
                 <span className="student-login__label">Confirmar contraseña <span className="student-login__req">*</span></span>
-                <input className="student-login__input student-register__plain-input" type="password" name="confirmPassword" value={form.confirmPassword} onChange={updateField} minLength={8} maxLength={72} autoComplete="new-password" required />
+                 <input className={`student-login__input student-register__plain-input ${touched.confirmPassword && form.confirmPassword && form.confirmPassword !== form.password ? 'is-invalid' : ''}`} aria-invalid={Boolean(touched.confirmPassword && form.confirmPassword && form.confirmPassword !== form.password)} type="password" name="confirmPassword" value={form.confirmPassword} onChange={updateField} minLength={8} maxLength={72} autoComplete="new-password" required />
+                 {touched.confirmPassword && form.confirmPassword && form.confirmPassword !== form.password && <span className="student-register__hint student-register__hint--error">Las contraseñas no coinciden.</span>}
               </label>
               <button type="submit" className="student-login__submit" disabled={isSubmitting || loadingCarreras || carreras.length === 0}>
                 <span>{isSubmitting ? 'CREANDO CUENTA...' : 'CREAR CUENTA'}</span><StudentIcon name="arrow-right" size={19} />

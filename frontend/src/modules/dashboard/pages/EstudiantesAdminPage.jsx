@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import CareerSelection from '../components/CareerSelection.jsx'
+import PasswordRules from '../../estudiantes/components/PasswordRules.jsx'
+import { nameIsValid, passwordIsValid } from '../../estudiantes/data/registroValidation.js'
 import '../css/estudiantes-admin-page.css'
 
 function EstudiantesAdminPage({ token, role, username }) {
@@ -14,6 +16,7 @@ function EstudiantesAdminPage({ token, role, username }) {
   const [formOpen, setFormOpen] = useState(false)
   const [message, setMessage] = useState('')
   const [saving, setSaving] = useState(false)
+  const [fieldValues, setFieldValues] = useState({})
 
   useEffect(() => {
     const controller = new AbortController()
@@ -57,9 +60,17 @@ function EstudiantesAdminPage({ token, role, username }) {
 
   async function submitStudent(event) {
     event.preventDefault()
-    setSaving(true)
     setMessage('')
     const data = new FormData(event.currentTarget)
+    if (!nameIsValid(data.get('nombres')) || !nameIsValid(data.get('apellidos'))) {
+      setMessage('Nombres y apellidos solo pueden contener letras y espacios.')
+      return
+    }
+    if ((!editing || data.get('password')) && !passwordIsValid(data.get('password'))) {
+      setMessage('La contraseña necesita minúscula, mayúscula, número y carácter especial (mínimo 8 caracteres).')
+      return
+    }
+    setSaving(true)
     const payload = {
       numControl: data.get('numControl'), nombres: data.get('nombres'), apellidos: data.get('apellidos'),
       carrera: data.get('carrera'), correo: data.get('correo'), password: data.get('password'),
@@ -125,13 +136,13 @@ function EstudiantesAdminPage({ token, role, username }) {
       <section className="admin-students__directory" aria-labelledby="admin-students-list-title">
         <header className="admin-students__directory-heading">
           <div><h2 id="admin-students-list-title">Directorio de alumnos</h2><p>{loading ? 'Cargando registros…' : `${filteredStudents.length} alumnos`}</p></div>
-          {role === 'JEFE_COORDINADORES' && <button type="button" className="admin-students__add" onClick={() => { setEditing(null); setFormOpen(true) }}>＋ Agregar alumno</button>}
+           {role === 'JEFE_COORDINADORES' && <button type="button" className="admin-students__add" onClick={() => { setEditing(null); setFieldValues({}); setFormOpen(true) }}>＋ Agregar alumno</button>}
           <label className="admin-students__search"><span className="sr-only">Buscar alumno</span><input type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar por nombre, control o carrera" /></label>
         </header>
         {error ? <p className="admin-students__feedback" role="alert">{error}</p> : loading ? <p className="admin-students__feedback" role="status">Cargando alumnos…</p> : filteredStudents.length === 0 ? <p className="admin-students__feedback">{students.length ? 'No se encontraron alumnos con esa búsqueda.' : 'No hay alumnos registrados para mostrar.'}</p> : (
           <div className="admin-students__table-wrap"><table>
             <thead><tr><th>Nombre completo</th><th>Número de control</th><th>Carrera</th>{role === 'JEFE_COORDINADORES' && <th>Acciones</th>}</tr></thead>
-            <tbody>{filteredStudents.map((student) => <tr key={student.numControl}><td>{student.nombre}</td><td>{student.numControl}</td><td>{student.carrera}</td>{role === 'JEFE_COORDINADORES' && <td><button type="button" onClick={() => { setEditing(student); setFormOpen(true) }}>Editar</button>{' '}<button type="button" onClick={() => deleteStudent(student)}>Eliminar</button></td>}</tr>)}</tbody>
+             <tbody>{filteredStudents.map((student) => <tr key={student.numControl}><td>{student.nombre}</td><td>{student.numControl}</td><td>{student.carrera}</td>{role === 'JEFE_COORDINADORES' && <td><button type="button" onClick={() => { setEditing(student); setFieldValues({}); setFormOpen(true) }}>Editar</button>{' '}<button type="button" onClick={() => deleteStudent(student)}>Eliminar</button></td>}</tr>)}</tbody>
           </table></div>
         )}
       </section>
@@ -139,11 +150,11 @@ function EstudiantesAdminPage({ token, role, username }) {
       {formOpen && <div className="admin-students__modal-backdrop"><form className="admin-students__form" onSubmit={submitStudent}>
         <h2>{editing ? 'Editar alumno' : 'Agregar alumno'}</h2>
         <label>Número de control<input name="numControl" defaultValue={editing?.numControl || ''} pattern="(?:[0-9]{8}|C[0-9]{8})" maxLength="9" title="8 dígitos o C seguida de 8 dígitos" required disabled={Boolean(editing)} /></label>
-        <label>Nombres<input name="nombres" defaultValue={editing?.nombres || ''} maxLength="100" required /></label>
-        <label>Apellidos<input name="apellidos" defaultValue={editing?.apellidos || ''} maxLength="100" required /></label>
+         <label>Nombres<input name="nombres" defaultValue={editing?.nombres || ''} onChange={(event) => setFieldValues((current) => ({ ...current, nombres: event.target.value }))} className={fieldValues.nombres && !nameIsValid(fieldValues.nombres) ? 'is-invalid' : ''} maxLength="100" required />{fieldValues.nombres && !nameIsValid(fieldValues.nombres) && <small className="admin-students__invalid">Solo letras y espacios, sin números.</small>}</label>
+         <label>Apellidos<input name="apellidos" defaultValue={editing?.apellidos || ''} onChange={(event) => setFieldValues((current) => ({ ...current, apellidos: event.target.value }))} className={fieldValues.apellidos && !nameIsValid(fieldValues.apellidos) ? 'is-invalid' : ''} maxLength="100" required />{fieldValues.apellidos && !nameIsValid(fieldValues.apellidos) && <small className="admin-students__invalid">Solo letras y espacios, sin números.</small>}</label>
         <label>Carrera<select name="carrera" defaultValue={editing?.carrera || selectedCareer || careers[0] || ''} required>{careers.map((career) => <option key={career} value={career}>{career}</option>)}</select></label>
         <label>Correo electrónico<input name="correo" type="email" defaultValue={editing?.correo || ''} maxLength="254" required={!editing} /></label>
-        <label>{editing ? 'Nueva contraseña (opcional)' : 'Contraseña'}<input name="password" type="password" minLength="8" maxLength="72" required={!editing} /></label>
+         <label>{editing ? 'Nueva contraseña (opcional)' : 'Contraseña'}<input name="password" type="password" minLength="8" maxLength="72" onChange={(event) => setFieldValues((current) => ({ ...current, password: event.target.value }))} className={fieldValues.password && !passwordIsValid(fieldValues.password) ? 'is-invalid' : ''} required={!editing} /><PasswordRules password={fieldValues.password || ''} showErrors={Boolean(fieldValues.password)} /></label>
         <footer><button type="button" onClick={() => { setFormOpen(false); setEditing(null) }} disabled={saving}>Cancelar</button><button type="submit" disabled={saving}>{saving ? 'Guardando…' : 'Guardar'}</button></footer>
       </form></div>}
     </section>

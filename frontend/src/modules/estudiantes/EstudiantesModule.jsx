@@ -11,6 +11,8 @@ import {
 } from './data/estudiantesData.js'
 import StudentLoginPage from './pages/StudentLoginPage.jsx'
 import StudentRegisterPage from './pages/StudentRegisterPage.jsx'
+import StudentRecoveryPage from './pages/StudentRecoveryPage.jsx'
+import StudentResetPage from './pages/StudentResetPage.jsx'
 import StudentHomePage from './pages/StudentHomePage.jsx'
 import StudentSchedulePage from './pages/StudentSchedulePage.jsx'
 import StudentConfirmPage from './pages/StudentConfirmPage.jsx'
@@ -62,7 +64,7 @@ function EstudiantesModule({ route, onNavigate }) {
   // Carga datos del estudiante y las colecciones mostradas en Inicio desde el backend.
   useEffect(() => {
     let mounted = true
-    if (route === 'student-login' || route === 'student-register') {
+    if (['student-login', 'student-register', 'student-recovery', 'student-reset'].includes(route)) {
       return () => { mounted = false }
     }
 
@@ -200,6 +202,7 @@ function EstudiantesModule({ route, onNavigate }) {
       <StudentLoginPage
         onLoginSuccess={handleLoginSuccess}
         onGoToRegister={() => onNavigate('student-register')}
+        onRecoverPassword={() => onNavigate('student-recovery')}
       />
     )
   }
@@ -211,6 +214,14 @@ function EstudiantesModule({ route, onNavigate }) {
         onBackToLogin={() => onNavigate('student-login')}
       />
     )
+  }
+
+  if (route === 'student-recovery') {
+    return <StudentRecoveryPage onBackToLogin={() => onNavigate('student-login')} />
+  }
+
+  if (route === 'student-reset') {
+    return <StudentResetPage onBackToLogin={() => onNavigate('student-login')} onRequestNew={() => onNavigate('student-recovery')} />
   }
 
   if (isLoadingPortal || !student) {
