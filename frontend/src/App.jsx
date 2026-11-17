@@ -119,7 +119,6 @@ function App() {
       <EstudiantesModule
         route={route}
         onNavigate={navigateTo}
-        onLogoutToAdmin={() => navigateTo('login')}
       />
     )
   }

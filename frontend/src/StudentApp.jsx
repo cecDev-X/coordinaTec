@@ -32,7 +32,6 @@ function StudentApp() {
   return <EstudiantesModule
     route={route}
     onNavigate={navigate}
-    onLogoutToAdmin={() => { window.location.href = 'https://admin.coordinatec.site/#/login' }}
   />
 }
 

@@ -11,7 +11,7 @@ function currentCycleLabel(date = new Date()) {
   return `Agosto - Diciembre ${year}`
 }
 
-function StudentLoginPage({ onLoginSuccess, onSwitchToAdmin, onGoToRegister }) {
+function StudentLoginPage({ onLoginSuccess, onGoToRegister }) {
   const [identifier, setIdentifier] = useState('')
   const [password, setPassword] = useState('')
   const [rememberMe, setRememberMe] = useState(false)
@@ -51,12 +51,12 @@ function StudentLoginPage({ onLoginSuccess, onSwitchToAdmin, onGoToRegister }) {
             <div className="student-login__banner-text">
               <span className="student-login__banner-kicker">TECNM · ITO</span>
               <h1 className="student-login__banner-title">Portal Estudiantil</h1>
-              <div className="student-login__cycle-badge">
-                <span className="student-login__cycle-dot" aria-hidden="true" />
-                <span>Ciclo {currentCycleLabel()}</span>
-              </div>
             </div>
             <img className="student-login__tecnm-logo" src="/tecnm.webp" alt="Tecnológico Nacional de México" />
+            <div className="student-login__cycle-badge">
+              <span className="student-login__cycle-dot" aria-hidden="true" />
+              <span>Ciclo {currentCycleLabel()}</span>
+            </div>
           </header>
 
           {/* Tarjeta Principal de Login */}
@@ -165,17 +165,6 @@ function StudentLoginPage({ onLoginSuccess, onSwitchToAdmin, onGoToRegister }) {
             )}
           </section>
 
-          <footer className="student-login__footer">
-            {onSwitchToAdmin && (
-              <button
-                type="button"
-                className="student-login__switch-role"
-                onClick={onSwitchToAdmin}
-              >
-                Acceso Coordinación
-              </button>
-            )}
-          </footer>
         </div>
       </div>
     </div>

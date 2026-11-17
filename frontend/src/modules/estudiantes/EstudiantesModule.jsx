@@ -18,7 +18,7 @@ import StudentCitasPage from './pages/StudentCitasPage.jsx'
 import StudentProfilePage from './pages/StudentProfilePage.jsx'
 import './css/estudiantes-layout.css'
 
-function EstudiantesModule({ route, onNavigate, onLogoutToAdmin }) {
+function EstudiantesModule({ route, onNavigate }) {
   const [student, setStudent] = useState(null)
   const [selectedTramite, setSelectedTramite] = useState(null)
   const [selectedDayId, setSelectedDayId] = useState(null)
@@ -199,7 +199,6 @@ function EstudiantesModule({ route, onNavigate, onLogoutToAdmin }) {
     return (
       <StudentLoginPage
         onLoginSuccess={handleLoginSuccess}
-        onSwitchToAdmin={onLogoutToAdmin}
         onGoToRegister={() => onNavigate('student-register')}
       />
     )
