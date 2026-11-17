@@ -43,6 +43,18 @@ public class DisponibilidadRepository {
     }
 
     public void guardarHorarios(String rfc, List<HorarioRequestDTO> horarios) {
+        // Una cita requiere un formato_folio. Crearlo al habilitar el trámite evita que
+        // el estudiante vea el día pero no pueda consultar ni reservar ninguna hora.
+        for (Long tramiteId : horarios.stream().flatMap(h -> h.tramiteIds().stream()).distinct().toList()) {
+            jdbc.update("""
+                INSERT INTO formato (folio, asunto, tipo_tramite, observaciones, tramite_id)
+                SELECT 'AUTO-TRAMITE-' || t.id, LEFT(t.nombre, 150), LEFT(t.nombre, 100),
+                       'Formato generado automáticamente para agendar citas', t.id
+                FROM tramite t
+                WHERE t.id = ? AND NOT EXISTS (SELECT 1 FROM formato f WHERE f.tramite_id = t.id)
+                ON CONFLICT (folio) DO NOTHING
+                """, tramiteId);
+        }
         jdbc.update("DELETE FROM horario WHERE coordinador_rfc = ?", rfc);
         for (HorarioRequestDTO horario : horarios) {
             Integer horarioId = jdbc.queryForObject("""
