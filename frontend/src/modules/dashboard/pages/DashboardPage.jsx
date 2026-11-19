@@ -42,10 +42,6 @@ function DashboardPage({ onLogout, onNavigate, page = 'dashboard', role, usernam
     else setNotice(`La sección ${label} estará disponible próximamente.`)
   }
 
-  function handleAction(label) {
-    setNotice(`La vista de ${label.toLowerCase()} estará disponible próximamente.`)
-  }
-
   let content
   if (page === 'tramites') content = <TramitesPage token={token} role={role} />
   else if (page === 'agenda') content = <AgendaPage onAction={setNotice} token={token} role={role} username={username} />
@@ -79,7 +75,8 @@ function DashboardPage({ onLogout, onNavigate, page = 'dashboard', role, usernam
             if (compact) setMenuOpen((open) => !open)
             else setSidebarCollapsed((collapsed) => !collapsed)
           }}
-          onAction={handleAction}
+          token={token}
+          onNavigateToCitas={() => onNavigate('citas')}
         />
         <main className={`dashboard__content${page !== 'dashboard' ? ` dashboard__content--${page}` : ''}`}>
           {content}

@@ -1,6 +1,6 @@
 import '../css/citas-table.css'
 
-function CitasTable({ rows, total, page, pageCount, onPageChange, onMarkAttended, onEdit, onDelete, canManage, updatingFolio, emptyMessage }) {
+function CitasTable({ rows, total, page, pageCount, onPageChange, onMarkAttended, onMarkNoShow, onCancel, onEdit, canManage, updatingFolio, emptyMessage }) {
   return (
     <section className="citas-table" aria-label="Citas actuales registradas">
       <p className="citas-table__mobile-hint">Desliza la tabla para ver todas las columnas →</p>
@@ -43,10 +43,9 @@ function CitasTable({ rows, total, page, pageCount, onPageChange, onMarkAttended
                 <td className="citas-table__actions-cell">
                   {canManage && <>
                     <button type="button" className="citas-table__action" onClick={() => onEdit(cita.folio)}>Editar</button>{' '}
-                    <button type="button" className="citas-table__action" onClick={() => onDelete(cita.folio)} disabled={updatingFolio !== null}>Eliminar</button>{' '}
-                  </>}
+                   </>}
                   {cita.estado === 'PROGRAMADA' ? (
-                    <button
+                    <><button
                       type="button"
                       className="citas-table__action"
                       aria-label={`Marcar atendida la cita ${cita.folio} de ${cita.nombre}`}
@@ -54,7 +53,11 @@ function CitasTable({ rows, total, page, pageCount, onPageChange, onMarkAttended
                       onClick={() => onMarkAttended(cita.folio)}
                     >
                       {updatingFolio === cita.folio ? 'Guardando...' : 'Marcar atendida'}
-                    </button>
+                    </button>{' '}
+                    <button type="button" className="citas-table__action" disabled={updatingFolio !== null}
+                      onClick={() => onMarkNoShow(cita.folio)}>No asistió</button>{' '}
+                    <button type="button" className="citas-table__action" disabled={updatingFolio !== null}
+                      onClick={() => onCancel(cita.folio)}>Cancelar</button></>
                   ) : <span aria-label="Sin acciones disponibles">—</span>}
                 </td>
               </tr>

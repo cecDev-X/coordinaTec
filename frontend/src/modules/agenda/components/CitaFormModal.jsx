@@ -144,6 +144,7 @@ function CitaFormModal({ onClose, onCreated, token, role, username, defaultCoord
         throw new Error(result.mensaje || 'No se pudo guardar la cita. Revisa los datos e intenta de nuevo.')
       }
 
+      if (!initialCitation) window.dispatchEvent(new Event('cita-agendada'))
       onCreated(result)
     } catch (error) {
       setSubmitError(error.message || 'No se pudo guardar la cita. Intenta de nuevo.')

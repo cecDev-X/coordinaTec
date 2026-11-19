@@ -1,3 +1,4 @@
+import { useRef } from 'react'
 import StudentTopbar from '../components/StudentTopbar.jsx'
 import StudentBottomNav from '../components/StudentBottomNav.jsx'
 import StudentIcon from '../components/StudentIcon.jsx'
@@ -10,6 +11,13 @@ function StudentHomePage({
   onSelectTramite,
   onNavigateTab,
 }) {
+  const catalogRef = useRef(null)
+
+  function goToCatalog() {
+    catalogRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    catalogRef.current?.focus({ preventScroll: true })
+  }
+
   return (
     <div className="student-shell">
       <div className="student-shell__viewport">
@@ -35,6 +43,21 @@ function StudentHomePage({
             </p>
           </section>
 
+          <section className="student-home__booking" aria-labelledby="booking-heading">
+            <div className="student-home__booking-icon" aria-hidden="true">
+              <StudentIcon name="calendar-clock" size={27} />
+            </div>
+            <div className="student-home__booking-content">
+              <span className="student-home__booking-kicker">AGENDA CON TU COORDINACIÓN</span>
+              <h2 id="booking-heading">¿Necesitas una cita?</h2>
+              <p>Elige el trámite que necesitas, selecciona una fecha y confirma tu horario.</p>
+              <button type="button" className="student-home__booking-button" onClick={goToCatalog} disabled={!tramites.length}>
+                {tramites.length ? 'Solicitar cita' : 'No hay trámites disponibles'}
+                {tramites.length > 0 && <StudentIcon name="arrow-right" size={17} />}
+              </button>
+            </div>
+          </section>
+
           {/* Información registrada para este estudiante */}
           <section className="student-home__enrollment-card" aria-label="Información de matrícula">
             <div className="student-home__enrollment-left">
@@ -53,18 +76,20 @@ function StudentHomePage({
           </section>
 
           {/* Catálogo de Trámites */}
-          <section className="student-home__catalog" aria-labelledby="select-tramite-heading">
+          <section className="student-home__catalog" aria-labelledby="select-tramite-heading" ref={catalogRef} tabIndex={-1}>
             <div className="student-home__section-header">
               <div className="student-home__section-title-wrap">
                 <span className="student-home__section-dot" aria-hidden="true" />
                 <h2 id="select-tramite-heading" className="student-home__section-title">
-                  Selecciona tu Trámite
+                  1. Selecciona el trámite para tu cita
                 </h2>
               </div>
               <span className="student-home__section-count">{tramites.length} disponibles</span>
             </div>
+            <p className="student-home__catalog-hint">Toca un trámite para continuar con la selección de fecha y horario.</p>
 
             <div className="student-home__tramites-list">
+              {tramites.length === 0 && <p className="student-home__empty">No hay trámites habilitados para tu carrera por el momento.</p>}
               {tramites.map((tramite) => (
                 <button
                   key={tramite.id}
@@ -100,6 +125,7 @@ function StudentHomePage({
                         </span>
                       </div>
                     ) : null}
+                    <span className="student-home__tramite-action">Elegir y agendar cita <StudentIcon name="arrow-right" size={14} /></span>
                   </div>
 
                   <span className="student-home__tramite-chevron" aria-hidden="true">

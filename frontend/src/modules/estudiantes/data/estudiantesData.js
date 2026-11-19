@@ -447,3 +447,12 @@ export async function fetchCitasEstudianteApi(numControl) {
   if (!response.ok) throw new Error(`No se pudieron consultar tus citas (${response.status}).`)
   return response.json()
 }
+
+export async function cancelStudentCitaApi(folio) {
+  const response = await fetch(`${API_BASE_URL}/citas/${encodeURIComponent(folio)}/cancelar`, {
+    method: 'PATCH', headers: studentHeaders(),
+  })
+  const result = await response.json().catch(() => ({}))
+  if (!response.ok) throw new Error(result.mensaje || 'No se pudo cancelar la cita. Intenta de nuevo.')
+  return result
+}

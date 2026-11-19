@@ -49,6 +49,28 @@ class CitaConfirmationEmailServiceTests {
     }
 
     @Test
+    void enviaCancelacionConDatosYEscapaElNombre() throws Exception {
+        AtomicReference<String> body = new AtomicReference<>();
+        HttpServer server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
+        server.createContext("/emails", exchange -> {
+            body.set(new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8));
+            exchange.sendResponseHeaders(200, -1);
+            exchange.close();
+        });
+        server.start();
+        try {
+            new CitaConfirmationEmailService("clave-prueba", "CoordinaTec <bienvenida@correo.coordinatec.site>",
+                "http://127.0.0.1:" + server.getAddress().getPort() + "/emails").enviarCancelacion(cita);
+            JsonNode json = new ObjectMapper().readTree(body.get());
+            assertThat(json.get("subject").asText()).contains("Cita cancelada", "FOL-PRUEBA");
+            assertThat(json.get("text").asText()).contains("ha sido cancelada", "Cambio de Carrera", "10:00–10:20", "Coordinadora de Sistemas");
+            assertThat(json.get("html").asText()).contains("Ana &lt;script&gt;").doesNotContain("Ana <script>");
+        } finally {
+            server.stop(0);
+        }
+    }
+
+    @Test
     void sinClaveOSinCorreoNoIntentaEnviarYUnFalloNoLanzaExcepcion() throws Exception {
         CitaConfirmationEmailService disabled = new CitaConfirmationEmailService("", "Remitente <mail@ejemplo.com>", "http://127.0.0.1:1/emails");
         assertThatCode(() -> disabled.enviarConfirmacion(cita)).doesNotThrowAnyException();

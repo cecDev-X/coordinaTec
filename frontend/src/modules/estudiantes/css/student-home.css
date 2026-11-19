@@ -60,6 +60,55 @@
   font-weight: 700;
 }
 
+/* Acceso principal a la reserva: explica el primer paso antes del catálogo. */
+.student-home__booking {
+  display: flex;
+  align-items: flex-start;
+  gap: 18px;
+  padding: 22px;
+  border-radius: 20px;
+  background: linear-gradient(125deg, #152e6a, #2453a5);
+  color: #fff;
+  box-shadow: 0 12px 28px rgba(22, 57, 131, .2);
+}
+.student-home__booking-icon {
+  display: grid;
+  flex-shrink: 0;
+  width: 52px;
+  height: 52px;
+  place-items: center;
+  border-radius: 15px;
+  background: rgba(255, 255, 255, .15);
+}
+.student-home__booking-content { min-width: 0; }
+.student-home__booking-kicker { font-size: .69rem; font-weight: 800; letter-spacing: .09em; color: #c9ddff; }
+.student-home__booking h2 { margin: 5px 0 7px; font-size: 1.25rem; line-height: 1.2; }
+.student-home__booking p { margin: 0 0 15px; color: #e1ebff; font-size: .87rem; line-height: 1.5; }
+.student-home__booking-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  min-height: 43px;
+  padding: 9px 17px;
+  border: 0;
+  border-radius: 10px;
+  background: #fff;
+  color: #173b88;
+  font: inherit;
+  font-size: .88rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+.student-home__booking-button:hover { background: #eaf1ff; }
+.student-home__booking-button:focus-visible, .student-home__tramite-card:focus-visible { outline: 3px solid #fbbf24; outline-offset: 3px; }
+.student-home__booking-button:disabled { opacity: .75; cursor: not-allowed; }
+@media (max-width: 520px) {
+  .student-home__booking { gap: 12px; padding: 18px; }
+  .student-home__booking-icon { width: 42px; height: 42px; }
+  .student-home__booking-button { width: 100%; }
+}
+
 /* TARJETA DE MATRÍCULA */
 .student-home__enrollment-card {
   background: #ffffff;
@@ -199,7 +248,10 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
+  scroll-margin-top: 20px;
 }
+.student-home__catalog:focus { outline: none; }
+.student-home__catalog-hint { margin: -3px 0 2px; color: #475569; font-size: .83rem; line-height: 1.45; }
 
 .student-home__section-header {
   display: flex;
@@ -259,6 +311,8 @@
   box-shadow: 0 6px 18px rgba(29, 78, 216, 0.08);
   transform: translateY(-1px);
 }
+.student-home__tramite-card { cursor: pointer; }
+.student-home__tramite-action { display: inline-flex; align-items: center; gap: 5px; margin-top: 5px; color: #1d4ed8; font-size: .77rem; font-weight: 800; }
 
 .student-home__tramite-icon {
   width: 48px;

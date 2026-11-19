@@ -141,6 +141,35 @@ public class CitaController {
         }
     }
 
+    @PatchMapping("/{folio}/cancelar")
+    public ResponseEntity<?> cancelarCita(@PathVariable String folio, Authentication authentication) {
+        boolean estudiante = tieneRol(authentication, "ESTUDIANTE");
+        if (estudiante && !citaConsultaRepository.estudianteTieneCita(authentication.getName(), folio)
+            || tieneRol(authentication, "COORDINADOR") && !citaConsultaRepository.coordinadorTieneCita(authentication.getName(), folio)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("mensaje", "No tienes acceso a esta cita"));
+        }
+        ConfirmacionCita datos = null;
+        try {
+            datos = citaConsultaRepository.obtenerConfirmacion(folio).orElse(null);
+        } catch (RuntimeException exception) {
+            log.warn("No se pudieron consultar los datos para el correo de cancelación", exception);
+        }
+        if (citaRepository.cancelar(folio, estudiante ? authentication.getName() : null) == 0) {
+            if (!citaRepository.existsById(folio)) return ResponseEntity.notFound().build();
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("mensaje", estudiante
+                ? "Solo puedes cancelar citas programadas con más de una hora de anticipación."
+                : "La cita ya no está programada o su horario ya comenzó."));
+        }
+        if (datos != null && datos.correo() != null && !datos.correo().isBlank()) {
+            try {
+                citaEmailService.enviarCancelacion(datos);
+            } catch (RuntimeException exception) {
+                log.warn("La cita se canceló, pero no se pudo poner en cola el correo de cancelación", exception);
+            }
+        }
+        return ResponseEntity.ok(Map.of("folio", folio, "estado", "CANCELADA"));
+    }
+
     @GetMapping("/{folio}")
     public ResponseEntity<?> obtenerDetalleCita(@PathVariable String folio, Authentication authentication) {
         if (tieneRol(authentication, "ESTUDIANTE") && !citaConsultaRepository.estudianteTieneCita(authentication.getName(), folio)
@@ -169,22 +198,24 @@ public class CitaController {
             && !citaConsultaRepository.coordinadorTieneCita(authentication.getName(), folio)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("mensaje", "No tienes acceso a esta cita"));
         }
-        if (!"ATENDIDA".equals(request.estado())) {
-            return ResponseEntity.badRequest().body(Map.of("mensaje", "Solo se permite marcar una cita como ATENDIDA"));
+        if (!"ATENDIDA".equals(request.estado()) && !"NO_ASISTIO".equals(request.estado())) {
+            return ResponseEntity.badRequest().body(Map.of("mensaje", "Solo se permite marcar una cita como ATENDIDA o NO_ASISTIO"));
         }
 
-        if (citaRepository.marcarAtendida(folio) == 0) {
+        int actualizadas = "NO_ASISTIO".equals(request.estado())
+            ? citaRepository.marcarNoAsistio(folio) : citaRepository.marcarAtendida(folio);
+        if (actualizadas == 0) {
             if (!citaRepository.existsById(folio)) {
                 return ResponseEntity.notFound().build();
             }
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("mensaje", "La cita ya no está PROGRAMADA"));
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("mensaje", "La cita ya no está PROGRAMADA o aún no termina su horario"));
         }
 
         return citaRepository.findByFolio(folio)
                 .map(cita -> ResponseEntity.ok(Map.of(
                     "folio", folio,
                     "estado", cita.getEstado(),
-                    "fechaAtencion", cita.getFechaAtencion()
+                    "fechaAtencion", cita.getFechaAtencion() == null ? "" : cita.getFechaAtencion()
                 )))
                 .orElse(ResponseEntity.notFound().build());
     }

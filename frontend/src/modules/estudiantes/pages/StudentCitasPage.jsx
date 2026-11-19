@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import StudentTopbar from '../components/StudentTopbar.jsx'
 import StudentBottomNav from '../components/StudentBottomNav.jsx'
 import StudentIcon from '../components/StudentIcon.jsx'
@@ -10,8 +10,19 @@ function StudentCitasPage({
   historialCitas,
   onNavigateTab,
   onNewCitaClick,
+  onCancelCita,
+  cancelingFolio,
+  cancelNotice,
 }) {
   const [filterTab, setFilterTab] = useState('actuales') // 'todas' | 'actuales'
+  const [currentTime, setCurrentTime] = useState(null)
+
+  useEffect(() => {
+    const update = () => setCurrentTime(Date.now())
+    update()
+    const interval = window.setInterval(update, 60000)
+    return () => window.clearInterval(interval)
+  }, [])
 
   const totalCount = proximasCitas.length + historialCitas.length
   const actualesCount = proximasCitas.length
@@ -41,6 +52,10 @@ function StudentCitasPage({
             </div>
           </div>
         </div>
+        {cita.estadoDb === 'PROGRAMADA' && currentTime !== null && new Date(`${cita.fecha}T${cita.horaTexto}:00`).getTime() > currentTime + 60 * 60 * 1000 &&
+          <button type="button" className="student-citas__cancel" disabled={cancelingFolio !== null} onClick={() => onCancelCita(cita.folio)}>
+            {cancelingFolio === cita.folio ? 'Cancelando…' : 'Cancelar cita'}
+          </button>}
       </article>
     )
   }
@@ -76,6 +91,8 @@ function StudentCitasPage({
           </section>
 
           {/* Filtros / Tabs */}
+          <p className="student-citas__cancel-hint">Puedes cancelar una cita hasta una hora antes de su inicio.</p>
+          {cancelNotice && <p role="status" className="student-citas__cancel-feedback">{cancelNotice}</p>}
           <div className="student-citas__tabs" role="tablist" aria-label="Filtrar citas">
             <button
               type="button"

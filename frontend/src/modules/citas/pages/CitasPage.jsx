@@ -16,6 +16,7 @@ function formatDate(value) {
 
 function formatStatus(value) {
   if (!value) return 'Sin estado'
+  if (value === 'NO_ASISTIO') return 'No asistió'
   const text = value.toLocaleLowerCase('es')
   return text[0].toLocaleUpperCase('es') + text.slice(1)
 }
@@ -139,15 +140,32 @@ function CitasPage({ role, username, token }) {
     }
   }
 
-  async function handleDelete(folio) {
-    if (!window.confirm(`¿Eliminar la cita ${folio}? Esta acción no se puede deshacer.`)) return
+  async function handleCancel(folio) {
+    if (!window.confirm(`¿Cancelar la cita ${folio}? Se notificará al estudiante por correo si lo tiene registrado.`)) return
     setUpdatingFolio(folio)
     setActionError('')
     try {
-      const response = await fetch(`/api/v1/citas/${encodeURIComponent(folio)}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } })
-      if (!response.ok) throw new Error(response.status === 404 ? 'La cita ya no existe.' : 'No se pudo eliminar la cita.')
-      setCitas((current) => current.filter((cita) => cita.folio !== folio))
-      setActionMessage(`La cita ${folio} fue eliminada.`)
+      const response = await fetch(`/api/v1/citas/${encodeURIComponent(folio)}/cancelar`, { method: 'PATCH', headers: { Authorization: `Bearer ${token}` } })
+      const result = await response.json().catch(() => ({}))
+      if (!response.ok) throw new Error(result.mensaje || 'No se pudo cancelar la cita.')
+      setCitas((current) => current.map((cita) => cita.folio === folio ? { ...cita, estado: result.estado } : cita))
+      setActionMessage(`La cita ${folio} fue cancelada.`)
+    } catch (cause) { setActionError(cause.message) } finally { setUpdatingFolio(null) }
+  }
+
+  async function handleNoShow(folio) {
+    if (!window.confirm(`¿Marcar la cita ${folio} como "No asistió"?`)) return
+    setUpdatingFolio(folio)
+    setActionError('')
+    try {
+      const response = await fetch(`/api/v1/citas/${encodeURIComponent(folio)}/estado`, {
+        method: 'PATCH', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ estado: 'NO_ASISTIO' }),
+      })
+      const result = await response.json().catch(() => ({}))
+      if (!response.ok) throw new Error(result.mensaje || 'Solo puedes marcar la inasistencia cuando terminó el horario de la cita.')
+      setCitas((current) => current.map((cita) => cita.folio === folio ? { ...cita, estado: result.estado } : cita))
+      setActionMessage(`La cita ${folio} se marcó como "No asistió".`)
     } catch (cause) { setActionError(cause.message) } finally { setUpdatingFolio(null) }
   }
 
@@ -202,7 +220,8 @@ function CitasPage({ role, username, token }) {
             onMarkAttended={handleMarkAttended}
             canManage={role === 'JEFE_COORDINADORES'}
             onEdit={handleEdit}
-            onDelete={handleDelete}
+            onCancel={handleCancel}
+            onMarkNoShow={handleNoShow}
             updatingFolio={updatingFolio}
             emptyMessage={citas.length === 0 ? 'No hay citas registradas.' : 'No se encontraron citas con esos filtros.'}
           />

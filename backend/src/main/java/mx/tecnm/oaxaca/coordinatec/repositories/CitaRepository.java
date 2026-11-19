@@ -29,4 +29,25 @@ public interface CitaRepository extends JpaRepository<CitaEntity, String> {
     @Query("UPDATE CitaEntity c SET c.estado = 'ATENDIDA', c.fechaAtencion = CURRENT_TIMESTAMP " +
         "WHERE c.folio = :folio AND c.estado = 'PROGRAMADA'")
     int marcarAtendida(@Param("folio") String folio);
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Transactional
+    @Query(value = """
+        UPDATE cita SET estado = 'CANCELADA'
+        WHERE folio = :folio AND estado = 'PROGRAMADA'
+          AND (:control IS NULL OR estudiante_numerocontrol = :control)
+          AND (fecha_programada + hora_inicio) >
+              (CURRENT_TIMESTAMP AT TIME ZONE 'America/Mexico_City' +
+               CASE WHEN :control IS NULL THEN INTERVAL '0 hours' ELSE INTERVAL '1 hour' END)
+        """, nativeQuery = true)
+    int cancelar(@Param("folio") String folio, @Param("control") String control);
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Transactional
+    @Query(value = """
+        UPDATE cita SET estado = 'NO_ASISTIO'
+        WHERE folio = :folio AND estado = 'PROGRAMADA'
+          AND (fecha_programada + hora_fin) <= (CURRENT_TIMESTAMP AT TIME ZONE 'America/Mexico_City')
+        """, nativeQuery = true)
+    int marcarNoAsistio(@Param("folio") String folio);
 }

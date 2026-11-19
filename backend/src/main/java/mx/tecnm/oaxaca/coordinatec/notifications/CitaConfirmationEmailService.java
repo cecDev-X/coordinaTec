@@ -110,6 +110,65 @@ public class CitaConfirmationEmailService {
         }
     }
 
+    @Async("welcomeMailExecutor")
+    public void enviarCancelacion(ConfirmacionCita cita) {
+        if (apiKey.isBlank() || cita.correo() == null || cita.correo().isBlank()) return;
+        String fecha = cita.fecha().format(FECHA);
+        String horario = cita.horaInicio().format(HORA) + "–" + cita.horaFin().format(HORA);
+        try {
+            String body = mapper.writeValueAsString(Map.of(
+                "from", sender,
+                "to", List.of(cita.correo()),
+                "subject", "Cita cancelada · " + cita.folio() + " | CoordinaTec",
+                "text", """
+                    Hola, %s:
+
+                    Tu cita ha sido cancelada. Ya no debes acudir en la fecha y horario indicados.
+
+                    Folio: %s
+                    Trámite: %s
+                    Fecha: %s
+                    Horario: %s
+                    Coordinación: %s
+
+                    Si necesitas otra cita, puedes agendarla en https://coordinatec.site
+
+                    Equipo CoordinaTec
+                    """.formatted(cita.nombres(), cita.folio(), cita.tramite(), fecha, horario, cita.coordinador()),
+                "html", """
+                    <!doctype html><html lang="es"><head><meta charset="utf-8"></head>
+                    <body style="padding:24px;background:#f1f5fb;font-family:Arial,Helvetica,sans-serif;color:#1c2d49;">
+                      <div style="max-width:600px;margin:auto;background:white;border-radius:16px;overflow:hidden;">
+                        <div style="padding:28px;background:#203a70;color:white;"><h1 style="margin:0;font-size:24px;">Tu cita fue cancelada</h1></div>
+                        <div style="padding:28px;line-height:1.6;">
+                          <p>Hola, <strong>%s</strong>. Tu cita ha sido cancelada. Ya no debes acudir en la fecha y horario indicados.</p>
+                          <p><strong>Folio:</strong> %s<br><strong>Trámite:</strong> %s<br><strong>Fecha:</strong> %s<br>
+                          <strong>Horario:</strong> %s<br><strong>Coordinación:</strong> %s</p>
+                          <p>Si necesitas otra cita, <a href="https://coordinatec.site">puedes agendarla aquí</a>.</p>
+                        </div>
+                      </div>
+                    </body></html>
+                    """.formatted(escapar(cita.nombres()), escapar(cita.folio()), escapar(cita.tramite()),
+                    escapar(fecha), escapar(horario), escapar(cita.coordinador()))
+            ));
+            HttpRequest request = HttpRequest.newBuilder(endpoint)
+                .timeout(Duration.ofSeconds(5))
+                .header("Authorization", "Bearer " + apiKey)
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(body))
+                .build();
+            HttpResponse<Void> response = client.send(request, HttpResponse.BodyHandlers.discarding());
+            if (response.statusCode() < 200 || response.statusCode() >= 300) {
+                log.warn("No se pudo enviar la cancelación de la cita: Resend respondió HTTP {}", response.statusCode());
+            }
+        } catch (InterruptedException exception) {
+            Thread.currentThread().interrupt();
+            log.warn("Se interrumpió el envío de cancelación de cita");
+        } catch (Exception exception) {
+            log.warn("No se pudo enviar la cancelación de la cita: {}", exception.getMessage());
+        }
+    }
+
     private static String escapar(String value) {
         return value.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
             .replace("\"", "&quot;").replace("'", "&#39;");

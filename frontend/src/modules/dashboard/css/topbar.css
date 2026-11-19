@@ -87,8 +87,9 @@
   top: 0;
   right: 0;
   display: grid;
-  width: 15px;
+  min-width: 15px;
   height: 15px;
+  padding: 0 2px;
   place-items: center;
   border-radius: 50%;
   color: #fff;
@@ -96,6 +97,61 @@
   font-size: 10px;
   font-weight: 700;
 }
+
+.dashboard-topbar__notifications { position: relative; }
+.dashboard-topbar__icon-button { cursor: pointer; }
+.dashboard-topbar__notification-panel {
+  position: absolute;
+  z-index: 30;
+  top: calc(100% + 12px);
+  right: 0;
+  width: min(380px, calc(100vw - 28px));
+  max-height: min(480px, calc(100dvh - 90px));
+  overflow: auto;
+  border: 1px solid #dce4ef;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 14px 35px #17295b29;
+}
+.dashboard-topbar__notification-panel header {
+  position: sticky;
+  top: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-bottom: 1px solid #e4eaf3;
+  background: #fff;
+  color: #213b79;
+}
+.dashboard-topbar__notification-panel header button {
+  border: 0;
+  background: none;
+  color: #28498d;
+  font: inherit;
+  font-size: .8rem;
+  cursor: pointer;
+}
+.dashboard-topbar__notification-feedback { margin: 0; padding: 16px; color: #526683; font-size: .85rem; }
+.dashboard-topbar__notification-list { display: grid; }
+.dashboard-topbar__notification-item {
+  display: grid;
+  gap: 5px;
+  width: 100%;
+  padding: 13px 16px;
+  border: 0;
+  border-bottom: 1px solid #edf1f6;
+  background: #fff;
+  color: #526683;
+  font: inherit;
+  font-size: .81rem;
+  text-align: left;
+  cursor: pointer;
+}
+.dashboard-topbar__notification-item:hover { background: #f0f5fd; }
+.dashboard-topbar__notification-item--new { background: #f5f8ff; }
+.dashboard-topbar__notification-item strong { color: #213b79; font-size: .86rem; }
+.dashboard-topbar__notification-item small { color: #697b98; }
 
 .dashboard-topbar__profile {
   display: flex;
@@ -160,6 +216,7 @@
   .dashboard-topbar {
     padding: 0 14px;
   }
+  .dashboard-topbar__notification-panel { position: fixed; top: 58px; right: 14px; }
 }
 
 @media (max-width: 480px) {

@@ -75,6 +75,19 @@ con folio, trámite, fecha, horario y nombre de la persona coordinadora. Solo se
 intenta si la cita quedó guardada y el estudiante tiene correo registrado.
 La cita sigue confirmada aunque falle la notificación (no hay reintento automático).
 
+Si el estudiante o coordinación cancela una cita programada, se conserva con
+estado `CANCELADA`, se libera el horario y se envía un correo al estudiante con
+los datos de la reserva. El estudiante solo puede cancelarla con más de una hora
+de anticipación (hora de Oaxaca); coordinación y Jefatura pueden cancelar hasta
+antes de su inicio. La inasistencia (`NO_ASISTIO`) solo puede marcarse después
+de que termine la cita. Un fallo del correo no revierte la cancelación.
+
+La campana del panel muestra las citas nuevas de la coordinación asignada y de
+Jefatura. Las notificaciones se guardan en PostgreSQL mediante la migración V15,
+se actualizan cada 30 segundos mientras el panel está abierto y dejan de contar
+como pendientes cuando el destinatario las abre. Las citas anteriores a V15 no
+generan notificaciones retroactivas.
+
 La recuperación de contraseña usa el mismo servicio de Resend. El estudiante solicita
 un enlace desde el inicio de sesión y recibe un token aleatorio de un solo uso que
 vence en 30 minutos. El token solo se almacena como hash en PostgreSQL; se limita

@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react'
 import {
   buildScheduleWeeks,
   createCitaApi,
+  cancelStudentCitaApi,
   fetchCitasEstudianteApi,
   fetchCitaCatalogosApi,
   fetchDisponibilidadApi,
@@ -37,6 +38,8 @@ function EstudiantesModule({ route, onNavigate }) {
   const [isLoadingPortal, setIsLoadingPortal] = useState(true)
   const [portalError, setPortalError] = useState('')
   const [isSubmittingCita, setIsSubmittingCita] = useState(false)
+  const [cancelingFolio, setCancelingFolio] = useState(null)
+  const [cancelNotice, setCancelNotice] = useState('')
 
   const semanas = useMemo(() => {
     const allowedBlocks = selectedTramite
@@ -197,6 +200,23 @@ function EstudiantesModule({ route, onNavigate }) {
     }
   }
 
+  async function handleCancelCita(folio) {
+    if (!window.confirm(`¿Cancelar la cita ${folio}? Esta acción no se puede deshacer.`)) return
+    setCancelNotice('')
+    setCancelingFolio(folio)
+    try {
+      await cancelStudentCitaApi(folio)
+      setCancelNotice(`La cita ${folio} fue cancelada.`)
+      applyCitas(await fetchCitasEstudianteApi(student.numControl))
+    } catch (error) {
+      setCancelNotice(error.message || 'No se pudo cancelar la cita.')
+      // Recargar la lista si la cancelación se guardó, pero falló la consulta posterior.
+      try { applyCitas(await fetchCitasEstudianteApi(student.numControl)) } catch { /* mostrar el error original */ }
+    } finally {
+      setCancelingFolio(null)
+    }
+  }
+
   if (route === 'student-login') {
     return (
       <StudentLoginPage
@@ -281,6 +301,9 @@ function EstudiantesModule({ route, onNavigate }) {
         historialCitas={historialCitas}
         onNavigateTab={onNavigate}
         onNewCitaClick={() => onNavigate('student-schedule')}
+        onCancelCita={handleCancelCita}
+        cancelingFolio={cancelingFolio}
+        cancelNotice={cancelNotice}
       />
     )
   }
@@ -345,6 +368,7 @@ function mapCitaFromDatabase(cita) {
     ATENDIDA: 'Atendida',
     RECHAZADA: 'Rechazada',
     CANCELADA: 'Cancelada',
+    NO_ASISTIO: 'No asistió',
   }
   return {
     id: cita.folio,
@@ -354,8 +378,9 @@ function mapCitaFromDatabase(cita) {
     estado: statusLabels[cita.estado] || cita.estado,
     tipoEstado: cita.estado === 'PROGRAMADA' || cita.estado === 'PENDIENTE'
       ? 'confirmada'
-      : cita.estado === 'ATENDIDA' ? 'atendida' : cita.estado === 'RECHAZADA' ? 'rechazada' : 'pendiente',
+      : cita.estado === 'ATENDIDA' ? 'atendida' : ['RECHAZADA', 'CANCELADA', 'NO_ASISTIO'].includes(cita.estado) ? 'rechazada' : 'pendiente',
     fechaTexto: formatCitaDate(cita.fecha),
+    fecha: cita.fecha,
     horaTexto: cita.horaInicio?.slice(0, 5) || '',
   }
 }
