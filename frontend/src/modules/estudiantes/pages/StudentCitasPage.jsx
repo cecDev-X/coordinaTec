@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import StudentTopbar from '../components/StudentTopbar.jsx'
 import StudentBottomNav from '../components/StudentBottomNav.jsx'
 import StudentIcon from '../components/StudentIcon.jsx'
+import StudentAssistant from '../components/StudentAssistant.jsx'
 import '../css/student-citas.css'
 
 function StudentCitasPage({
@@ -155,6 +156,7 @@ function StudentCitasPage({
         </main>
 
         <StudentBottomNav activeTab="student-citas" onNavigate={onNavigateTab} />
+        <StudentAssistant onNavigate={onNavigateTab} />
       </div>
     </div>
   )

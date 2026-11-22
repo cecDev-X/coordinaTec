@@ -1,0 +1,21 @@
+.student-assistant { position: fixed; z-index: 55; bottom: calc(78px + env(safe-area-inset-bottom, 0px)); left: 50%; width: min(520px, 100%); transform: translateX(-50%); pointer-events: none; }
+.student-assistant__launcher { display: block; margin-left: auto; margin-right: 14px; padding: 12px 16px; border: 0; border-radius: 999px; background: #173b88; color: #fff; box-shadow: 0 6px 20px #0d255c55; font: inherit; font-size: .83rem; font-weight: 800; cursor: pointer; pointer-events: auto; }
+.student-assistant__launcher:hover { background: #0d255c; }
+.student-assistant__panel { display: flex; flex-direction: column; height: min(520px, calc(100dvh - 175px)); margin: 0 12px 10px; border: 1px solid #dbe4f3; border-radius: 16px; background: #fff; box-shadow: 0 16px 40px #0d255c44; overflow: hidden; pointer-events: auto; }
+.student-assistant__header { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; background: #173b88; color: #fff; }
+.student-assistant__header strong, .student-assistant__header small { display: block; }
+.student-assistant__header small { margin-top: 2px; color: #dbe9ff; font-size: .73rem; }
+.student-assistant__header button { border: 0; background: transparent; color: #fff; font-size: 1.1rem; cursor: pointer; }
+.student-assistant__conversation { flex: 1; overflow-y: auto; padding: 12px; font-size: .84rem; line-height: 1.5; }
+.student-assistant__conversation p { max-width: 90%; margin: 0 0 10px; padding: 9px 12px; border-radius: 12px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.student-assistant__question { margin-left: auto !important; background: #e0e9ff; color: #0d255c; }
+.student-assistant__reply { background: #f2f4f8; color: #243958; }
+.student-assistant__error { margin: 0; padding: 6px 12px; color: #b91c1c; font-size: .78rem; }
+.student-assistant__form { padding: 8px 12px 0; border-top: 1px solid #e4e9f2; }
+.student-assistant__label { display: block; margin-bottom: 4px; font-size: .75rem; font-weight: 700; }
+.student-assistant__form-row { display: flex; gap: 6px; }
+.student-assistant__form input { flex: 1; min-width: 0; padding: 9px; border: 1px solid #cbd5e1; border-radius: 8px; font: inherit; }
+.student-assistant__form-row button { padding: 8px 12px; border: 0; border-radius: 8px; background: #173b88; color: #fff; font: inherit; font-weight: 700; cursor: pointer; }
+.student-assistant__form-row button:disabled { opacity: .5; cursor: not-allowed; }
+.student-assistant__disclaimer { margin: 8px 12px 2px; color: #64748b; font-size: .67rem; line-height: 1.35; }
+.student-assistant__link { display: flex; align-items: center; gap: 5px; margin: 0 12px 10px; padding: 5px 0; border: 0; background: none; color: #173b88; font: inherit; font-size: .75rem; font-weight: 700; cursor: pointer; }

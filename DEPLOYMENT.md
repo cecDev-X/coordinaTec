@@ -98,3 +98,19 @@ existentes siguen vigentes hasta su vencimiento (máximo 8 horas).
 
 No habilitar `COORDINATEC_DEMO_USERS_ENABLED` en producción. El catálogo inicial
 puede estar vacío; agregar coordinadores y trámites desde el panel de Jefatura.
+
+## Asistente estudiantil (Groq)
+
+Crear una API key en Groq y colocar `GROQ_API_KEY=...` únicamente en `.env.production`
+de la VPS. Compose la pasa solo al backend; reconstruir y recrear `spring-backend`
+tras actualizar el repositorio. Sin clave, el asistente responde como no disponible.
+El modelo por defecto es `openai/gpt-oss-20b`; puede cambiarse con
+`COORDINATEC_GROQ_MODEL` si se configura en el entorno del backend.
+
+El chat solo acepta sesiones de estudiantes y usa los trámites habilitados para su
+carrera como referencia. No lee citas ni ejecuta cambios; las respuestas pueden
+contener errores y deben contrastarse con coordinación. Se limita a 10 consultas
+por estudiante/minuto, 20 consultas/minuto y 500 consultas/día por instancia
+(los contadores se reinician al reiniciar el backend). El historial se envía
+acotado y no se guarda en la base de datos. Consultar los límites vigentes en
+Groq Console: podrían cambiar y la API puede responder 429.

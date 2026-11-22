@@ -2,6 +2,7 @@ import { useRef } from 'react'
 import StudentTopbar from '../components/StudentTopbar.jsx'
 import StudentBottomNav from '../components/StudentBottomNav.jsx'
 import StudentIcon from '../components/StudentIcon.jsx'
+import StudentAssistant from '../components/StudentAssistant.jsx'
 import '../css/student-home.css'
 
 function StudentHomePage({
@@ -176,6 +177,7 @@ function StudentHomePage({
         </main>
 
         <StudentBottomNav activeTab="student-home" onNavigate={onNavigateTab} />
+        <StudentAssistant onNavigate={onNavigateTab} />
       </div>
     </div>
   )

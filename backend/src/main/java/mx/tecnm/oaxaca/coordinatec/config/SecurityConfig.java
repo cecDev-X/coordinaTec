@@ -39,6 +39,7 @@ public class SecurityConfig {
                 .requestMatchers("/error", "/api/v1/auth/login", "/api/v1/estudiantes/registro", "/api/v1/estudiantes/sesion", "/api/v1/estudiantes/carreras", "/api/v1/estudiantes/recuperacion/**", "/api/v1/coordinadores/departamentos/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/tramites/**", "/api/v1/coordinadores/*/disponibilidad").permitAll()
                 .requestMatchers("/api/v1/estudiantes/**", "/api/v1/citas/estudiantes/**").hasRole("ESTUDIANTE")
+                .requestMatchers("/api/v1/asistente/**").hasRole("ESTUDIANTE")
                 .requestMatchers("/api/v1/catalogos/**").hasAnyRole("ESTUDIANTE", "COORDINADOR", "JEFE_COORDINADORES")
                 .requestMatchers("/api/v1/jefe-coordinadores/**").hasRole("JEFE_COORDINADORES")
                 .requestMatchers("/api/v1/notificaciones/citas/**").hasAnyRole("COORDINADOR", "JEFE_COORDINADORES")
