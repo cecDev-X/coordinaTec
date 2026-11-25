@@ -148,7 +148,24 @@ class CitaConfirmationFlowTests {
                     .header("Authorization", "Bearer " + jwt.issue(rfc, "COORDINADOR"))
                     .contentType(MediaType.APPLICATION_JSON).content("{\"estado\":\"NO_ASISTIO\"}"))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.estado").value("NO_ASISTIO"));
-            assertThat(jdbc.queryForObject("SELECT count(*) FROM notificacion_cita WHERE destinatario = ? AND rol = 'COORDINADOR'", Integer.class, rfc)).isEqualTo(3);
+            String secondAbsence = "FOL-FALTA-" + unique;
+            jdbc.update("""
+                INSERT INTO cita (folio, fecha_programada, hora_inicio, hora_fin, estado, motivo,
+                                  coordinador_rfc, estudiante_numerocontrol, formato_folio)
+                VALUES (?, CURRENT_DATE - 2, '09:00', '09:20', 'PROGRAMADA', '',
+                        ?, ?, ?)
+                """, secondAbsence, rfc, control, formato);
+            mvc.perform(patch("/api/v1/citas/" + secondAbsence + "/estado")
+                    .header("Authorization", "Bearer " + jwt.issue(rfc, "COORDINADOR"))
+                    .contentType(MediaType.APPLICATION_JSON).content("{\"estado\":\"NO_ASISTIO\"}"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.estado").value("NO_ASISTIO"));
+            assertThat(jdbc.queryForObject("SELECT suspendido_hasta > CURRENT_TIMESTAMP FROM estudiante WHERE numerocontrol = ?", Boolean.class, control))
+                .isTrue();
+            mvc.perform(post("/api/v1/citas").header("Authorization", authorization)
+                    .contentType(MediaType.APPLICATION_JSON).content(payload.replace("10:00", "10:00")))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.mensaje").value("No puedes agendar citas porque tienes una suspensión activa por inasistencias."));
+            assertThat(jdbc.queryForObject("SELECT count(*) FROM notificacion_cita WHERE destinatario = ? AND rol = 'COORDINADOR'", Integer.class, rfc)).isEqualTo(4);
         } finally {
             jdbc.update("DELETE FROM cita WHERE estudiante_numerocontrol = ?", control);
             jdbc.update("DELETE FROM jefe_coordinadores WHERE username = ?", jefe);

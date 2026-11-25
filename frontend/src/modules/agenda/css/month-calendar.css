@@ -1,0 +1,78 @@
+.month-calendar {
+  overflow: hidden;
+  border: 1px solid var(--dashboard-border);
+  border-radius: 11px;
+  background: #fff;
+}
+
+.month-calendar__weekdays,
+.month-calendar__grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+
+.month-calendar__weekdays {
+  color: #f3f6fc;
+  background: #1a2d45;
+}
+
+.month-calendar__weekdays span {
+  padding: 10px 6px;
+  font-size: var(--dashboard-small);
+  font-weight: 700;
+  text-align: center;
+}
+
+.month-calendar__cell {
+  min-width: 0;
+  min-height: 112px;
+  padding: 7px;
+  border-top: 1px solid #e7edf5;
+  border-right: 1px solid #e7edf5;
+}
+
+.month-calendar__cell:nth-child(7n) { border-right: 0; }
+.month-calendar__cell.is-outside { color: #a4afbf; background: #f8fafc; }
+.month-calendar__cell time { display: block; margin-bottom: 6px; font-size: .78rem; font-weight: 700; }
+.month-calendar__events { display: grid; gap: 3px; }
+
+.month-calendar__event {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  padding: 4px 5px;
+  overflow: hidden;
+  border: 0;
+  border-left: 3px solid #5978bd;
+  border-radius: 3px;
+  color: #29406b;
+  background: #edf3ff;
+  font: inherit;
+  font-size: .68rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.month-calendar__event.is-pending { border-left-color: #e29a29; background: #fff6e5; }
+.month-calendar__event span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.month-calendar__event:hover { filter: brightness(.97); }
+.month-calendar__more { color: #64748b; font-size: .67rem; }
+
+.week-calendar--day table { min-width: 0; }
+.week-calendar--day .week-calendar__scroll { overflow-x: auto; }
+.week-calendar--day tbody td { min-width: 240px; }
+
+@media (max-width: 700px) {
+  .month-calendar__cell { min-height: 84px; padding: 5px 3px; }
+  .month-calendar__event { padding: 4px 2px; font-size: .61rem; }
+  .month-calendar__weekdays span { padding-inline: 2px; font-size: .68rem; }
+  .month-calendar__more { font-size: .6rem; }
+}
+
+@media (max-width: 420px) {
+  .month-calendar__cell { min-height: 66px; padding: 4px 2px; }
+  .month-calendar__cell time { margin-bottom: 3px; font-size: .68rem; }
+  .month-calendar__event span { font-size: 0; }
+  .month-calendar__event span::before { content: '•'; font-size: .8rem; }
+  .month-calendar__more { font-size: .56rem; }
+}

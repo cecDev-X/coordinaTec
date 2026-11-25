@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import PasswordRules from '../../estudiantes/components/PasswordRules.jsx'
+import ConfirmationModal from '../../../components/ConfirmationModal.jsx'
 import { nameIsValid, passwordIsValid } from '../../estudiantes/data/registroValidation.js'
 import '../css/coordinadores-page.css'
 
@@ -15,6 +16,7 @@ function CoordinadoresPage({ token }) {
   const [editing, setEditing] = useState(null)
   const [coordinatorFields, setCoordinatorFields] = useState({})
   const [jefaFields, setJefaFields] = useState({})
+  const [deleting, setDeleting] = useState(null)
 
   const cargarDatos = useCallback(async () => {
     setCargando(true)
@@ -90,7 +92,6 @@ function CoordinadoresPage({ token }) {
   }
 
   async function eliminarCoordinador(coordinador) {
-    if (!window.confirm(`¿Eliminar a ${coordinador.nombreCompleto}?`)) return
     try {
       const response = await fetch(`${API}/api/v1/jefe-coordinadores/${encodeURIComponent(coordinador.rfc)}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } })
       const result = await response.json().catch(() => ({}))
@@ -144,8 +145,8 @@ function CoordinadoresPage({ token }) {
                 <div className="coordinador-card__body"><strong>{coordinador.nombreCompleto}</strong><span className="coordinador-card__rfc">{coordinador.rfc}</span>
                   <div className="coordinador-card__careers">{coordinador.carreras.length ? coordinador.carreras.map((carrera) => <span key={carrera}>{carrera}</span>) : <span className="coordinador-card__none">Sin carreras asignadas</span>}</div>
                   <div className="coordinador-card__actions" aria-label={`Acciones para ${coordinador.nombreCompleto}`}>
-                    <button className="coordinador-card__edit" type="button" onClick={() => { setEditing(coordinador); setCoordinatorFields({}); setSeleccionadas(coordinador.carreras) }}>Editar</button>
-                    <button className="coordinador-card__delete" type="button" onClick={() => eliminarCoordinador(coordinador)}>Eliminar</button>
+                     <button className="coordinador-card__edit" type="button" onClick={() => setDeleting({ ...coordinador, isEditConfirmation: true })}>Editar</button>
+                     <button className="coordinador-card__delete" type="button" onClick={() => setDeleting(coordinador)}>Eliminar</button>
                   </div>
                 </div>
               </article>
@@ -167,6 +168,7 @@ function CoordinadoresPage({ token }) {
         </form>
         {jefaMensaje && <p className="coordinadores-page__message" role="status">{jefaMensaje}</p>}
       </section>
+      <ConfirmationModal open={Boolean(deleting)} title={deleting?.isEditConfirmation ? 'Editar coordinador' : 'Eliminar coordinador'} message={deleting?.isEditConfirmation ? `¿Deseas abrir los datos de ${deleting?.nombreCompleto} para editarlos?` : `¿Eliminar a ${deleting?.nombreCompleto}? Esta acción no se puede deshacer.`} confirmLabel={deleting?.isEditConfirmation ? 'Sí, editar' : 'Sí, eliminar'} danger={!deleting?.isEditConfirmation} onCancel={() => setDeleting(null)} onConfirm={() => { const item = deleting; setDeleting(null); if (item?.isEditConfirmation) { setEditing(item); setCoordinatorFields({}); setSeleccionadas(item.carreras) } else if (item) eliminarCoordinador(item) }} />
     </section>
   )
 }

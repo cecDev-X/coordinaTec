@@ -164,3 +164,8 @@
     margin-top: 4px;
   }
 }
+
+@media (max-width: 600px) {
+  .dashboard__content { padding: 16px 12px calc(28px + env(safe-area-inset-bottom, 0px)); }
+  .dashboard__columns { min-width: 0; }
+}

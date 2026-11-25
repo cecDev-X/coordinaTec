@@ -4,6 +4,7 @@ import CitasFilters from '../components/CitasFilters.jsx'
 import CitasTable from '../components/CitasTable.jsx'
 import CareerSelection from '../../dashboard/components/CareerSelection.jsx'
 import CitaFormModal from '../../agenda/components/CitaFormModal.jsx'
+import ConfirmationModal from '../../../components/ConfirmationModal.jsx'
 import '../css/citas-page.css'
 
 const pageSize = 4
@@ -36,6 +37,7 @@ function CitasPage({ role, username, token }) {
   const [formOpen, setFormOpen] = useState(false)
   const [editing, setEditing] = useState(null)
   const [jefaturaRfc, setJefaturaRfc] = useState('')
+  const [confirmation, setConfirmation] = useState(null)
 
   useEffect(() => {
     const controller = new AbortController()
@@ -141,7 +143,6 @@ function CitasPage({ role, username, token }) {
   }
 
   async function handleCancel(folio) {
-    if (!window.confirm(`¿Cancelar la cita ${folio}? Se notificará al estudiante por correo si lo tiene registrado.`)) return
     setUpdatingFolio(folio)
     setActionError('')
     try {
@@ -154,7 +155,6 @@ function CitasPage({ role, username, token }) {
   }
 
   async function handleNoShow(folio) {
-    if (!window.confirm(`¿Marcar la cita ${folio} como "No asistió"?`)) return
     setUpdatingFolio(folio)
     setActionError('')
     try {
@@ -174,8 +174,13 @@ function CitasPage({ role, username, token }) {
     try {
       const response = await fetch(`/api/v1/citas/${encodeURIComponent(folio)}`, { headers: { Authorization: `Bearer ${token}` } })
       if (!response.ok) throw new Error('No se pudieron cargar los datos de la cita.')
-      setEditing(await response.json())
-      setFormOpen(true)
+      const citation = await response.json()
+      setConfirmation({
+        title: 'Editar cita',
+        message: `¿Deseas abrir la cita ${folio} para editar sus datos?`,
+        confirmLabel: 'Sí, editar',
+        onConfirm: () => { setConfirmation(null); setEditing(citation); setFormOpen(true) },
+      })
     } catch (cause) { setActionError(cause.message) }
   }
 
@@ -220,14 +225,27 @@ function CitasPage({ role, username, token }) {
             onMarkAttended={handleMarkAttended}
             canManage={role === 'JEFE_COORDINADORES'}
             onEdit={handleEdit}
-            onCancel={handleCancel}
-            onMarkNoShow={handleNoShow}
+            onCancel={(folio) => setConfirmation({
+              title: 'Cancelar cita',
+              message: `¿Deseas cancelar la cita ${folio}? Se notificará al estudiante por correo si lo tiene registrado.`,
+              confirmLabel: 'Sí, cancelar cita',
+              danger: true,
+              onConfirm: () => { setConfirmation(null); handleCancel(folio) },
+            })}
+            onMarkNoShow={(folio) => setConfirmation({
+              title: 'Marcar inasistencia',
+              message: `¿Confirmas que el estudiante no asistió a la cita ${folio}?`,
+              confirmLabel: 'Confirmar inasistencia',
+              danger: true,
+              onConfirm: () => { setConfirmation(null); handleNoShow(folio) },
+            })}
             updatingFolio={updatingFolio}
             emptyMessage={citas.length === 0 ? 'No hay citas registradas.' : 'No se encontraron citas con esos filtros.'}
           />
         </>
       )}
       {formOpen && <CitaFormModal token={token} role={role} username={username} defaultCoordinatorRfc={jefaturaRfc} initialCitation={editing} onClose={() => { setFormOpen(false); setEditing(null) }} onCreated={() => { setFormOpen(false); setEditing(null); setLoading(true); setAttempt((current) => current + 1) }} />}
+      <ConfirmationModal open={Boolean(confirmation)} {...confirmation} onCancel={() => setConfirmation(null)} />
     </div>
   )
 }

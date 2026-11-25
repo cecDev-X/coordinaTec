@@ -6,6 +6,8 @@
 .coordinator-settings__profile, .coordinator-settings__card, .coordinator-settings__security { border: 1px solid #e2eaf2; border-radius: 16px; background: #fff; box-shadow: 0 8px 28px #2439580a; }
 .coordinator-settings__profile { display: flex; align-items: center; gap: 16px; padding: 22px 24px; margin-bottom: 18px; }
 .coordinator-settings__avatar { display: grid; width: 54px; height: 54px; flex: 0 0 54px; place-items: center; border-radius: 16px; background: #eaf1fa; color: #214b83; font-size: 1.3rem; font-weight: 800; }
+.coordinator-settings__avatar { overflow: hidden; }
+.coordinator-settings__avatar img { width: 100%; height: 100%; object-fit: cover; }
 .coordinator-settings__profile-copy { min-width: 0; }
 .coordinator-settings__profile-copy h2 { margin: 3px 0; font-size: 1.05rem; overflow-wrap: anywhere; }
 .coordinator-settings__profile-copy p { margin: 0; color: #718096; font-size: .88rem; }

@@ -7,7 +7,7 @@ function currentCycleLabel(date = new Date()) {
   const month = date.getMonth()
   const year = date.getFullYear()
   if (month <= 5) return `Enero - Junio ${year}`
-  if (month === 6) return `Periodo intersemestral ${year}`
+  if (month === 6) return `Período intersemestral ${year}`
   return `Agosto - Diciembre ${year}`
 }
 
@@ -35,8 +35,10 @@ function StudentLoginPage({ onLoginSuccess, onGoToRegister, onRecoverPassword })
 
       const student = await loginStudentApi(cleanIdentifier, password)
       onLoginSuccess(student)
-    } catch {
-      setNotice('Número de control o contraseña incorrectos.')
+    } catch (error) {
+      setNotice(error.status === 403
+        ? error.message
+        : 'Número de control o contraseña incorrectos.')
     } finally {
       setIsSubmitting(false)
     }

@@ -469,6 +469,26 @@
   font-weight: 500;
 }
 
+@media (min-width: 900px) {
+  .student-home {
+    display: grid;
+    grid-template-columns: minmax(0, 1.35fr) minmax(280px, .85fr);
+    align-content: start;
+    align-items: start;
+    gap: 22px;
+  }
+  .student-home__welcome,
+  .student-home__catalog { grid-column: 1 / -1; }
+  .student-home__booking,
+  .student-home__enrollment-card,
+  .student-home__last-request { min-width: 0; }
+  .student-home__booking { grid-column: 1; }
+  .student-home__enrollment-card { grid-column: 2; }
+  .student-home__catalog { grid-row: span 2; }
+  .student-home__last-request { grid-column: 2; }
+  .student-home__tramites-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
 .student-home__request-badge {
   background-color: #e0e9ff;
   color: #163782;

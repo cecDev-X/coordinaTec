@@ -1,7 +1,7 @@
-.student-assistant { position: fixed; z-index: 55; bottom: calc(78px + env(safe-area-inset-bottom, 0px)); left: 50%; width: min(520px, 100%); transform: translateX(-50%); pointer-events: none; }
+.student-assistant { position: fixed; z-index: 55; bottom: calc(78px + env(safe-area-inset-bottom, 0px)); left: 50%; width: min(1120px, 100%); transform: translateX(-50%); pointer-events: none; }
 .student-assistant__launcher { display: block; margin-left: auto; margin-right: 14px; padding: 12px 16px; border: 0; border-radius: 999px; background: #173b88; color: #fff; box-shadow: 0 6px 20px #0d255c55; font: inherit; font-size: .83rem; font-weight: 800; cursor: pointer; pointer-events: auto; }
 .student-assistant__launcher:hover { background: #0d255c; }
-.student-assistant__panel { display: flex; flex-direction: column; height: min(520px, calc(100dvh - 175px)); margin: 0 12px 10px; border: 1px solid #dbe4f3; border-radius: 16px; background: #fff; box-shadow: 0 16px 40px #0d255c44; overflow: hidden; pointer-events: auto; }
+.student-assistant__panel { display: flex; flex-direction: column; width: min(400px, calc(100% - 24px)); height: min(520px, calc(100dvh - 175px)); margin: 0 12px 10px auto; border: 1px solid #dbe4f3; border-radius: 16px; background: #fff; box-shadow: 0 16px 40px #0d255c44; overflow: hidden; pointer-events: auto; }
 .student-assistant__header { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; background: #173b88; color: #fff; }
 .student-assistant__header strong, .student-assistant__header small { display: block; }
 .student-assistant__header small { margin-top: 2px; color: #dbe9ff; font-size: .73rem; }

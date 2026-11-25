@@ -53,7 +53,7 @@ function StudentCitasPage({
             </div>
           </div>
         </div>
-        {cita.estadoDb === 'PROGRAMADA' && currentTime !== null && new Date(`${cita.fecha}T${cita.horaTexto}:00`).getTime() > currentTime + 60 * 60 * 1000 &&
+        {cita.estadoDb === 'PROGRAMADA' && currentTime !== null && new Date(`${cita.fecha}T${cita.horaTexto}:00`).getTime() > currentTime + 2 * 60 * 60 * 1000 &&
           <button type="button" className="student-citas__cancel" disabled={cancelingFolio !== null} onClick={() => onCancelCita(cita.folio)}>
             {cancelingFolio === cita.folio ? 'Cancelando…' : 'Cancelar cita'}
           </button>}
@@ -76,7 +76,7 @@ function StudentCitasPage({
             <div className="student-citas__intro-texts">
               <h1 className="student-citas__title">Mis Citas</h1>
               <p className="student-citas__subtitle">
-                Consulta y gestiona tus citas presenciales con la coordinación académica
+                Consulta y gestiona tus citas presenciales con la Coordinación Académica.
               </p>
             </div>
 
@@ -92,7 +92,7 @@ function StudentCitasPage({
           </section>
 
           {/* Filtros / Tabs */}
-          <p className="student-citas__cancel-hint">Puedes cancelar una cita hasta una hora antes de su inicio.</p>
+          <p className="student-citas__cancel-hint">Puedes cancelar tu cita hasta 2 horas antes de su inicio. Al acumular dos inasistencias, se suspenderá tu permiso para agendar citas durante 30 días.</p>
           {cancelNotice && <p role="status" className="student-citas__cancel-feedback">{cancelNotice}</p>}
           <div className="student-citas__tabs" role="tablist" aria-label="Filtrar citas">
             <button

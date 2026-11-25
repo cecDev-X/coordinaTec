@@ -1,6 +1,8 @@
 import { useEffect, useState, useSyncExternalStore } from 'react'
 import LoginPage from './modules/auth/pages/LoginPage.jsx'
 import DashboardPage from './modules/dashboard/pages/DashboardPage.jsx'
+import StudentRecoveryPage from './modules/estudiantes/pages/StudentRecoveryPage.jsx'
+import StudentResetPage from './modules/estudiantes/pages/StudentResetPage.jsx'
 
 const routes = new Set(['dashboard', 'tramites', 'agenda', 'citas', 'coordinadores', 'carreras', 'configuracion', 'alumnos'])
 
@@ -11,6 +13,8 @@ function subscribe(callback) {
 
 function getRoute() {
   const path = window.location.hash.slice(2)
+  if (path === 'recuperar-coordinacion') return 'recovery'
+  if (path.startsWith('estudiante/restablecer')) return 'reset'
   if (path === 'panel-principal') return 'dashboard'
   return routes.has(path) ? path : 'login'
 }
@@ -46,6 +50,13 @@ function AdminApp() {
     window.location.hash = '/panel-principal'
   }
 
+  if (route === 'recovery') {
+    return <StudentRecoveryPage onBackToLogin={() => { window.location.hash = '/login' }} initialAccountType="coordinacion" />
+  }
+  if (route === 'reset') {
+    return <StudentResetPage onBackToLogin={() => { window.location.hash = '/login' }} onRequestNew={() => { window.location.hash = '/recuperar-coordinacion' }} />
+  }
+
   if (route !== 'login' && session?.token) {
     const page = ['coordinadores', 'carreras'].includes(route) && session.rol !== 'JEFE_COORDINADORES' ? 'dashboard' : route
     return <DashboardPage
@@ -59,7 +70,7 @@ function AdminApp() {
     />
   }
 
-  return <LoginPage onLogin={login} onGoToStudentPortal={() => { window.location.href = 'https://coordinatec.site/#/estudiante/login' }} />
+  return <LoginPage onLogin={login} onGoToStudentPortal={() => { window.location.href = 'https://coordinatec.site/#/estudiante/login' }} onForgotPassword={() => { window.location.hash = '/recuperar-coordinacion' }} />
 }
 
 export default AdminApp

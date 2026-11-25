@@ -2,10 +2,17 @@ import { useEffect, useState } from 'react'
 import StudentAuthShell from '../components/StudentAuthShell.jsx'
 import PasswordRules from '../components/PasswordRules.jsx'
 import { passwordIsValid } from '../data/registroValidation.js'
-import { confirmPasswordResetApi, validatePasswordResetApi } from '../data/estudiantesData.js'
+import {
+  confirmCoordinatorPasswordResetApi,
+  confirmPasswordResetApi,
+  validateCoordinatorPasswordResetApi,
+  validatePasswordResetApi,
+} from '../data/estudiantesData.js'
 
 function StudentResetPage({ onBackToLogin, onRequestNew }) {
   const token = new URLSearchParams(window.location.hash.split('?')[1] || '').get('token') || ''
+  const accountType = new URLSearchParams(window.location.hash.split('?')[1] || '').get('tipo') || 'estudiante'
+  const isCoordination = accountType === 'coordinacion'
   const [valid, setValid] = useState(null)
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
@@ -17,11 +24,12 @@ function StudentResetPage({ onBackToLogin, onRequestNew }) {
   useEffect(() => {
     let active = true
     if (!token) return undefined
-    validatePasswordResetApi(token).then((result) => {
+    const validate = isCoordination ? validateCoordinatorPasswordResetApi : validatePasswordResetApi
+    validate(token).then((result) => {
       if (active) setValid(Boolean(result.valido))
     }).catch(() => { if (active) setNotice('No se pudo verificar el enlace. Intenta de nuevo.') })
     return () => { active = false }
-  }, [token])
+  }, [isCoordination, token])
 
   async function submit(event) {
     event.preventDefault()
@@ -30,11 +38,15 @@ function StudentResetPage({ onBackToLogin, onRequestNew }) {
     if (!passwordIsValid(password) || password !== confirm) return
     setLoading(true)
     try {
-      const result = await confirmPasswordResetApi(token, password)
+      const confirmReset = isCoordination ? confirmCoordinatorPasswordResetApi : confirmPasswordResetApi
+      const result = await confirmReset(token, password)
       setComplete(true)
       setNotice(result.mensaje)
-      sessionStorage.removeItem('coordinaTecStudentControl')
-      sessionStorage.removeItem('coordinaTecStudentToken')
+      if (isCoordination) sessionStorage.removeItem('coordinaTecSession')
+      else {
+        sessionStorage.removeItem('coordinaTecStudentControl')
+        sessionStorage.removeItem('coordinaTecStudentToken')
+      }
       window.history.replaceState(null, '', '#/estudiante/restablecer')
     } catch (error) {
       setNotice(error.message || 'No se pudo cambiar la contraseña.')
@@ -44,7 +56,7 @@ function StudentResetPage({ onBackToLogin, onRequestNew }) {
     }
   }
 
-  return <StudentAuthShell title="Nueva contraseña" subtitle="Elige una contraseña segura para volver a acceder a CoordinaTec.">
+  return <StudentAuthShell title="Nueva contraseña" subtitle={`Elige una contraseña segura para volver a acceder a CoordinaTec${isCoordination ? ' con tu cuenta de coordinación' : ''}.`}>
     {!token && !complete && <p className="student-login__notice" role="alert">Falta el enlace de recuperación. Solicita uno nuevo.</p>}
     {token && valid === null && !notice && <p className="student-login__notice" role="status">Verificando enlace…</p>}
     {valid === false && !complete && <p className="student-login__notice" role="alert">El enlace es inválido, ya fue utilizado o venció. Solicita uno nuevo.</p>}

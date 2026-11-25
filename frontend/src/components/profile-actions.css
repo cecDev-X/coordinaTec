@@ -1,0 +1,20 @@
+.profile-actions { display: grid; gap: 14px; }
+.profile-actions__card { display: grid; gap: 13px; padding: 18px; border: 1px solid #e4eaf2; border-radius: 16px; background: #fff; box-shadow: 0 8px 24px rgb(25 48 82 / 5%); color: #243958; }
+.profile-actions__heading { display: flex; align-items: center; gap: 11px; }
+.profile-actions__heading > span { display: grid; width: 40px; height: 40px; flex: 0 0 40px; place-items: center; border-radius: 12px; background: #eaf1ff; color: #214786; font-size: 1.35rem; font-weight: 700; }
+.profile-actions__heading h2 { margin: 0 0 3px; font-size: 1rem; }
+.profile-actions__heading p { margin: 0; color: #64748b; font-size: .8rem; line-height: 1.45; }
+.profile-actions__photo-row { display: flex; align-items: center; gap: 15px; }
+.profile-actions__preview { display: grid; width: 74px; height: 74px; flex: 0 0 74px; place-items: center; overflow: hidden; border: 1px solid #dce5f2; border-radius: 50%; background: #f0f5ff; color: #214786; font-size: 1.8rem; }
+.profile-actions__preview img { width: 100%; height: 100%; object-fit: cover; }
+.profile-actions__photo-buttons { display: flex; flex-wrap: wrap; gap: 8px; }
+.profile-actions button { min-height: 40px; padding: 0 14px; border: 0; border-radius: 9px; background: #214786; color: #fff; font: inherit; font-size: .84rem; font-weight: 700; cursor: pointer; }
+.profile-actions button:disabled { opacity: .6; cursor: wait; }
+.profile-actions .profile-actions__secondary { border: 1px solid #d8e1ed; background: #fff; color: #465a76; }
+.profile-actions label { display: grid; gap: 6px; font-size: .82rem; font-weight: 700; }
+.profile-actions label > input { width: 100%; min-height: 42px; padding: 9px 11px; border: 1px solid #cbd5e1; border-radius: 9px; background: #fff; color: #243958; font: inherit; font-weight: 400; }
+.profile-actions label > input:focus { outline: 2px solid #8db2f6; border-color: #214786; }
+.profile-actions__submit { justify-self: start; }
+.profile-actions__message { margin: 0; padding: 10px 12px; border-radius: 9px; background: #effaf4; color: #26744b; font-size: .84rem; }
+.profile-actions__message.is-error { background: #fff1f0; color: #a33228; }
+@media (max-width: 480px) { .profile-actions__photo-row { align-items: flex-start; flex-direction: column; } .profile-actions__submit { width: 100%; } }

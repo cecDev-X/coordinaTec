@@ -22,6 +22,7 @@ const routeToHash = {
   'student-register': '/estudiante/registro',
   'student-recovery': '/estudiante/recuperar',
   'student-reset': '/estudiante/restablecer',
+  'student-verify-email': '/estudiante/confirmar-correo',
   'student-home': '/estudiante/inicio',
   'student-schedule': '/estudiante/agendar',
   'student-confirm': '/estudiante/confirmar',
@@ -44,6 +45,7 @@ function getRoute() {
   if (hash === '#/estudiante/registro') return 'student-register'
   if (hash === '#/estudiante/recuperar') return 'student-recovery'
   if (hash.startsWith('#/estudiante/restablecer?') || hash === '#/estudiante/restablecer') return 'student-reset'
+  if (hash.startsWith('#/estudiante/confirmar-correo?') || hash === '#/estudiante/confirmar-correo') return 'student-verify-email'
   if (hash === '#/estudiante' || hash === '#/estudiante/inicio') return 'student-home'
   if (hash === '#/estudiante/agendar') return 'student-schedule'
   if (hash === '#/estudiante/confirmar') return 'student-confirm'
@@ -75,26 +77,27 @@ function App() {
 
   useEffect(() => {
     const titles = {
-      dashboard: 'Panel Principal',
-      tramites: 'Configuración de Trámites',
-      agenda: 'Agenda y Horarios',
-      citas: 'Lista de Citas Actuales',
-      coordinadores: 'Gestión de Coordinadores',
-      carreras: 'Gestión de Carreras',
+      dashboard: 'Panel principal',
+      tramites: 'Configuración de trámites',
+      agenda: 'Agenda y horarios',
+      citas: 'Lista de citas actuales',
+      coordinadores: 'Gestión de coordinadores',
+      carreras: 'Gestión de carreras',
       configuracion: 'Configuración de cuenta',
       alumnos: 'Alumnos en plataforma',
       login: 'Iniciar sesión',
-      'student-login': 'Portal Estudiantil - Iniciar sesión',
-      'student-register': 'Portal Estudiantil - Crear cuenta',
-      'student-recovery': 'Portal Estudiantil - Recuperar contraseña',
-      'student-reset': 'Portal Estudiantil - Nueva contraseña',
-      'student-home': 'Inicio y Trámites | Estudiante',
-      'student-schedule': 'Agendar Cita | Estudiante',
-      'student-confirm': 'Detalle de Trámite | Estudiante',
-      'student-citas': 'Mis Citas | Estudiante',
-      'student-profile': 'Mi Perfil | Estudiante',
+      'student-login': 'Portal estudiantil – Iniciar sesión',
+      'student-register': 'Portal estudiantil – Crear cuenta',
+      'student-recovery': 'Portal estudiantil – Recuperar contraseña',
+      'student-reset': 'Portal estudiantil – Nueva contraseña',
+      'student-verify-email': 'Portal estudiantil – Confirmar correo',
+      'student-home': 'Inicio y trámites | Estudiante',
+      'student-schedule': 'Agendar cita | Estudiante',
+      'student-confirm': 'Detalle del trámite | Estudiante',
+      'student-citas': 'Mis citas | Estudiante',
+      'student-profile': 'Mi perfil | Estudiante',
     }
-    document.title = `${titles[route] || 'CoordinaTec'} | Coordina Tec`
+    document.title = `${titles[route] || 'CoordinaTec'} | CoordinaTec`
   }, [route])
 
   function navigateTo(targetRoute) {

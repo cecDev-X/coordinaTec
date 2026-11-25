@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import CareerSelection from '../components/CareerSelection.jsx'
+import ConfirmationModal from '../../../components/ConfirmationModal.jsx'
 import PasswordRules from '../../estudiantes/components/PasswordRules.jsx'
 import { nameIsValid, passwordIsValid } from '../../estudiantes/data/registroValidation.js'
 import '../css/estudiantes-admin-page.css'
@@ -17,6 +18,7 @@ function EstudiantesAdminPage({ token, role, username }) {
   const [message, setMessage] = useState('')
   const [saving, setSaving] = useState(false)
   const [fieldValues, setFieldValues] = useState({})
+  const [deletingStudent, setDeletingStudent] = useState(null)
 
   useEffect(() => {
     const controller = new AbortController()
@@ -93,7 +95,6 @@ function EstudiantesAdminPage({ token, role, username }) {
   }
 
   async function deleteStudent(student) {
-    if (!window.confirm(`¿Eliminar al alumno ${student.nombre} (${student.numControl})?`)) return
     setMessage('')
     try {
       const response = await fetch(`/api/v1/jefe-coordinadores/alumnos/${encodeURIComponent(student.numControl)}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } })
@@ -142,7 +143,7 @@ function EstudiantesAdminPage({ token, role, username }) {
         {error ? <p className="admin-students__feedback" role="alert">{error}</p> : loading ? <p className="admin-students__feedback" role="status">Cargando alumnos…</p> : filteredStudents.length === 0 ? <p className="admin-students__feedback">{students.length ? 'No se encontraron alumnos con esa búsqueda.' : 'No hay alumnos registrados para mostrar.'}</p> : (
           <div className="admin-students__table-wrap"><table>
             <thead><tr><th>Nombre completo</th><th>Número de control</th><th>Carrera</th>{role === 'JEFE_COORDINADORES' && <th>Acciones</th>}</tr></thead>
-             <tbody>{filteredStudents.map((student) => <tr key={student.numControl}><td>{student.nombre}</td><td>{student.numControl}</td><td>{student.carrera}</td>{role === 'JEFE_COORDINADORES' && <td><button type="button" onClick={() => { setEditing(student); setFieldValues({}); setFormOpen(true) }}>Editar</button>{' '}<button type="button" onClick={() => deleteStudent(student)}>Eliminar</button></td>}</tr>)}</tbody>
+              <tbody>{filteredStudents.map((student) => <tr key={student.numControl}><td>{student.nombre}</td><td>{student.numControl}</td><td>{student.carrera}</td>{role === 'JEFE_COORDINADORES' && <td><button type="button" onClick={() => setDeletingStudent({ ...student, isEditConfirmation: true })}>Editar</button>{' '}<button type="button" onClick={() => setDeletingStudent(student)}>Eliminar</button></td>}</tr>)}</tbody>
           </table></div>
         )}
       </section>
@@ -157,6 +158,7 @@ function EstudiantesAdminPage({ token, role, username }) {
          <label>{editing ? 'Nueva contraseña (opcional)' : 'Contraseña'}<input name="password" type="password" minLength="8" maxLength="72" onChange={(event) => setFieldValues((current) => ({ ...current, password: event.target.value }))} className={fieldValues.password && !passwordIsValid(fieldValues.password) ? 'is-invalid' : ''} required={!editing} /><PasswordRules password={fieldValues.password || ''} showErrors={Boolean(fieldValues.password)} /></label>
         <footer><button type="button" onClick={() => { setFormOpen(false); setEditing(null) }} disabled={saving}>Cancelar</button><button type="submit" disabled={saving}>{saving ? 'Guardando…' : 'Guardar'}</button></footer>
       </form></div>}
+      <ConfirmationModal open={Boolean(deletingStudent)} title={deletingStudent?.isEditConfirmation ? 'Editar alumno' : 'Eliminar alumno'} message={deletingStudent?.isEditConfirmation ? `¿Deseas abrir los datos de ${deletingStudent?.nombre} para editarlos?` : `¿Eliminar a ${deletingStudent?.nombre} (${deletingStudent?.numControl})? Esta acción no se puede deshacer.`} confirmLabel={deletingStudent?.isEditConfirmation ? 'Sí, editar' : 'Sí, eliminar'} danger={!deletingStudent?.isEditConfirmation} onCancel={() => setDeletingStudent(null)} onConfirm={() => { const item = deletingStudent; setDeletingStudent(null); if (item?.isEditConfirmation) { setEditing(item); setFieldValues({}); setFormOpen(true) } else if (item) deleteStudent(item) }} />
     </section>
   )
 }

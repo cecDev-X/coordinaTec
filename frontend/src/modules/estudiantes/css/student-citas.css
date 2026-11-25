@@ -412,6 +412,19 @@
   text-align: center;
 }
 .student-citas__cancel-hint { margin: 0; color: #475569; font-size: .8rem; }
+
+@media (min-width: 900px) {
+  .student-citas__cards-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+  .student-citas__cards-list > .student-citas__empty { grid-column: 1 / -1; }
+}
+
+@media (max-width: 390px) {
+  .student-citas__title { font-size: 1.3rem; }
+  .student-citas__intro { gap: 8px; }
+  .student-citas__section-header { align-items: flex-start; gap: 8px; }
+  .student-citas__section-meta { text-align: right; }
+  .student-citas__tab { flex: 1 1 auto; justify-content: center; padding-inline: 10px; }
+}
 .student-citas__cancel-feedback { margin: 0; color: #163782; font-size: .85rem; font-weight: 600; }
 .student-citas__cancel { align-self: flex-start; padding: 8px 12px; border: 1px solid #b91c1c; border-radius: 8px; background: #fff; color: #991b1b; font: inherit; font-size: .8rem; font-weight: 700; cursor: pointer; }
 .student-citas__cancel:hover { background: #fee2e2; }

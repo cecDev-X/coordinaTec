@@ -96,6 +96,14 @@ Las cuentas antiguas sin correo registrado deberán añadirlo mediante Jefatura 
 de poder usar la recuperación. Tras restablecer una contraseña, las sesiones JWT
 existentes siguen vigentes hasta su vencimiento (máximo 8 horas).
 
+El registro estudiantil requiere `RESEND_API_KEY`: la cuenta queda pendiente y no
+puede iniciar sesión hasta confirmar el enlace enviado al correo (vence en 24 horas,
+un solo uso). El correo es único sin distinguir mayúsculas/minúsculas; la base
+impone esa regla también para altas administrativas. Los enlaces de confirmación
+se pueden reenviar cada 5 minutos. La migración V16 conserva como verificados los
+correos existentes y se detiene sin alterar datos si encuentra duplicados; antes
+de desplegarla, resolver esos correos duplicados en la base de producción.
+
 No habilitar `COORDINATEC_DEMO_USERS_ENABLED` en producción. El catálogo inicial
 puede estar vacío; agregar coordinadores y trámites desde el panel de Jefatura.
 

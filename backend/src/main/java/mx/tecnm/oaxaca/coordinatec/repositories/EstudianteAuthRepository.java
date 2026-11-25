@@ -19,7 +19,7 @@ public class EstudianteAuthRepository {
 
     public Optional<EstudianteCuentaDTO> buscarPorControl(String numControl) {
         return jdbc.query("""
-            SELECT numerocontrol, nombres, apellidos, carrera, correo, password_hash
+            SELECT numerocontrol, nombres, apellidos, carrera, correo, password_hash, correo_verificado
             FROM estudiante
             WHERE numerocontrol = ?
             """, (rs, row) -> new EstudianteCuentaDTO(
@@ -28,7 +28,8 @@ public class EstudianteAuthRepository {
                 rs.getString("apellidos"),
                 rs.getString("carrera"),
                 rs.getString("correo"),
-                rs.getString("password_hash")
+                rs.getString("password_hash"),
+                rs.getBoolean("correo_verificado")
             ), numControl).stream().findFirst();
     }
 
@@ -36,6 +37,12 @@ public class EstudianteAuthRepository {
         return Boolean.TRUE.equals(jdbc.queryForObject(
             "SELECT EXISTS (SELECT 1 FROM estudiante WHERE numerocontrol = ?)", Boolean.class, numControl
         ));
+    }
+
+    public boolean existeCorreo(String correo) {
+        return Boolean.TRUE.equals(jdbc.queryForObject(
+            "SELECT EXISTS (SELECT 1 FROM estudiante WHERE LOWER(BTRIM(correo)) = LOWER(BTRIM(?)))",
+            Boolean.class, correo));
     }
 
     public List<String> listarCarreras() {
@@ -49,9 +56,9 @@ public class EstudianteAuthRepository {
 
     public void registrar(RegistroEstudianteDTO estudiante, String passwordHash) {
         jdbc.update("""
-            INSERT INTO estudiante (numerocontrol, nombres, apellidos, carrera, correo, password_hash)
-            VALUES (?, ?, ?, ?, ?, ?)
+            INSERT INTO estudiante (numerocontrol, nombres, apellidos, carrera, correo, password_hash, correo_verificado)
+            VALUES (?, ?, ?, ?, ?, ?, FALSE)
             """, estudiante.numControl().trim(), estudiante.nombres().trim(), estudiante.apellidos().trim(),
-            estudiante.carrera().trim(), estudiante.correo().trim(), passwordHash);
+            estudiante.carrera().trim(), estudiante.correo().trim().toLowerCase(java.util.Locale.ROOT), passwordHash);
     }
 }

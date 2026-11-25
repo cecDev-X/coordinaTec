@@ -8,11 +8,17 @@ import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.annotation.Transactional;
+import mx.tecnm.oaxaca.coordinatec.notifications.WelcomeEmailService;
+import org.mockito.ArgumentCaptor;
 
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -30,12 +36,15 @@ class EstudianteAuthTests {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+    @MockitoBean
+    private WelcomeEmailService emailService;
 
     @Test
     @Transactional
-    void registroGuardaPasswordCifradaYPermiteIniciarSesion() throws Exception {
+    void registroRequiereConfirmarCorreoAntesDeIniciarSesionYElEnlaceEsDeUnSoloUso() throws Exception {
         String numControl = "C" + String.format("%08d", Math.abs(UUID.randomUUID().getMostSignificantBits() % 100000000));
         String correo = "estudiante-" + UUID.randomUUID() + "@ejemplo.com";
+        when(emailService.disponible()).thenReturn(true);
         mvc.perform(get("/api/v1/estudiantes/carreras"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$[?(@ == 'Ingeniería Civil')]").isNotEmpty())
@@ -53,12 +62,12 @@ class EstudianteAuthTests {
 
         mvc.perform(post("/api/v1/estudiantes/registro")
                 .contentType(MediaType.APPLICATION_JSON).content(registro))
-            .andExpect(status().isCreated())
-            .andExpect(jsonPath("$.numControl").value(numControl))
-            .andExpect(jsonPath("$.nombre").value("Ana María Muñoz López"))
+            .andExpect(status().isAccepted())
             .andExpect(jsonPath("$.correo").value(correo))
-            .andExpect(jsonPath("$.rol").value("ESTUDIANTE"))
-            .andExpect(jsonPath("$.token").isNotEmpty());
+            .andExpect(jsonPath("$.mensaje").value("Cuenta creada. Revisa tu correo y confirma la dirección para poder iniciar sesión."));
+        ArgumentCaptor<String> tokenCaptor = ArgumentCaptor.forClass(String.class);
+        verify(emailService).enviarVerificacionCuenta(eq("Ana María"), eq(correo), tokenCaptor.capture());
+        String verificationToken = tokenCaptor.getValue();
 
         String storedHash = jdbc.queryForObject(
             "SELECT password_hash FROM estudiante WHERE numerocontrol = ?", String.class, numControl
@@ -66,16 +75,31 @@ class EstudianteAuthTests {
         assertThat(storedHash).isNotEqualTo("ClaveSegura123!");
         assertThat(passwordEncoder.matches("ClaveSegura123!", storedHash)).isTrue();
         assertThat(jdbc.queryForObject("SELECT correo FROM estudiante WHERE numerocontrol = ?", String.class, numControl)).isEqualTo(correo);
+        assertThat(jdbc.queryForObject("SELECT correo_verificado FROM estudiante WHERE numerocontrol = ?", Boolean.class, numControl)).isFalse();
 
         String sesion = """
             {"numControl":"%s", "password":"ClaveSegura123!"}
             """.formatted(numControl);
         mvc.perform(post("/api/v1/estudiantes/sesion")
                 .contentType(MediaType.APPLICATION_JSON).content(sesion))
+            .andExpect(status().isForbidden())
+            .andExpect(jsonPath("$.mensaje").value("Confirma tu correo electrónico antes de iniciar sesión. Revisa tu bandeja o solicita que te reenviemos el enlace."));
+
+        mvc.perform(post("/api/v1/estudiantes/verificacion/confirmar")
+                .contentType(MediaType.APPLICATION_JSON).content("{\"token\":\"%s\"}".formatted(verificationToken)))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.mensaje").value("Correo confirmado. Ya puedes iniciar sesión en CoordinaTec."));
+
+        mvc.perform(post("/api/v1/estudiantes/sesion")
+                .contentType(MediaType.APPLICATION_JSON).content(sesion))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.numControl").value(numControl))
             .andExpect(jsonPath("$.correo").value(correo))
             .andExpect(jsonPath("$.token").isNotEmpty());
+
+        mvc.perform(post("/api/v1/estudiantes/verificacion/confirmar")
+                .contentType(MediaType.APPLICATION_JSON).content("{\"token\":\"%s\"}".formatted(verificationToken)))
+            .andExpect(status().isBadRequest());
 
         mvc.perform(post("/api/v1/estudiantes/sesion")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -96,17 +120,68 @@ class EstudianteAuthTests {
     @Transactional
     void registroAceptaOchoDigitosSinPrefijo() throws Exception {
         String numControl = String.format("%08d", Math.abs(UUID.randomUUID().getMostSignificantBits() % 100000000));
+        when(emailService.disponible()).thenReturn(true);
         mvc.perform(post("/api/v1/estudiantes/registro").contentType(MediaType.APPLICATION_JSON).content("""
             {"numControl":"%s","nombres":"José","apellidos":"De la Cruz",
              "carrera":"Ingeniería en Sistemas Computacionales","correo":"alumno@ejemplo.com",
              "password":"Segura123!"}
             """.formatted(numControl)))
-            .andExpect(status().isCreated())
-            .andExpect(jsonPath("$.numControl").value(numControl));
+            .andExpect(status().isAccepted())
+            .andExpect(jsonPath("$.correo").value("alumno@ejemplo.com"));
+    }
+
+    @Test
+    @Transactional
+    void correoUnicoIgnoraMayusculasYEspacios() throws Exception {
+        when(emailService.disponible()).thenReturn(true);
+        String control = "C" + String.format("%08d", Math.abs(UUID.randomUUID().getMostSignificantBits() % 100000000));
+        String controlDuplicado = "C" + String.format("%08d", (Math.abs(UUID.randomUUID().getLeastSignificantBits() % 100000000)));
+        String correo = "Unico-" + UUID.randomUUID() + "@ejemplo.com";
+        String payload = """
+            {"numControl":"%s","nombres":"Ana","apellidos":"Prueba",
+             "carrera":"Ingeniería en Sistemas Computacionales","correo":"%s","password":"Segura123!"}
+            """;
+        mvc.perform(post("/api/v1/estudiantes/registro").contentType(MediaType.APPLICATION_JSON)
+                .content(payload.formatted(control, correo)))
+            .andExpect(status().isAccepted());
+        mvc.perform(post("/api/v1/estudiantes/registro").contentType(MediaType.APPLICATION_JSON)
+                .content(payload.formatted(controlDuplicado, correo.toUpperCase())))
+            .andExpect(status().isConflict())
+            .andExpect(jsonPath("$.mensaje").value("Ese correo electrónico ya está asociado a otra cuenta."));
+    }
+
+    @Test
+    @Transactional
+    void reenvioDeConfirmacionTieneLimiteDeCincoMinutos() throws Exception {
+        when(emailService.disponible()).thenReturn(true);
+        String control = "C" + String.format("%08d", Math.abs(UUID.randomUUID().getMostSignificantBits() % 100000000));
+        String correo = "reenviar-" + UUID.randomUUID() + "@ejemplo.com";
+        mvc.perform(post("/api/v1/estudiantes/registro").contentType(MediaType.APPLICATION_JSON).content("""
+                {"numControl":"%s","nombres":"Ana","apellidos":"Prueba",
+                 "carrera":"Ingeniería en Sistemas Computacionales","correo":"%s","password":"Segura123!"}
+                """.formatted(control, correo)))
+            .andExpect(status().isAccepted());
+
+        String reenviar = """
+            {"numControl":"%s","correo":"%s"}
+            """.formatted(control, correo);
+        mvc.perform(post("/api/v1/estudiantes/verificacion/reenviar")
+                .contentType(MediaType.APPLICATION_JSON).content(reenviar))
+            .andExpect(status().isAccepted());
+        org.mockito.Mockito.verify(emailService, org.mockito.Mockito.times(1))
+            .enviarVerificacionCuenta(org.mockito.ArgumentMatchers.anyString(), org.mockito.ArgumentMatchers.anyString(), org.mockito.ArgumentMatchers.anyString());
+
+        jdbc.update("UPDATE estudiante_verificacion_correo SET creado_en = CURRENT_TIMESTAMP - INTERVAL '6 minutes' WHERE numerocontrol = ?", control);
+        mvc.perform(post("/api/v1/estudiantes/verificacion/reenviar")
+                .contentType(MediaType.APPLICATION_JSON).content(reenviar))
+            .andExpect(status().isAccepted());
+        org.mockito.Mockito.verify(emailService, org.mockito.Mockito.times(2))
+            .enviarVerificacionCuenta(org.mockito.ArgumentMatchers.anyString(), org.mockito.ArgumentMatchers.eq(correo), org.mockito.ArgumentMatchers.anyString());
     }
 
     @Test
     void registroRechazaDatosInvalidos() throws Exception {
+        when(emailService.disponible()).thenReturn(true);
         String valido = """
             {"numControl":"23160887","nombres":"José","apellidos":"De la Cruz",
              "carrera":"Ingeniería en Sistemas Computacionales","correo":"alumno@ejemplo.com",

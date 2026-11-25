@@ -42,4 +42,5 @@
   .admin-students__directory-heading { align-items: stretch; flex-direction: column; }
   .admin-students__search input { width: 100%; }
   .admin-students__directory table { min-width: 600px; }
+  .admin-students__add { min-height: 44px; }
 }

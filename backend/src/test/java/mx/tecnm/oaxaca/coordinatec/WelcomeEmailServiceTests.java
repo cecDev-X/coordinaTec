@@ -112,4 +112,29 @@ class WelcomeEmailServiceTests {
             server.stop(0);
         }
     }
+
+    @Test
+    void enviaCorreoDeConfirmacionConEnlaceDeUnSoloUso() throws Exception {
+        AtomicReference<String> payload = new AtomicReference<>();
+        HttpServer server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
+        server.createContext("/emails", exchange -> {
+            payload.set(new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8));
+            exchange.sendResponseHeaders(200, -1);
+            exchange.close();
+        });
+        server.start();
+        try {
+            WelcomeEmailService service = new WelcomeEmailService("clave-de-prueba", "CoordinaTec <bienvenida@correo.coordinatec.site>",
+                "http://127.0.0.1:" + server.getAddress().getPort() + "/emails");
+            service.enviarVerificacionCuenta("Ana <script>", "alumno@ejemplo.com", "token-de-confirmacion");
+            JsonNode body = new ObjectMapper().readTree(payload.get());
+            assertThat(body.get("subject").asText()).contains("Confirma tu correo");
+            assertThat(body.get("text").asText())
+                .contains("https://coordinatec.site/#/estudiante/confirmar-correo?token=token-de-confirmacion", "24 horas", "una vez");
+            assertThat(body.get("html").asText()).contains("Ana &lt;script&gt;", "Confirmar correo y activar cuenta");
+            assertThat(payload.get()).doesNotContain("clave-de-prueba");
+        } finally {
+            server.stop(0);
+        }
+    }
 }

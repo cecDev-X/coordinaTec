@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import ProfileActions from '../../../components/ProfileActions.jsx'
 import '../css/coordinador-settings.css'
 
 const defaultPreferences = {
@@ -15,9 +16,10 @@ function readPreferences() {
   }
 }
 
-function CoordinadorSettingsPage({ username, role }) {
+function CoordinadorSettingsPage({ username, role, token }) {
   const [preferences, setPreferences] = useState(readPreferences)
   const [saved, setSaved] = useState(false)
+  const [photo, setPhoto] = useState('')
 
   function togglePreference(key) {
     setPreferences((current) => ({ ...current, [key]: !current[key] }))
@@ -39,7 +41,7 @@ function CoordinadorSettingsPage({ username, role }) {
       </header>
 
       <section className="coordinator-settings__profile" aria-labelledby="settings-profile-title">
-        <div className="coordinator-settings__avatar" aria-hidden="true">{(username || 'C').slice(0, 1).toUpperCase()}</div>
+        <div className="coordinator-settings__avatar" aria-hidden="true">{photo ? <img src={photo} alt="" /> : (username || 'C').slice(0, 1).toUpperCase()}</div>
         <div className="coordinator-settings__profile-copy">
           <span className="coordinator-settings__eyebrow">CUENTA ACTIVA</span>
           <h2 id="settings-profile-title">{username}</h2>
@@ -47,6 +49,8 @@ function CoordinadorSettingsPage({ username, role }) {
         </div>
         <span className="coordinator-settings__status"><i /> Sesión segura</span>
       </section>
+
+      <ProfileActions token={token} onPhotoChange={setPhoto} />
 
       <form className="coordinator-settings__card" onSubmit={savePreferences}>
         <div className="coordinator-settings__section-heading">

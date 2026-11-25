@@ -375,12 +375,47 @@ export function requestPasswordResetApi(correo) {
   return postStudentAuth('recuperacion/solicitar', { correo: correo.trim() })
 }
 
+async function postCoordinatorRecovery(path, payload) {
+  const response = await fetch(`${API_BASE_URL}/auth/recuperacion-coordinacion/${path}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  })
+  const result = await response.json().catch(() => ({}))
+  if (!response.ok) {
+    const error = new Error(result.mensaje || 'No se pudo completar la solicitud.')
+    error.status = response.status
+    throw error
+  }
+  return result
+}
+
+export function requestCoordinatorPasswordResetApi(username, correo) {
+  return postCoordinatorRecovery('solicitar', { username: username.trim(), correo: correo.trim() })
+}
+
+export function validateCoordinatorPasswordResetApi(token) {
+  return postCoordinatorRecovery('validar', { token })
+}
+
+export function confirmCoordinatorPasswordResetApi(token, password) {
+  return postCoordinatorRecovery('confirmar', { token, password })
+}
+
 export function validatePasswordResetApi(token) {
   return postStudentAuth('recuperacion/validar', { token })
 }
 
 export function confirmPasswordResetApi(token, password) {
   return postStudentAuth('recuperacion/confirmar', { token, password })
+}
+
+export function resendStudentEmailVerificationApi(numControl, correo) {
+  return postStudentAuth('verificacion/reenviar', { numControl, correo })
+}
+
+export function confirmStudentEmailApi(token) {
+  return postStudentAuth('verificacion/confirmar', { token })
 }
 
 export async function fetchCarrerasApi({ signal } = {}) {

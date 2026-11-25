@@ -123,7 +123,7 @@ public class CitaConfirmationEmailService {
                 "text", """
                     Hola, %s:
 
-                    Tu cita ha sido cancelada. Ya no debes acudir en la fecha y horario indicados.
+                    Tu cita fue cancelada. Ya no es necesario que acudas en la fecha y el horario indicados.
 
                     Folio: %s
                     Trámite: %s
@@ -141,7 +141,7 @@ public class CitaConfirmationEmailService {
                       <div style="max-width:600px;margin:auto;background:white;border-radius:16px;overflow:hidden;">
                         <div style="padding:28px;background:#203a70;color:white;"><h1 style="margin:0;font-size:24px;">Tu cita fue cancelada</h1></div>
                         <div style="padding:28px;line-height:1.6;">
-                          <p>Hola, <strong>%s</strong>. Tu cita ha sido cancelada. Ya no debes acudir en la fecha y horario indicados.</p>
+                          <p>Hola, <strong>%s</strong>. Tu cita fue cancelada. Ya no es necesario que acudas en la fecha y el horario indicados.</p>
                           <p><strong>Folio:</strong> %s<br><strong>Trámite:</strong> %s<br><strong>Fecha:</strong> %s<br>
                           <strong>Horario:</strong> %s<br><strong>Coordinación:</strong> %s</p>
                           <p>Si necesitas otra cita, <a href="https://coordinatec.site">puedes agendarla aquí</a>.</p>
