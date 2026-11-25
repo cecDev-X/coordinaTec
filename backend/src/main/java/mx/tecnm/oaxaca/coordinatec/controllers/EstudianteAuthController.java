@@ -6,8 +6,13 @@ import mx.tecnm.oaxaca.coordinatec.dtos.EstudianteSesionDTO;
 import mx.tecnm.oaxaca.coordinatec.dtos.InicioSesionEstudianteDTO;
 import mx.tecnm.oaxaca.coordinatec.dtos.RegistroEstudianteDTO;
 import mx.tecnm.oaxaca.coordinatec.repositories.EstudianteAuthRepository;
+import mx.tecnm.oaxaca.coordinatec.repositories.VerificacionCorreoRepository;
 import mx.tecnm.oaxaca.coordinatec.config.JwtService;
 import mx.tecnm.oaxaca.coordinatec.notifications.WelcomeEmailService;
+import mx.tecnm.oaxaca.coordinatec.services.RegistroEstudianteService;
+import mx.tecnm.oaxaca.coordinatec.services.VerificacionCorreoService;
+import mx.tecnm.oaxaca.coordinatec.dtos.ConfirmarCorreoDTO;
+import mx.tecnm.oaxaca.coordinatec.dtos.SolicitarVerificacionCorreoDTO;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -34,13 +39,21 @@ public class EstudianteAuthController {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final WelcomeEmailService welcomeEmailService;
+    private final RegistroEstudianteService registroService;
+    private final VerificacionCorreoService verificacionService;
+    private final VerificacionCorreoRepository verificacionRepository;
 
     public EstudianteAuthController(EstudianteAuthRepository estudiantes, PasswordEncoder passwordEncoder,
-                                   JwtService jwtService, WelcomeEmailService welcomeEmailService) {
+                                   JwtService jwtService, WelcomeEmailService welcomeEmailService,
+                                   RegistroEstudianteService registroService, VerificacionCorreoService verificacionService,
+                                   VerificacionCorreoRepository verificacionRepository) {
         this.estudiantes = estudiantes;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
         this.welcomeEmailService = welcomeEmailService;
+        this.registroService = registroService;
+        this.verificacionService = verificacionService;
+        this.verificacionRepository = verificacionRepository;
     }
 
     @GetMapping("/carreras")
@@ -61,6 +74,10 @@ public class EstudianteAuthController {
     @PostMapping("/registro")
     public ResponseEntity<?> registrar(@Valid @RequestBody RegistroEstudianteDTO request) {
         String numControl = request.numControl().trim();
+        if (!welcomeEmailService.disponible()) {
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                .body(Map.of("mensaje", "El registro con confirmación por correo no está disponible por el momento."));
+        }
         if (!RegistroEstudianteDTO.esPasswordSegura(request.password())) {
             return ResponseEntity.badRequest().body(Map.of("mensaje", "La contraseña debe tener entre 8 y 72 caracteres, minúscula, mayúscula, número y signo especial"));
         }
@@ -71,34 +88,71 @@ public class EstudianteAuthController {
             return ResponseEntity.status(HttpStatus.CONFLICT)
                 .body(Map.of("mensaje", "Ya existe una cuenta con ese número de control"));
         }
+        if (estudiantes.existeCorreo(request.correo())) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(Map.of("mensaje", "Ese correo electrónico ya está asociado a otra cuenta."));
+        }
 
+        RegistroEstudianteService.ConfirmacionPendiente pendiente;
         try {
-            estudiantes.registrar(request, passwordEncoder.encode(request.password()));
+            pendiente = registroService.registrar(request, passwordEncoder.encode(request.password()));
         } catch (DataIntegrityViolationException exception) {
+            if (estudiantes.existeCorreo(request.correo())) {
+                return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(Map.of("mensaje", "Ese correo electrónico ya está asociado a otra cuenta."));
+            }
             return ResponseEntity.status(HttpStatus.CONFLICT)
                 .body(Map.of("mensaje", "Ya existe una cuenta con ese número de control"));
         }
 
-        return estudiantes.buscarPorControl(numControl)
-            .<ResponseEntity<?>>map(cuenta -> {
-                try {
-                    welcomeEmailService.enviarBienvenida(cuenta.nombres(), cuenta.correo());
-                } catch (TaskRejectedException exception) {
-                    // La cuenta ya se guardó: no hacer que un fallo de la cola de correo invalide el registro.
-                }
-                return ResponseEntity.status(HttpStatus.CREATED).body(perfil(cuenta));
-            })
-            .orElseGet(() -> ResponseEntity.internalServerError()
-                .body(Map.of("mensaje", "No se pudo recuperar la cuenta recién creada")));
+        enviarVerificacion(pendiente.nombres(), pendiente.correo(), pendiente.token());
+        return ResponseEntity.accepted().body(Map.of(
+            "mensaje", "Cuenta creada. Revisa tu correo y confirma la dirección para poder iniciar sesión.",
+            "correo", pendiente.correo()
+        ));
+    }
+
+    @PostMapping("/verificacion/confirmar")
+    public ResponseEntity<?> confirmarCorreo(@Valid @RequestBody ConfirmarCorreoDTO request) {
+        if (!verificacionService.confirmar(request.token())) {
+            return ResponseEntity.badRequest().body(Map.of("mensaje", "El enlace de confirmación es inválido, venció o ya fue utilizado."));
+        }
+        return ResponseEntity.ok(Map.of("mensaje", "Correo confirmado. Ya puedes iniciar sesión en CoordinaTec."));
+    }
+
+    @PostMapping("/verificacion/reenviar")
+    public ResponseEntity<?> reenviarVerificacion(@Valid @RequestBody SolicitarVerificacionCorreoDTO request) {
+        if (!welcomeEmailService.disponible()) {
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                .body(Map.of("mensaje", "El envío de correo no está disponible por el momento."));
+        }
+        verificacionService.reenviar(request.numControl(), request.correo())
+            .flatMap(token -> verificacionRepository.buscarCuentaSinVerificar(request.numControl().trim(), request.correo().trim())
+                .map(cuenta -> new RegistroEstudianteService.ConfirmacionPendiente(
+                    cuenta.numControl(), cuenta.nombres(), cuenta.correo(), token)))
+            .ifPresent(pendiente -> enviarVerificacion(pendiente.nombres(), pendiente.correo(), pendiente.token()));
+        return ResponseEntity.accepted().body(Map.of(
+            "mensaje", "Si los datos corresponden a una cuenta pendiente de confirmar, enviaremos un nuevo enlace. Revisa también correo no deseado."
+        ));
     }
 
     @PostMapping("/sesion")
     public ResponseEntity<?> iniciarSesion(@Valid @RequestBody InicioSesionEstudianteDTO request) {
-        return estudiantes.buscarPorControl(request.numControl().trim())
-            .filter(cuenta -> passwordEncoder.matches(request.password(), cuenta.passwordHash()))
-            .<ResponseEntity<?>>map(cuenta -> ResponseEntity.ok(perfil(cuenta)))
-            .orElseGet(() -> ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .body(Map.of("mensaje", "Número de control o contraseña incorrectos")));
+        var cuenta = estudiantes.buscarPorControl(request.numControl().trim())
+            .filter(item -> passwordEncoder.matches(request.password(), item.passwordHash()));
+        if (cuenta.isEmpty()) return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+            .body(Map.of("mensaje", "Número de control o contraseña incorrectos"));
+        if (!cuenta.get().correoVerificado()) return ResponseEntity.status(HttpStatus.FORBIDDEN)
+            .body(Map.of("mensaje", "Confirma tu correo electrónico antes de iniciar sesión. Revisa tu bandeja o solicita que te reenviemos el enlace."));
+        return ResponseEntity.ok(perfil(cuenta.get()));
+    }
+
+    private void enviarVerificacion(String nombres, String correo, String token) {
+        try {
+            welcomeEmailService.enviarVerificacionCuenta(nombres, correo, token);
+        } catch (TaskRejectedException exception) {
+            // El registro queda pendiente; el estudiante podrá solicitar un nuevo enlace.
+        }
     }
 
     private EstudianteSesionDTO perfil(EstudianteCuentaDTO cuenta) {

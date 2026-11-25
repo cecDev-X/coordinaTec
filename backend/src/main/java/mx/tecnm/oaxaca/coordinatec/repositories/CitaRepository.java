@@ -38,7 +38,7 @@ public interface CitaRepository extends JpaRepository<CitaEntity, String> {
           AND (:control IS NULL OR estudiante_numerocontrol = :control)
           AND (fecha_programada + hora_inicio) >
               (CURRENT_TIMESTAMP AT TIME ZONE 'America/Mexico_City' +
-               CASE WHEN :control IS NULL THEN INTERVAL '0 hours' ELSE INTERVAL '1 hour' END)
+                CASE WHEN :control IS NULL THEN INTERVAL '0 hours' ELSE INTERVAL '2 hours' END)
         """, nativeQuery = true)
     int cancelar(@Param("folio") String folio, @Param("control") String control);
 
@@ -50,4 +50,29 @@ public interface CitaRepository extends JpaRepository<CitaEntity, String> {
           AND (fecha_programada + hora_fin) <= (CURRENT_TIMESTAMP AT TIME ZONE 'America/Mexico_City')
         """, nativeQuery = true)
     int marcarNoAsistio(@Param("folio") String folio);
+
+    @Modifying
+    @Transactional
+    @Query(value = """
+        UPDATE estudiante
+        SET suspendido_hasta = CASE
+                WHEN inasistencias_acumuladas + 1 >= 2
+                THEN CURRENT_TIMESTAMP + INTERVAL '30 days'
+                ELSE suspendido_hasta
+            END,
+            inasistencias_acumuladas = CASE
+                WHEN inasistencias_acumuladas + 1 >= 2 THEN 0
+                ELSE inasistencias_acumuladas + 1
+            END
+        WHERE numerocontrol = :control
+        """, nativeQuery = true)
+    int registrarInasistencia(@Param("control") String control);
+
+    @Query(value = """
+        SELECT TO_CHAR(suspendido_hasta AT TIME ZONE 'America/Mexico_City', 'YYYY-MM-DD HH24:MI:SS')
+        FROM estudiante
+        WHERE numerocontrol = :control
+          AND suspendido_hasta > CURRENT_TIMESTAMP
+        """, nativeQuery = true)
+    String suspensionActiva(@Param("control") String control);
 }

@@ -277,6 +277,36 @@
   background: #fff;
 }
 
+.student-register__password-wrap {
+  position: relative;
+}
+
+.student-register__password-wrap .student-login__input {
+  padding-right: 54px;
+}
+
+.student-register__password-wrap .student-login__eye-btn {
+  position: absolute;
+  top: 50%;
+  right: 3px;
+  transform: translateY(-50%);
+  min-width: 44px;
+  min-height: 44px;
+  justify-content: center;
+  padding: 8px;
+  border-radius: 8px;
+}
+
+.student-register__password-wrap .student-login__eye-btn:hover {
+  background: #e0e9ff;
+  color: #173b88;
+}
+
+.student-register__password-wrap .student-login__eye-btn:focus-visible {
+  outline: 2px solid #263f87;
+  outline-offset: -2px;
+}
+
 .student-register__hint {
   color: #64748b;
   font-size: 0.75rem;
@@ -304,6 +334,40 @@
   margin: 5px 0 0;
   padding-left: 18px;
 }
+
+.student-register__confirmation {
+  display: grid;
+  justify-items: center;
+  gap: 11px;
+  padding: 18px;
+  border: 1px solid #c9daf8;
+  border-radius: 14px;
+  background: #f4f8ff;
+  text-align: center;
+}
+
+.student-register__confirmation-icon {
+  display: grid;
+  width: 48px;
+  height: 48px;
+  place-items: center;
+  border-radius: 50%;
+  background: #e0e9ff;
+  color: #173b88;
+}
+
+.student-register__confirmation h3,
+.student-register__confirmation p {
+  margin: 0;
+}
+
+.student-register__confirmation h3 { color: #173b88; font-size: 1rem; }
+.student-register__confirmation p { color: #475569; font-size: .84rem; line-height: 1.5; }
+.student-register__confirmation .student-register__hint { font-size: .76rem; }
+.student-register__resend { width: 100%; margin-top: 3px; }
+.student-register__confirmation.is-success { border-color: #a7f3d0; background: #f0fdf4; }
+.student-register__confirmation.is-success .student-register__confirmation-icon { background: #d1fae5; color: #047857; }
+.student-register__confirmation.is-success h3 { color: #047857; }
 
 .student-login__notice {
   margin: 14px 0 0;

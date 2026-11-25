@@ -6,5 +6,6 @@ public record EstudianteCuentaDTO(
     String apellidos,
     String carrera,
     String correo,
-    String passwordHash
+    String passwordHash,
+    boolean correoVerificado
 ) {}

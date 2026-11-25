@@ -3,13 +3,15 @@ import AgendaBanner from '../components/AgendaBanner.jsx'
 import CitaFormModal from '../components/CitaFormModal.jsx'
 import AgendaToolbar from '../components/AgendaToolbar.jsx'
 import WeekCalendar from '../components/WeekCalendar.jsx'
+import MonthCalendar from '../components/MonthCalendar.jsx'
 import AgendaCoordinatorSelection from '../components/AgendaCoordinatorSelection.jsx'
 import AvailabilityEditor from '../components/AvailabilityEditor.jsx'
-import { appointmentsForWeek, isPending, mondayOf, shiftWeek, statusLabel } from '../data/agendaData.js'
+import { dateKey, isPending, mondayOf, shiftWeek, statusLabel } from '../data/agendaData.js'
 import '../css/agenda-page.css'
 
 function AgendaPage({ onAction, token, role, username }) {
-  const [monday, setMonday] = useState(() => mondayOf(new Date()))
+  const [monday, setMonday] = useState(() => new Date())
+  const [view, setView] = useState('week')
   const [appointments, setAppointments] = useState([])
   const [filter, setFilter] = useState('all')
   const [loading, setLoading] = useState(true)
@@ -67,8 +69,19 @@ function AgendaPage({ onAction, token, role, username }) {
   const coordinatorAppointments = selectedCoordinator && role === 'JEFE_COORDINADORES'
     ? appointments.filter((appointment) => appointment.coordinadorRfc === selectedCoordinator)
     : appointments
-  const weekAppointments = appointmentsForWeek(coordinatorAppointments, monday)
-  const visibleAppointments = appointmentsForWeek(coordinatorAppointments, monday, filter)
+  const weekStart = mondayOf(monday)
+  const periodStart = view === 'week' ? weekStart : view === 'day' ? monday : new Date(monday.getFullYear(), monday.getMonth(), 1)
+  const periodEnd = view === 'week' ? new Date(weekStart.getFullYear(), weekStart.getMonth(), weekStart.getDate() + 6)
+    : view === 'day' ? monday : new Date(monday.getFullYear(), monday.getMonth() + 1, 0)
+  const periodAppointments = coordinatorAppointments.filter((appointment) => appointment.fecha >= dateKey(periodStart) && appointment.fecha <= dateKey(periodEnd))
+  const weekAppointments = periodAppointments
+  const visibleAppointments = periodAppointments.filter((appointment) => filter === 'all' ||
+    (filter === 'attended' && appointment.estado === 'ATENDIDA') || (filter === 'pending' && isPending(appointment.estado)))
+  const periodLabel = view === 'week'
+    ? `${new Intl.DateTimeFormat('es-MX', { day: 'numeric', month: 'short' }).format(weekStart)} – ${new Intl.DateTimeFormat('es-MX', { day: 'numeric', month: 'short', year: 'numeric' }).format(periodEnd)}`
+    : new Intl.DateTimeFormat('es-MX', view === 'day'
+      ? { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }
+      : { month: 'long', year: 'numeric' }).format(monday)
   const filters = [
     { key: 'all', label: 'Todas', count: weekAppointments.length },
     { key: 'pending', label: 'Pendientes', count: weekAppointments.filter((appointment) => isPending(appointment.estado)).length },
@@ -113,10 +126,15 @@ function AgendaPage({ onAction, token, role, username }) {
       <AgendaBanner onRequests={() => onAction('La bandeja de solicitudes estará disponible próximamente.')} />
       {scheduleRfc && <AvailabilityEditor token={token} coordinatorRfc={scheduleRfc} onSaved={setAvailabilityBlocks} />}
       <AgendaToolbar
-        monday={monday}
-        onToday={() => setMonday(mondayOf(new Date()))}
-        onShiftWeek={(weeks) => setMonday((current) => shiftWeek(current, weeks))}
-        onOtherView={(view) => onAction(`La vista de ${view} estará disponible próximamente.`)}
+        label={periodLabel}
+        view={view}
+        onViewChange={setView}
+        onToday={() => setMonday(new Date())}
+        onShift={(direction) => setMonday((current) => {
+          if (view === 'week') return shiftWeek(mondayOf(current), direction)
+          if (view === 'day') return new Date(current.getFullYear(), current.getMonth(), current.getDate() + direction)
+          return new Date(current.getFullYear(), current.getMonth() + direction, 1)
+        })}
         onAdd={() => { setCreateMessage(''); setCreateOpen(true) }}
       />
       {createMessage && <p className="agenda-page__feedback" role="status">{createMessage}</p>}
@@ -143,14 +161,17 @@ function AgendaPage({ onAction, token, role, username }) {
             ))}
           </div>
           {visibleAppointments.length === 0 && (
-            <p className="agenda-page__feedback" role="status">No hay citas {filter === 'all' ? 'registradas' : filter === 'attended' ? 'atendidas' : 'pendientes'} en esta semana.</p>
+            <p className="agenda-page__feedback" role="status">No hay citas {filter === 'all' ? 'registradas' : filter === 'attended' ? 'atendidas' : 'pendientes'} en {view === 'day' ? 'este día' : view === 'month' ? 'este mes' : 'esta semana'}.</p>
           )}
-          <WeekCalendar
-            monday={monday}
-            appointments={visibleAppointments}
-            availability={availabilityBlocks}
-            onAppointment={(appointment) => onAction(`Cita ${appointment.folio}${appointment.coordinadorNombre ? ` · ${appointment.coordinadorNombre}` : ''}: ${appointment.nombre} · ${appointment.tramite} · ${appointment.horaInicio.slice(0, 5)} · ${statusLabel(appointment.estado)}.`)}
-          />
+          {view === 'month'
+            ? <MonthCalendar date={monday} appointments={visibleAppointments} onAppointment={(appointment) => onAction(`Cita ${appointment.folio}${appointment.coordinadorNombre ? ` · ${appointment.coordinadorNombre}` : ''}: ${appointment.nombre} · ${appointment.tramite} · ${appointment.horaInicio.slice(0, 5)} · ${statusLabel(appointment.estado)}.`)} />
+            : <WeekCalendar
+              monday={view === 'week' ? weekStart : monday}
+              appointments={visibleAppointments}
+              availability={availabilityBlocks}
+              view={view}
+              onAppointment={(appointment) => onAction(`Cita ${appointment.folio}${appointment.coordinadorNombre ? ` · ${appointment.coordinadorNombre}` : ''}: ${appointment.nombre} · ${appointment.tramite} · ${appointment.horaInicio.slice(0, 5)} · ${statusLabel(appointment.estado)}.`)}
+            />}
         </>
       )}
       {createOpen && (

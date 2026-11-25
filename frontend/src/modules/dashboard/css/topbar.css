@@ -214,9 +214,13 @@
 
 @media (max-width: 600px) {
   .dashboard-topbar {
-    padding: 0 14px;
+    min-height: calc(60px + env(safe-area-inset-top, 0px));
+    height: auto;
+    padding: env(safe-area-inset-top, 0px) 12px 0;
   }
   .dashboard-topbar__notification-panel { position: fixed; top: 58px; right: 14px; }
+  .dashboard-topbar__menu,
+  .dashboard-topbar__icon-button { width: 44px; height: 44px; }
 }
 
 @media (max-width: 480px) {
@@ -235,4 +239,5 @@
     padding-left: 5px;
   }
   .dashboard-topbar__profile-copy { max-width: 82px; }
+  .dashboard-topbar__location { gap: 5px; }
 }

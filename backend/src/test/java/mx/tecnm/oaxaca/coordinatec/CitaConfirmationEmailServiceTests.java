@@ -63,7 +63,7 @@ class CitaConfirmationEmailServiceTests {
                 "http://127.0.0.1:" + server.getAddress().getPort() + "/emails").enviarCancelacion(cita);
             JsonNode json = new ObjectMapper().readTree(body.get());
             assertThat(json.get("subject").asText()).contains("Cita cancelada", "FOL-PRUEBA");
-            assertThat(json.get("text").asText()).contains("ha sido cancelada", "Cambio de Carrera", "10:00–10:20", "Coordinadora de Sistemas");
+            assertThat(json.get("text").asText()).contains("fue cancelada", "Cambio de Carrera", "10:00–10:20", "Coordinadora de Sistemas");
             assertThat(json.get("html").asText()).contains("Ana &lt;script&gt;").doesNotContain("Ana <script>");
         } finally {
             server.stop(0);

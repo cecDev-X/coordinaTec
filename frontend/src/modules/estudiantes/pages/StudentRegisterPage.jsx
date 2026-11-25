@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import StudentIcon from '../components/StudentIcon.jsx'
-import { fetchCarrerasApi, registerStudentApi } from '../data/estudiantesData.js'
+import { fetchCarrerasApi, registerStudentApi, resendStudentEmailVerificationApi } from '../data/estudiantesData.js'
 import { nameIsValid, passwordIsValid } from '../data/registroValidation.js'
 import PasswordRules from '../components/PasswordRules.jsx'
 import '../css/student-login.css'
@@ -9,17 +9,28 @@ function currentCycleLabel(date = new Date()) {
   const month = date.getMonth()
   const year = date.getFullYear()
   if (month <= 5) return `Enero - Junio ${year}`
-  if (month === 6) return `Periodo intersemestral ${year}`
+  if (month === 6) return `Período intersemestral ${year}`
   return `Agosto - Diciembre ${year}`
 }
 
-function StudentRegisterPage({ onRegisterSuccess, onBackToLogin }) {
+function StudentRegisterPage({ onBackToLogin }) {
   const [form, setForm] = useState({ numControl: '', nombres: '', apellidos: '', carrera: '', correo: '', password: '', confirmPassword: '' })
   const [notice, setNotice] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [carreras, setCarreras] = useState([])
   const [loadingCarreras, setLoadingCarreras] = useState(true)
   const [touched, setTouched] = useState({})
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const [pendingConfirmation, setPendingConfirmation] = useState(false)
+  const [isResending, setIsResending] = useState(false)
+  const [resendWait, setResendWait] = useState(0)
+
+  useEffect(() => {
+    if (!pendingConfirmation || resendWait <= 0) return undefined
+    const timer = window.setInterval(() => setResendWait((seconds) => Math.max(0, seconds - 1)), 1000)
+    return () => window.clearInterval(timer)
+  }, [pendingConfirmation, resendWait])
 
   useEffect(() => {
     const controller = new AbortController()
@@ -64,11 +75,28 @@ function StudentRegisterPage({ onRegisterSuccess, onBackToLogin }) {
     setIsSubmitting(true)
     try {
       const student = await registerStudentApi(form)
-      onRegisterSuccess(student)
+      setPendingConfirmation(true)
+      setResendWait(300)
+      setNotice(student.mensaje || 'Cuenta creada. Revisa tu correo y confirma la dirección para poder iniciar sesión.')
     } catch (error) {
-      setNotice(error.status === 409 ? 'Ya existe una cuenta con ese número de control.' : error.message || 'No se pudo crear la cuenta. Intenta de nuevo.')
+      setNotice(error.message || 'No se pudo crear la cuenta. Intenta de nuevo.')
     } finally {
       setIsSubmitting(false)
+    }
+  }
+
+  async function resendConfirmation() {
+    if (resendWait > 0) return
+    setIsResending(true)
+    setNotice('')
+    try {
+      const result = await resendStudentEmailVerificationApi(form.numControl, form.correo)
+      setNotice(result.mensaje)
+      setResendWait(300)
+    } catch (error) {
+      setNotice(error.message || 'No se pudo reenviar el enlace. Intenta de nuevo más tarde.')
+    } finally {
+      setIsResending(false)
     }
   }
 
@@ -88,9 +116,17 @@ function StudentRegisterPage({ onRegisterSuccess, onBackToLogin }) {
           <section className="student-login__card" aria-labelledby="student-register-title">
             <img className="student-login__tio-logo" src="/tio.png" alt="Mascota del Tecnológico Nacional de México" />
             <h2 id="student-register-title" className="student-login__title">Crear cuenta estudiantil</h2>
-            <p className="student-login__subtitle">Registra tus datos para acceder a CoordinaTec.</p>
+            <p className="student-login__subtitle">{pendingConfirmation ? 'Falta confirmar tu correo para activar la cuenta.' : 'Registra tus datos para acceder a CoordinaTec.'}</p>
 
-            <form className="student-login__form" onSubmit={handleSubmit}>
+            {pendingConfirmation ? <div className="student-register__confirmation" role="status">
+              <span className="student-register__confirmation-icon"><StudentIcon name="mail" size={25} /></span>
+              <h3>Revisa tu correo</h3>
+              <p>Enviamos un enlace a <strong>{form.correo}</strong>. Ábrelo para confirmar que el correo es tuyo y activar tu cuenta. El enlace vence en 24 horas.</p>
+              <p className="student-register__hint">Si no aparece, revisa correo no deseado. Por seguridad, solo puedes solicitar un nuevo enlace cada 5 minutos.</p>
+              <button type="button" className="student-login__submit student-register__resend" onClick={resendConfirmation} disabled={isResending || resendWait > 0}>
+                {isResending ? 'SOLICITANDO…' : resendWait > 0 ? `REENVIAR EN ${Math.floor(resendWait / 60)}:${String(resendWait % 60).padStart(2, '0')}` : 'REENVIAR ENLACE'}
+              </button>
+            </div> : <form className="student-login__form" onSubmit={handleSubmit}>
               <label className="student-login__field-group">
                 <span className="student-login__label">Número de control <span className="student-login__req">*</span></span>
                 <span className="student-login__input-wrap"><span className="student-login__input-icon"><StudentIcon name="user-circle" size={20} /></span>
@@ -120,23 +156,37 @@ function StudentRegisterPage({ onRegisterSuccess, onBackToLogin }) {
                 <input className="student-login__input student-register__plain-input" type="email" name="correo" value={form.correo} onChange={updateField} maxLength={254} autoComplete="email" required />
                 <span className="student-register__hint">Usa un correo al que tengas acceso: ahí recibirás notificaciones y actualizaciones sobre tus trámites.</span>
               </label>
-              <label className="student-login__field-group">
-                <span className="student-login__label">Contraseña <span className="student-login__req">*</span></span>
-                 <input className={`student-login__input student-register__plain-input ${touched.password && form.password && !passwordIsValid(form.password) ? 'is-invalid' : ''}`} aria-invalid={Boolean(touched.password && form.password && !passwordIsValid(form.password))} type="password" name="password" value={form.password} onChange={updateField} minLength={8} maxLength={72} autoComplete="new-password" required />
+              <div className="student-login__field-group">
+                <label htmlFor="student-register-password" className="student-login__label">Contraseña <span className="student-login__req">*</span></label>
+                <div className="student-register__password-wrap">
+                 <input id="student-register-password" className={`student-login__input student-register__plain-input ${touched.password && form.password && !passwordIsValid(form.password) ? 'is-invalid' : ''}`} aria-invalid={Boolean(touched.password && form.password && !passwordIsValid(form.password))} type={showPassword ? 'text' : 'password'} name="password" value={form.password} onChange={updateField} minLength={8} maxLength={72} autoComplete="new-password" required />
+                  <button type="button" className="student-login__eye-btn" onClick={() => setShowPassword((visible) => !visible)}
+                    aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'} aria-controls="student-register-password" aria-pressed={showPassword}
+                    title={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}>
+                    <StudentIcon name={showPassword ? 'eye-off' : 'eye'} size={20} />
+                  </button>
+                </div>
                  <PasswordRules password={form.password} showErrors={touched.password} />
-              </label>
-              <label className="student-login__field-group">
-                <span className="student-login__label">Confirmar contraseña <span className="student-login__req">*</span></span>
-                 <input className={`student-login__input student-register__plain-input ${touched.confirmPassword && form.confirmPassword && form.confirmPassword !== form.password ? 'is-invalid' : ''}`} aria-invalid={Boolean(touched.confirmPassword && form.confirmPassword && form.confirmPassword !== form.password)} type="password" name="confirmPassword" value={form.confirmPassword} onChange={updateField} minLength={8} maxLength={72} autoComplete="new-password" required />
+              </div>
+              <div className="student-login__field-group">
+                <label htmlFor="student-register-confirm-password" className="student-login__label">Confirmar contraseña <span className="student-login__req">*</span></label>
+                <div className="student-register__password-wrap">
+                 <input id="student-register-confirm-password" className={`student-login__input student-register__plain-input ${touched.confirmPassword && form.confirmPassword && form.confirmPassword !== form.password ? 'is-invalid' : ''}`} aria-invalid={Boolean(touched.confirmPassword && form.confirmPassword && form.confirmPassword !== form.password)} type={showConfirmPassword ? 'text' : 'password'} name="confirmPassword" value={form.confirmPassword} onChange={updateField} minLength={8} maxLength={72} autoComplete="new-password" required />
+                  <button type="button" className="student-login__eye-btn" onClick={() => setShowConfirmPassword((visible) => !visible)}
+                    aria-label={showConfirmPassword ? 'Ocultar confirmación de contraseña' : 'Mostrar confirmación de contraseña'} aria-controls="student-register-confirm-password" aria-pressed={showConfirmPassword}
+                    title={showConfirmPassword ? 'Ocultar confirmación de contraseña' : 'Mostrar confirmación de contraseña'}>
+                    <StudentIcon name={showConfirmPassword ? 'eye-off' : 'eye'} size={20} />
+                  </button>
+                </div>
                  {touched.confirmPassword && form.confirmPassword && form.confirmPassword !== form.password && <span className="student-register__hint student-register__hint--error">Las contraseñas no coinciden.</span>}
-              </label>
+              </div>
               <button type="submit" className="student-login__submit" disabled={isSubmitting || loadingCarreras || carreras.length === 0}>
                 <span>{isSubmitting ? 'CREANDO CUENTA...' : 'CREAR CUENTA'}</span><StudentIcon name="arrow-right" size={19} />
               </button>
-            </form>
+            </form>}
 
-            {notice && <p className="student-login__notice" role="alert">{notice}</p>}
-            <p className="student-login__register">¿Ya tienes cuenta? <button type="button" onClick={onBackToLogin}>Inicia sesión</button></p>
+            {notice && <p className="student-login__notice" role={pendingConfirmation ? 'status' : 'alert'}>{notice}</p>}
+            <p className="student-login__register">{pendingConfirmation ? <>¿Ya confirmaste tu correo? <button type="button" onClick={onBackToLogin}>Inicia sesión</button></> : <>¿Ya tienes cuenta? <button type="button" onClick={onBackToLogin}>Inicia sesión</button></>}</p>
           </section>
         </div>
       </div>

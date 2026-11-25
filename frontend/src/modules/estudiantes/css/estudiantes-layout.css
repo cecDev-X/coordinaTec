@@ -47,15 +47,19 @@
     padding: 0;
   }
   .student-shell__viewport {
-    max-width: 520px;
-    border-left: 1px solid rgba(203, 215, 232, 0.7);
-    border-right: 1px solid rgba(203, 215, 232, 0.7);
+    max-width: 1180px;
+    box-shadow: none;
   }
+  .student-topbar__inner { width: min(100%, 1120px); margin-inline: auto; padding-inline: 28px; }
+  .student-main { max-width: 1120px; padding: 28px 28px calc(104px + env(safe-area-inset-bottom, 0px)); }
 }
 
 .student-main {
   flex: 1;
-  padding: 18px 18px 96px;
+  width: 100%;
+  min-width: 0;
+  margin-inline: auto;
+  padding: clamp(14px, 3.6vw, 32px) clamp(14px, 3.6vw, 24px) calc(96px + env(safe-area-inset-bottom, 0px));
   display: flex;
   flex-direction: column;
   gap: 18px;
@@ -168,6 +172,13 @@
   transform: scale(1.03);
 }
 
+.student-topbar__avatar img {
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  object-fit: cover;
+}
+
 /* CABECERA DE FLUJO (AGENDAR / DETALLE) */
 .student-flow-header {
   position: sticky;
@@ -230,8 +241,23 @@
 
 @media (min-width: 768px) {
   .student-bottom-nav {
-    max-width: 520px;
+    width: min(720px, calc(100% - 40px));
+    max-width: 720px;
+    bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+    padding: 7px 14px;
+    border: 1px solid #e0e7f0;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgb(25 48 82 / 12%);
   }
+  .student-bottom-nav__item { min-height: 48px; flex-direction: row; gap: 8px; }
+}
+
+@media (max-width: 390px) {
+  .student-topbar__inner { padding-inline: 12px; }
+  .student-main { gap: 14px; }
+  .student-bottom-nav { padding-inline: 7px; }
+  .student-bottom-nav__inner { gap: 3px; }
+  .student-bottom-nav__label { font-size: .68rem; }
 }
 
 .student-bottom-nav__inner {

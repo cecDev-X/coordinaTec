@@ -48,7 +48,7 @@ function DashboardPage({ onLogout, onNavigate, page = 'dashboard', role, usernam
   else if (page === 'citas') content = <CitasPage role={role} username={username} token={token} />
   else if (page === 'coordinadores') content = <CoordinadoresPage token={token} />
   else if (page === 'carreras') content = <CarrerasPage token={token} />
-  else if (page === 'configuracion') content = <CoordinadorSettingsPage username={username} role={role} />
+  else if (page === 'configuracion') content = <CoordinadorSettingsPage username={username} role={role} token={token} />
   else if (page === 'alumnos') content = <EstudiantesAdminPage token={token} role={role} username={username} />
   else content = <DashboardOverview onNavigate={onNavigate} role={role} username={username} token={token} />
 

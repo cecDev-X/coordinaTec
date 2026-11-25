@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
@@ -63,6 +64,15 @@ public class CitaController {
         }
         if (tieneRol(authentication, "COORDINADOR") && !authentication.getName().equalsIgnoreCase(request.coordinadorRfc())) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("mensaje", "Solo puedes agendar citas de tu coordinación"));
+        }
+        if (tieneRol(authentication, "ESTUDIANTE")) {
+            var suspension = citaRepository.suspensionActiva(authentication.getName());
+            if (suspension != null) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of(
+                    "mensaje", "No puedes agendar citas porque tienes una suspensión activa por inasistencias.",
+                    "suspendidoHasta", suspension.toString()
+                ));
+            }
         }
         if (!catalogoConsultaRepository.existeEstudiante(request.numControlEstudiante())) {
             return ResponseEntity.badRequest().body(Map.of("mensaje", "El estudiante seleccionado no existe"));
@@ -157,7 +167,7 @@ public class CitaController {
         if (citaRepository.cancelar(folio, estudiante ? authentication.getName() : null) == 0) {
             if (!citaRepository.existsById(folio)) return ResponseEntity.notFound().build();
             return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("mensaje", estudiante
-                ? "Solo puedes cancelar citas programadas con más de una hora de anticipación."
+                ? "Solo puedes cancelar citas programadas con más de dos horas de anticipación."
                 : "La cita ya no está programada o su horario ya comenzó."));
         }
         if (datos != null && datos.correo() != null && !datos.correo().isBlank()) {
@@ -193,6 +203,7 @@ public class CitaController {
     }
 
     @PatchMapping("/{folio}/estado")
+    @Transactional
     public ResponseEntity<?> marcarCitaAtendida(@PathVariable String folio, @RequestBody CambiarEstadoCitaDTO request, Authentication authentication) {
         if (tieneRol(authentication, "COORDINADOR")
             && !citaConsultaRepository.coordinadorTieneCita(authentication.getName(), folio)) {
@@ -209,6 +220,11 @@ public class CitaController {
                 return ResponseEntity.notFound().build();
             }
             return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("mensaje", "La cita ya no está PROGRAMADA o aún no termina su horario"));
+        }
+
+        if ("NO_ASISTIO".equals(request.estado())) {
+            citaRepository.findByFolio(folio).ifPresent(cita ->
+                citaRepository.registrarInasistencia(cita.getNumControlEstudiante()));
         }
 
         return citaRepository.findByFolio(folio)

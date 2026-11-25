@@ -3,7 +3,7 @@ import AuthArtwork from '../components/AuthArtwork.jsx'
 import LoginForm from '../components/LoginForm.jsx'
 import '../css/login-page.css'
 
-function LoginPage({ onLogin, onGoToStudentPortal }) {
+function LoginPage({ onLogin, onGoToStudentPortal, onForgotPassword }) {
   const [notice, setNotice] = useState('')
   const [submitting, setSubmitting] = useState(false)
 
@@ -31,6 +31,12 @@ function LoginPage({ onLogin, onGoToStudentPortal }) {
 
           <LoginForm onSubmit={handleLogin} />
           {submitting && <p role="status">Iniciando sesión…</p>}
+
+          {onForgotPassword && (
+            <p className="login-page__register">
+              <button type="button" onClick={onForgotPassword}>¿Olvidaste tu contraseña?</button>
+            </p>
+          )}
 
           {onGoToStudentPortal && (
             <p className="login-page__register">

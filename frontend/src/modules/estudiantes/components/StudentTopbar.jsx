@@ -1,6 +1,6 @@
 import StudentIcon from './StudentIcon.jsx'
 
-function StudentTopbar({ subtitle = 'Inicio', variant = 'default', initials = 'Dg', onAvatarClick }) {
+function StudentTopbar({ subtitle = 'Inicio', variant = 'default', initials = 'Dg', photo = '', onAvatarClick }) {
   return (
     <header className="student-topbar">
       <div className="student-topbar__inner">
@@ -30,7 +30,7 @@ function StudentTopbar({ subtitle = 'Inicio', variant = 'default', initials = 'D
           onClick={onAvatarClick}
           aria-label="Ir a Mi Perfil"
         >
-          {initials}
+          {photo ? <img src={photo} alt="" /> : initials}
         </button>
       </div>
     </header>

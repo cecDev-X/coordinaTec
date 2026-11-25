@@ -125,6 +125,65 @@ public class WelcomeEmailService {
         return !apiKey.isBlank();
     }
 
+    @Async("welcomeMailExecutor")
+    public void enviarVerificacionCuenta(String nombres, String correo, String token) {
+        if (!disponible()) return;
+        String enlace = "https://coordinatec.site/#/estudiante/confirmar-correo?token=" + token;
+        try {
+            String body = mapper.writeValueAsString(Map.of(
+                "from", sender,
+                "to", List.of(correo),
+                "subject", "Confirma tu correo para activar CoordinaTec",
+                "text", """
+                    ¡Hola, %s!
+
+                    Para terminar de crear tu cuenta estudiantil y verificar que esta dirección de correo te pertenece, confírmala:
+
+                    %s
+
+                    El enlace es válido durante 24 horas y solo se puede utilizar una vez. Si no solicitaste esta cuenta, ignora este mensaje.
+
+                    Equipo CoordinaTec
+                    Instituto Tecnológico de Oaxaca
+                    """.formatted(nombres, enlace),
+                "html", """
+                    <!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"></head>
+                    <body style="margin:0;padding:24px 12px;background:#f1f5fb;font-family:Arial,Helvetica,sans-serif;color:#1c2d49;">
+                      <div style="max-width:600px;margin:auto;background:#fff;border:1px solid #dce5f2;border-radius:16px;overflow:hidden;">
+                        <div style="padding:28px 32px;background:#203a70;color:#fff;">
+                          <p style="margin:0 0 8px;font-size:12px;letter-spacing:1px;">TECNM · INSTITUTO TECNOLÓGICO DE OAXACA</p>
+                          <h1 style="margin:0;font-size:25px;">Confirma tu correo</h1>
+                        </div>
+                        <div style="padding:30px 32px;font-size:16px;line-height:1.6;">
+                          <p>¡Hola, <strong>%s</strong>!</p>
+                          <p>Para terminar de crear tu cuenta estudiantil, confirma que tienes acceso a esta dirección de correo electrónico.</p>
+                          <p style="margin:26px 0;"><a href="%s" style="display:inline-block;padding:13px 24px;border-radius:8px;background:#254a91;color:#fff;text-decoration:none;font-weight:bold;">Confirmar correo y activar cuenta</a></p>
+                          <p>El enlace vence en <strong>24 horas</strong> y solo se puede utilizar una vez. Hasta confirmar el correo no podrás iniciar sesión.</p>
+                          <p style="font-size:13px;color:#596b86;">Si no solicitaste esta cuenta, ignora este mensaje.</p>
+                        </div>
+                        <div style="padding:18px 32px;background:#f6f8fc;font-size:13px;color:#596b86;">Equipo CoordinaTec · Instituto Tecnológico de Oaxaca</div>
+                      </div>
+                    </body></html>
+                    """.formatted(escaparHtml(nombres), enlace)
+            ));
+            HttpRequest request = HttpRequest.newBuilder(endpoint)
+                .timeout(Duration.ofSeconds(5))
+                .header("Authorization", "Bearer " + apiKey)
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(body))
+                .build();
+            HttpResponse<Void> response = client.send(request, HttpResponse.BodyHandlers.discarding());
+            if (response.statusCode() < 200 || response.statusCode() >= 300) {
+                log.warn("No se pudo enviar la confirmación de correo: Resend respondió HTTP {}", response.statusCode());
+            }
+        } catch (InterruptedException exception) {
+            Thread.currentThread().interrupt();
+            log.warn("Se interrumpió el envío de confirmación de correo");
+        } catch (IOException | RuntimeException exception) {
+            log.warn("No se pudo enviar la confirmación de correo: {}", exception.getMessage());
+        }
+    }
+
     public boolean enviarRecuperacion(String nombres, String correo, String numControl, String token) {
         if (!disponible()) return false;
         String enlace = "https://coordinatec.site/#/estudiante/restablecer?token=" + token;
@@ -169,6 +228,62 @@ public class WelcomeEmailService {
             log.warn("No se pudo enviar el enlace de recuperación: {}", exception.getMessage());
         }
         return false;
+    }
+
+    public void enviarRecuperacionCoordinacion(String nombre, String correo, String username, String token) {
+        if (!disponible()) return;
+        String enlace = "https://coordinatec.site/#/estudiante/restablecer?tipo=coordinacion&token=" + token;
+        try {
+            String body = mapper.writeValueAsString(Map.of(
+                "from", sender,
+                "to", List.of(correo),
+                "subject", "Restablece la contraseña de tu cuenta CoordinaTec",
+                "text", """
+                    Hola, %s:
+
+                    Recibimos una solicitud para cambiar la contraseña de tu cuenta de coordinación (%s).
+                    Abre este enlace para elegir una contraseña nueva:
+
+                    %s
+
+                    El enlace vence en 30 minutos y solo puede utilizarse una vez. Si no solicitaste este cambio, ignora este mensaje; tu contraseña seguirá igual.
+
+                    Equipo CoordinaTec
+                    Instituto Tecnológico de Oaxaca
+                    """.formatted(nombre, username, enlace),
+                "html", """
+                    <!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"></head>
+                    <body style="margin:0;padding:24px 12px;background:#f1f5fb;font-family:Arial,Helvetica,sans-serif;color:#1c2d49;">
+                      <div style="max-width:600px;margin:auto;background:#fff;border:1px solid #dce5f2;border-radius:16px;overflow:hidden;">
+                        <div style="padding:28px 32px;background:#203a70;color:#fff;"><h1 style="margin:0;font-size:25px;">Restablece tu contraseña</h1></div>
+                        <div style="padding:30px 32px;font-size:16px;line-height:1.6;">
+                          <p>Hola, <strong>%s</strong>.</p>
+                          <p>Recibimos una solicitud para cambiar la contraseña de tu cuenta de coordinación (<strong>%s</strong>).</p>
+                          <p style="margin:26px 0;"><a href="%s" style="display:inline-block;padding:13px 24px;border-radius:8px;background:#254a91;color:#fff;text-decoration:none;font-weight:bold;">Crear una contraseña nueva</a></p>
+                          <p>El enlace vence en <strong>30 minutos</strong> y solo puede utilizarse una vez.</p>
+                          <p style="font-size:13px;color:#596b86;">Si no solicitaste este cambio, ignora este mensaje. Tu contraseña seguirá igual.</p>
+                        </div>
+                        <div style="padding:18px 32px;background:#f6f8fc;font-size:13px;color:#596b86;">Equipo CoordinaTec · Instituto Tecnológico de Oaxaca</div>
+                      </div>
+                    </body></html>
+                    """.formatted(escaparHtml(nombre), escaparHtml(username), enlace)
+            ));
+            HttpRequest request = HttpRequest.newBuilder(endpoint)
+                .timeout(Duration.ofSeconds(5))
+                .header("Authorization", "Bearer " + apiKey)
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(body))
+                .build();
+            HttpResponse<Void> response = client.send(request, HttpResponse.BodyHandlers.discarding());
+            if (response.statusCode() < 200 || response.statusCode() >= 300) {
+                log.warn("No se pudo enviar el enlace de recuperación de coordinación: Resend respondió HTTP {}", response.statusCode());
+            }
+        } catch (InterruptedException exception) {
+            Thread.currentThread().interrupt();
+            log.warn("Se interrumpió el envío de recuperación de coordinación");
+        } catch (IOException | RuntimeException exception) {
+            log.warn("No se pudo enviar el enlace de recuperación de coordinación: {}", exception.getMessage());
+        }
     }
 
     private static String escaparHtml(String texto) {

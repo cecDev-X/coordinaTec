@@ -65,7 +65,7 @@ function StudentAssistant({ onNavigate }) {
           <button type="submit" disabled={loading || !draft.trim()}>Enviar</button>
         </div>
       </form>
-      <p className="student-assistant__disclaimer">Puede equivocarse. Confirma requisitos con tu coordinación. No compartas contraseñas ni datos sensibles.</p>
+      <p className="student-assistant__disclaimer">El asistente puede equivocarse. Confirma los requisitos con tu coordinación. No compartas contraseñas ni datos sensibles.</p>
       <button type="button" className="student-assistant__link" onClick={() => { setOpen(false); onNavigate('student-home') }}>
         Ver trámites y solicitar cita <StudentIcon name="arrow-right" size={14} />
       </button>

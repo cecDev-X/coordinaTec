@@ -14,6 +14,8 @@ import StudentLoginPage from './pages/StudentLoginPage.jsx'
 import StudentRegisterPage from './pages/StudentRegisterPage.jsx'
 import StudentRecoveryPage from './pages/StudentRecoveryPage.jsx'
 import StudentResetPage from './pages/StudentResetPage.jsx'
+import StudentEmailVerificationPage from './pages/StudentEmailVerificationPage.jsx'
+import ConfirmationModal from '../../components/ConfirmationModal.jsx'
 import StudentHomePage from './pages/StudentHomePage.jsx'
 import StudentSchedulePage from './pages/StudentSchedulePage.jsx'
 import StudentConfirmPage from './pages/StudentConfirmPage.jsx'
@@ -39,6 +41,7 @@ function EstudiantesModule({ route, onNavigate }) {
   const [portalError, setPortalError] = useState('')
   const [isSubmittingCita, setIsSubmittingCita] = useState(false)
   const [cancelingFolio, setCancelingFolio] = useState(null)
+  const [pendingCancelFolio, setPendingCancelFolio] = useState(null)
   const [cancelNotice, setCancelNotice] = useState('')
 
   const semanas = useMemo(() => {
@@ -67,7 +70,7 @@ function EstudiantesModule({ route, onNavigate }) {
   // Carga datos del estudiante y las colecciones mostradas en Inicio desde el backend.
   useEffect(() => {
     let mounted = true
-    if (['student-login', 'student-register', 'student-recovery', 'student-reset'].includes(route)) {
+    if (['student-login', 'student-register', 'student-recovery', 'student-reset', 'student-verify-email'].includes(route)) {
       return () => { mounted = false }
     }
 
@@ -201,7 +204,6 @@ function EstudiantesModule({ route, onNavigate }) {
   }
 
   async function handleCancelCita(folio) {
-    if (!window.confirm(`¿Cancelar la cita ${folio}? Esta acción no se puede deshacer.`)) return
     setCancelNotice('')
     setCancelingFolio(folio)
     try {
@@ -230,7 +232,6 @@ function EstudiantesModule({ route, onNavigate }) {
   if (route === 'student-register') {
     return (
       <StudentRegisterPage
-        onRegisterSuccess={handleLoginSuccess}
         onBackToLogin={() => onNavigate('student-login')}
       />
     )
@@ -242,6 +243,10 @@ function EstudiantesModule({ route, onNavigate }) {
 
   if (route === 'student-reset') {
     return <StudentResetPage onBackToLogin={() => onNavigate('student-login')} onRequestNew={() => onNavigate('student-recovery')} />
+  }
+
+  if (route === 'student-verify-email') {
+    return <StudentEmailVerificationPage onBackToLogin={() => onNavigate('student-login')} />
   }
 
   if (isLoadingPortal || !student) {
@@ -295,16 +300,31 @@ function EstudiantesModule({ route, onNavigate }) {
 
   if (route === 'student-citas') {
     return (
+      <>
       <StudentCitasPage
         student={student}
         proximasCitas={proximasCitas}
         historialCitas={historialCitas}
         onNavigateTab={onNavigate}
         onNewCitaClick={() => onNavigate('student-schedule')}
-        onCancelCita={handleCancelCita}
+        onCancelCita={setPendingCancelFolio}
         cancelingFolio={cancelingFolio}
         cancelNotice={cancelNotice}
       />
+        <ConfirmationModal
+          open={Boolean(pendingCancelFolio)}
+          title="Cancelar cita"
+          message={`¿Deseas cancelar la cita ${pendingCancelFolio}? Esta acción no se puede deshacer.`}
+          confirmLabel="Sí, cancelar cita"
+          danger
+          onCancel={() => setPendingCancelFolio(null)}
+          onConfirm={() => {
+            const folio = pendingCancelFolio
+            setPendingCancelFolio(null)
+            if (folio) handleCancelCita(folio)
+          }}
+        />
+      </>
     )
   }
 
@@ -312,6 +332,7 @@ function EstudiantesModule({ route, onNavigate }) {
     return (
       <StudentProfilePage
         student={student}
+        token={sessionStorage.getItem('coordinaTecStudentToken')}
         onNavigateTab={onNavigate}
         onLogout={() => {
           sessionStorage.removeItem('coordinaTecStudentControl')

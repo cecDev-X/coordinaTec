@@ -1,9 +1,10 @@
 import { dateKey, hoursFor, isPending, statusLabel, weekdays } from '../data/agendaData.js'
 import '../css/week-calendar.css'
 
-function WeekCalendar({ monday, appointments, availability = [], onAppointment }) {
-  const days = weekdays.map((label, index) => {
-    const date = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + index)
+function WeekCalendar({ monday, appointments, availability = [], onAppointment, view = 'week' }) {
+  const visibleDays = view === 'day' ? [weekdays[(monday.getDay() + 6) % 7]] : weekdays
+  const days = visibleDays.map((label, index) => {
+    const date = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + (view === 'day' ? 0 : index))
     return { label, day: date.getDate(), key: dateKey(date) }
   })
   const hours = hoursFor(appointments, availability)
@@ -21,7 +22,7 @@ function WeekCalendar({ monday, appointments, availability = [], onAppointment }
   }
 
   return (
-    <section className="week-calendar" aria-label="Citas de la semana">
+    <section className={`week-calendar${view === 'day' ? ' week-calendar--day' : ''}`} aria-label={view === 'day' ? 'Citas del día' : 'Citas de la semana'}>
       <div className="week-calendar__legend"><p className="week-calendar__hint">Desliza para ver todos los días →</p><span><i /> Horario habilitado</span></div>
       <div className="week-calendar__scroll">
         <table>

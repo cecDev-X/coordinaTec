@@ -3,6 +3,7 @@ import DashboardIcon from '../../dashboard/components/DashboardIcon.jsx'
 import TramitesFilters from '../components/TramitesFilters.jsx'
 import TramiteFormModal from '../components/TramiteFormModal.jsx'
 import TramitesTable from '../components/TramitesTable.jsx'
+import ConfirmationModal from '../../../components/ConfirmationModal.jsx'
 import CarreraTramitesPanel from '../components/CarreraTramitesPanel.jsx'
 import '../css/tramites-page.css'
 
@@ -11,6 +12,7 @@ function TramitesPage({ token, role }) {
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState('')
   const [actionError, setActionError] = useState('')
+  const [deleting, setDeleting] = useState(null)
   const [message, setMessage] = useState('')
   const [editing, setEditing] = useState(null)
   const [busyId, setBusyId] = useState(null)
@@ -76,8 +78,6 @@ function TramitesPage({ token, role }) {
   }
 
   async function deleteTramite(tramite) {
-    if (!window.confirm(`¿Eliminar el trámite «${tramite.nombre}»? Esta acción no se puede deshacer.`)) return
-
     setBusyId(tramite.id)
     setActionError('')
     setMessage('')
@@ -139,9 +139,12 @@ function TramitesPage({ token, role }) {
             total={filtered.length}
             busyId={busyId}
             emptyMessage={tramites.length === 0 ? 'No hay tipos de trámite registrados.' : 'No se encontraron trámites con esos filtros.'}
-            onEdit={(tramite) => setEditing(tramites.find((item) => item.id === tramite.id))}
+            onEdit={(tramite) => {
+              const item = tramites.find((candidate) => candidate.id === tramite.id)
+              if (item) setDeleting({ ...item, isEditConfirmation: true })
+            }}
             onToggle={toggleStatus}
-            onDelete={deleteTramite}
+            onDelete={(tramite) => setDeleting(tramite)}
           />
         </>
       )}
@@ -154,6 +157,20 @@ function TramitesPage({ token, role }) {
           onSaved={handleSaved}
         />
       )}
+      <ConfirmationModal
+        open={Boolean(deleting)}
+        title={deleting?.isEditConfirmation ? 'Editar trámite' : 'Eliminar trámite'}
+        message={deleting?.isEditConfirmation ? `¿Deseas abrir «${deleting?.nombre}» para editarlo?` : `¿Eliminar el trámite «${deleting?.nombre}»? Esta acción no se puede deshacer.`}
+        confirmLabel={deleting?.isEditConfirmation ? 'Sí, editar' : 'Sí, eliminar'}
+        danger={!deleting?.isEditConfirmation}
+        onCancel={() => setDeleting(null)}
+        onConfirm={() => {
+          const item = deleting
+          setDeleting(null)
+          if (item?.isEditConfirmation) setEditing(item)
+          else if (item) deleteTramite(item)
+        }}
+      />
     </div>
   )
 }

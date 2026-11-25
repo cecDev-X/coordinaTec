@@ -267,8 +267,13 @@ public class JefeCoordinadoresController {
         if (!password.isBlank() && !RegistroEstudianteDTO.esPasswordSegura(password)) {
             return ResponseEntity.badRequest().body(Map.of("mensaje", "La contraseña debe tener entre 8 y 72 caracteres, minúscula, mayúscula, número y signo especial"));
         }
-        int changed = jdbc.update("UPDATE estudiante SET nombres = ?, apellidos = ?, carrera = ?, correo = CASE WHEN ? = '' THEN correo ELSE ? END WHERE numerocontrol = ?",
-            nombres, apellidos, carrera, correo, correo, numControl);
+        int changed;
+        try {
+            changed = jdbc.update("UPDATE estudiante SET nombres = ?, apellidos = ?, carrera = ?, correo = CASE WHEN ? = '' THEN correo ELSE ? END WHERE numerocontrol = ?",
+                nombres, apellidos, carrera, correo, correo, numControl);
+        } catch (org.springframework.dao.DuplicateKeyException exception) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("mensaje", "Ese correo electrónico ya está asociado a otra cuenta"));
+        }
         if (changed == 0) return ResponseEntity.notFound().build();
         if (password != null && !password.isBlank()) jdbc.update("UPDATE estudiante SET password_hash = ? WHERE numerocontrol = ?", passwordEncoder.encode(password), numControl);
         return ResponseEntity.ok(Map.of("mensaje", "Alumno actualizado"));

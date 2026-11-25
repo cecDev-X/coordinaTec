@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import '../css/carreras-page.css'
+import ConfirmationModal from '../../../components/ConfirmationModal.jsx'
 
 const API = import.meta.env.VITE_API_URL || ''
 
@@ -10,6 +11,7 @@ function CarrerasPage({ token }) {
   const [mensaje, setMensaje] = useState('')
   const [error, setError] = useState('')
   const [cargando, setCargando] = useState(true)
+  const [deleting, setDeleting] = useState(null)
 
   const cargarCarreras = useCallback(async () => {
     setCargando(true)
@@ -66,7 +68,6 @@ function CarrerasPage({ token }) {
   }
 
   async function eliminarCarrera(carrera) {
-    if (!window.confirm(`¿Eliminar «${carrera}» del catálogo?`)) return
     await enviarCambio(`${API}/api/v1/jefe-coordinadores/carreras/${encodeURIComponent(carrera)}`, 'DELETE', null, 'Carrera eliminada.')
   }
 
@@ -103,13 +104,14 @@ function CarrerasPage({ token }) {
                     <button type="button" className="carrera-item__cancel" onClick={() => setEdicion(null)}>Cancelar</button>
                   </form>
                 ) : (
-                  <><span className="carrera-item__symbol" aria-hidden="true">⌂</span><strong>{carrera}</strong><div className="carrera-item__actions"><button type="button" onClick={() => { setError(''); setEdicion({ anterior: carrera, nombre: carrera }) }}>Editar</button><button type="button" className="carrera-item__delete" onClick={() => eliminarCarrera(carrera)}>Eliminar</button></div></>
+                  <><span className="carrera-item__symbol" aria-hidden="true">⌂</span><strong>{carrera}</strong><div className="carrera-item__actions"><button type="button" onClick={() => setDeleting({ carrera, isEditConfirmation: true })}>Editar</button><button type="button" className="carrera-item__delete" onClick={() => setDeleting({ carrera })}>Eliminar</button></div></>
                 )}
               </article>
             ))}</div>
           )}
         </section>
       </div>
+      <ConfirmationModal open={Boolean(deleting)} title={deleting?.isEditConfirmation ? 'Editar carrera' : 'Eliminar carrera'} message={deleting?.isEditConfirmation ? `¿Deseas abrir «${deleting?.carrera}» para editarla?` : `¿Eliminar «${deleting?.carrera || ''}» del catálogo? Esta acción no se puede deshacer.`} confirmLabel={deleting?.isEditConfirmation ? 'Sí, editar' : 'Sí, eliminar'} danger={!deleting?.isEditConfirmation} onCancel={() => setDeleting(null)} onConfirm={() => { const item = deleting; setDeleting(null); if (item?.isEditConfirmation) { setError(''); setEdicion({ anterior: item.carrera, nombre: item.carrera }) } else if (item) eliminarCarrera(item.carrera) }} />
     </section>
   )
 }

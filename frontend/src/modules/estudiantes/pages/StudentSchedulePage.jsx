@@ -85,6 +85,15 @@ function StudentSchedulePage({
             </p>
           </section>
 
+          <aside className="student-schedule__coordinator-note" role="note">
+            <span className="student-schedule__coordinator-note-icon" aria-hidden="true">
+              <StudentIcon name="info" size={18} />
+            </span>
+            <p>
+              <strong>Disponibilidad definida por coordinación.</strong> Las fechas y horas que aparecen aquí fueron establecidas por los coordinadores según su agenda de atención.
+            </p>
+          </aside>
+
           {/* Selector de Semana y Días */}
           <section className="student-schedule__calendar-card" aria-label="Selector de día">
             <div className="student-schedule__week-bar">
@@ -237,7 +246,7 @@ function StudentSchedulePage({
               <StudentIcon name="arrow-right" size={19} />
             </button>
             <p className="student-schedule__cancel-policy">
-              Podrás cancelar sin penalización hasta 2 horas antes.
+              Cancela con al menos 2 horas de anticipación. Al acumular dos inasistencias, se suspenderá tu permiso para agendar citas durante 30 días.
             </p>
           </div>
         </main>
